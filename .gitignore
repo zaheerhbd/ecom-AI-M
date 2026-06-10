@@ -1,0 +1,9 @@
+obj
+bin
+*.db
+appsettings.json
+appsettings.Development.json
+appsettings.*.local.json
+*.rdb
+publish
+wwwroot

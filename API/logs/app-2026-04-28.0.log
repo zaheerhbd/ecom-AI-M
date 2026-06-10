@@ -1,0 +1,84 @@
+2026-04-28 03:56:31.6169|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 03:56:31.6169|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 03:56:31.7301|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (8ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 03:56:31.7301|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (8ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 10:15:44.0471|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 10:15:44.0471|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 10:15:44.0876|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 10:15:44.0876|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 12:33:22.4631|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 12:33:22.4631|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 12:33:22.4631|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (3ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 12:33:22.4631|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (3ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 13:10:26.8042|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 13:10:26.8042|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 13:10:26.8042|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 13:10:26.8042|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 14:15:16.3373|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 14:15:16.3373|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 14:15:16.3599|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 14:15:16.3599|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 22:50:31.4593|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 22:50:31.4593|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 22:50:31.5032|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 22:50:31.5032|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 23:03:24.4412|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 23:03:24.4412|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-28 23:03:24.4412|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-28 23:03:24.4412|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2

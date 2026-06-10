@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>API Project Analysis Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --ink: #18212b;
+      --muted: #5b6572;
+      --line: #d8e0e8;
+      --soft: #f4f7fa;
+      --panel: #ffffff;
+      --accent: #1d4ed8;
+      --accent-2: #0f766e;
+      --warn: #b45309;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      line-height: 1.55;
+      color: var(--ink);
+      background: #eef2f6;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1d4ed8, #0f766e);
+      color: #fff;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.14;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 18px;
+      color: rgba(255,255,255,0.94);
+      max-width: 860px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .section, .toc {
+      background: var(--panel);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 20px;
+    }
+
+    h4 {
+      margin: 18px 0 8px;
+      font-size: 16px;
+    }
+
+    p { margin: 10px 0; }
+    ul, ol { margin: 10px 0 10px 22px; }
+    li { margin: 6px 0; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .mini-card {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .mini-card h4 { margin-top: 0; }
+
+    .diagram {
+      background: linear-gradient(180deg, #fbfdff, #f4f8fb);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      margin: 18px 0;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .box {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 14px 16px;
+      min-width: 128px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .box.small {
+      min-width: 110px;
+      font-weight: 500;
+    }
+
+    .arrow {
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+
+    .table th, .table td {
+      border: 1px solid var(--line);
+      padding: 12px 10px;
+      vertical-align: top;
+    }
+
+    .table th {
+      background: #f8fafc;
+      text-align: left;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin: 0 8px 8px 0;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .success, .warning, .interview {
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 14px 0;
+    }
+
+    .success {
+      background: #effcf6;
+      border-left: 5px solid var(--accent-2);
+    }
+
+    .warning {
+      background: #fff8ed;
+      border-left: 5px solid var(--warn);
+    }
+
+    .interview {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+    }
+
+    .interview strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { max-width: none; padding: 16px; }
+      .hero, .section, .toc { box-shadow: none; }
+      .section, .toc, .diagram, .mini-card, .interview { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>API Project Analysis Guide</h1>
+      <p>
+        Step-by-step backend walkthrough for the .NET API project that powers the Angular storefront.
+        This guide explains the architecture, request pipeline, controllers, services, data access,
+        authentication, payments, caching, AI/RAG features, and interview-ready explanations.
+      </p>
+      <div class="meta">
+        <span class="pill">Platform: ASP.NET Core 5 Web API</span>
+        <span class="pill">Architecture: API + Core + Infrastructure</span>
+        <span class="pill">Data: EF Core + PostgreSQL</span>
+        <span class="pill">Auth: ASP.NET Identity + JWT</span>
+        <span class="pill">AI: Azure AI Search + OpenAI + RAG</span>
+      </div>
+    </section>
+
+    <section class="toc">
+      <h2>How To Read This Document</h2>
+      <div class="two-col">
+        <div>
+          <ol>
+            <li>Start with the overview and architecture diagram.</li>
+            <li>Study the request pipeline to understand how a call travels through the API.</li>
+            <li>Read controllers and services together so business flow makes sense.</li>
+            <li>Finish with the interview section and learning plan.</li>
+          </ol>
+        </div>
+        <div class="success">
+          Easy mindset: think of <strong>API</strong> as the presentation layer,
+          <strong>Core</strong> as business contracts and domain models,
+          and <strong>Infrastructure</strong> as data access and external integrations.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>1. Application Overview</h2>
+      <p>
+        This backend is the server side of the e-commerce application. It exposes endpoints for products,
+        baskets, authentication, addresses, orders, delivery methods, Stripe payments, and AI-assisted Q&amp;A.
+      </p>
+
+      <div class="card-grid">
+        <div class="mini-card">
+          <h4>Main Backend Responsibilities</h4>
+          <ul>
+            <li>Serve product catalog data</li>
+            <li>Manage customer baskets</li>
+            <li>Handle login, registration, and address storage</li>
+            <li>Create orders and track order history</li>
+            <li>Integrate with Stripe for payment intents</li>
+            <li>Support AI chat using Azure AI Search and OpenAI</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>Likely Consumers</h4>
+          <ul>
+            <li>The Angular storefront</li>
+            <li>Local Swagger testing</li>
+            <li>AI indexing/sync commands at startup</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Main Business Flow</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Angular UI</div>
+          <div class="arrow">→</div>
+          <div class="box">API Controller</div>
+          <div class="arrow">→</div>
+          <div class="box">Application Service</div>
+          <div class="arrow">→</div>
+          <div class="box">EF Core / Cache / External API</div>
+          <div class="arrow">→</div>
+          <div class="box">Response DTO</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. Solution Structure</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Project / Folder</th>
+            <th>Purpose</th>
+            <th>Easy Analogy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>API</code></td>
+            <td>HTTP entry point, controllers, middleware, startup, DTOs</td>
+            <td>Presentation layer / web host</td>
+          </tr>
+          <tr>
+            <td><code>Core</code></td>
+            <td>Entities, interfaces, domain models, specifications</td>
+            <td>Business contracts and domain language</td>
+          </tr>
+          <tr>
+            <td><code>Infrastructure</code></td>
+            <td>EF Core, repositories, services, identity, Stripe, AI integrations</td>
+            <td>Data and external systems layer</td>
+          </tr>
+          <tr>
+            <td><code>Controllers</code></td>
+            <td>Expose REST endpoints</td>
+            <td>Traffic desk receiving requests</td>
+          </tr>
+          <tr>
+            <td><code>Dtos</code></td>
+            <td>Request/response contracts sent over HTTP</td>
+            <td>Clean API-facing models</td>
+          </tr>
+          <tr>
+            <td><code>Middleware</code></td>
+            <td>Cross-cutting request handling</td>
+            <td>Pipeline checkpoints</td>
+          </tr>
+          <tr>
+            <td><code>Extensions</code></td>
+            <td>Service registration and startup helpers</td>
+            <td>Organized startup wiring</td>
+          </tr>
+          <tr>
+            <td><code>Data</code> / <code>Identity</code></td>
+            <td>DbContexts, seeding, repositories, EF config</td>
+            <td>Persistence layer</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">API</div>
+          <div class="arrow">depends on</div>
+          <div class="box">Core</div>
+          <div class="arrow">implemented by</div>
+          <div class="box">Infrastructure</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>3. Startup And Request Pipeline</h2>
+      <p>
+        <code>Program.cs</code> builds the host, optionally runs migrations, and can initialize Azure AI Search
+        or sync products/RAG documents based on command-line flags or environment variables.
+      </p>
+
+      <h3>Request Pipeline</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">HTTP Request</div>
+          <div class="arrow">→</div>
+          <div class="box small">ExceptionMiddleware</div>
+          <div class="arrow">→</div>
+          <div class="box small">Swagger / Status Pages</div>
+          <div class="arrow">→</div>
+          <div class="box small">HTTPS</div>
+          <div class="arrow">→</div>
+          <div class="box small">Routing</div>
+          <div class="arrow">→</div>
+          <div class="box small">Static Files</div>
+          <div class="arrow">→</div>
+          <div class="box small">CORS</div>
+          <div class="arrow">→</div>
+          <div class="box small">AuthN / AuthZ</div>
+          <div class="arrow">→</div>
+          <div class="box">Controller</div>
+        </div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Pipeline Part</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ExceptionMiddleware</code></td><td>Catches unhandled exceptions and returns JSON error responses</td></tr>
+          <tr><td><code>UseStatusCodePagesWithReExecute</code></td><td>Maps status codes like 404 to a clean error controller response</td></tr>
+          <tr><td><code>UseStaticFiles</code></td><td>Serves Angular build output and content files</td></tr>
+          <tr><td><code>UseCors</code></td><td>Allows configured frontend origins</td></tr>
+          <tr><td><code>UseAuthentication</code></td><td>Validates JWT bearer tokens</td></tr>
+          <tr><td><code>UseAuthorization</code></td><td>Applies <code>[Authorize]</code> rules</td></tr>
+          <tr><td><code>MapFallbackToController</code></td><td>Returns Angular <code>index.html</code> for SPA routes</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>4. Controllers And Endpoints</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Controller</th>
+            <th>Main Endpoints</th>
+            <th>Business Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ProductsController</code></td>
+            <td><code>GET /products</code>, <code>/products/{id}</code>, <code>/products/brands</code>, <code>/products/types</code></td>
+            <td>Catalog browsing</td>
+          </tr>
+          <tr>
+            <td><code>BasketController</code></td>
+            <td><code>GET /basket</code>, <code>POST /basket</code>, <code>DELETE /basket</code></td>
+            <td>Temporary basket persistence</td>
+          </tr>
+          <tr>
+            <td><code>AccountController</code></td>
+            <td><code>/account/login</code>, <code>/account/register</code>, <code>/account</code>, <code>/account/address</code></td>
+            <td>Authentication and profile data</td>
+          </tr>
+          <tr>
+            <td><code>OrdersController</code></td>
+            <td><code>POST /orders</code>, <code>GET /orders</code>, <code>GET /orders/{id}</code>, <code>/orders/deliveryMethods</code></td>
+            <td>Order creation and history</td>
+          </tr>
+          <tr>
+            <td><code>PaymentsController</code></td>
+            <td><code>POST /payments/{basketId}</code>, <code>GET /payments/config</code>, <code>POST /payments/webhook</code></td>
+            <td>Stripe payment workflow</td>
+          </tr>
+          <tr>
+            <td><code>AiController</code></td>
+            <td><code>GET /ai/documents</code>, <code>POST /ai/chat</code></td>
+            <td>AI search and answer generation</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="success">
+        Controllers in this project are fairly thin. Most business logic sits in services, which is a good architectural pattern.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>5. Data Access And Persistence</h2>
+      <p>
+        The API uses <strong>EF Core</strong> with two PostgreSQL-backed contexts:
+      </p>
+      <ul>
+        <li><code>StoreContext</code> for products, orders, delivery methods</li>
+        <li><code>AppIdentityDbContext</code> for ASP.NET Identity users</li>
+      </ul>
+
+      <h3>Main Data Patterns</h3>
+      <div class="card-grid">
+        <div class="mini-card">
+          <h4>Direct DbContext Usage</h4>
+          <p>Used in services like <code>ProductService</code> and <code>OrderService</code> for straightforward queries.</p>
+        </div>
+        <div class="mini-card">
+          <h4>Repository + Unit of Work</h4>
+          <p>Used especially in payments and generic data access where reusable patterns help.</p>
+        </div>
+        <div class="mini-card">
+          <h4>Basket Repository</h4>
+          <p>Basket data is not stored in the main relational tables. It uses in-memory cache.</p>
+        </div>
+        <div class="mini-card">
+          <h4>AutoMapper</h4>
+          <p>Maps entities to DTOs and keeps controllers from exposing persistence models directly.</p>
+        </div>
+      </div>
+
+      <h3>Typical Product Read Flow</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">ProductsController</div>
+          <div class="arrow">→</div>
+          <div class="box">ProductService</div>
+          <div class="arrow">→</div>
+          <div class="box">StoreContext</div>
+          <div class="arrow">→</div>
+          <div class="box">PostgreSQL</div>
+          <div class="arrow">→</div>
+          <div class="box">AutoMapper DTO</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. Business Services</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Purpose</th>
+            <th>Key Logic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ProductService</code></td>
+            <td>Catalog reads</td>
+            <td>Filtering, sorting, paging with EF Core</td>
+          </tr>
+          <tr>
+            <td><code>OrderService</code></td>
+            <td>Order creation/history</td>
+            <td>Converts basket items into order items and links payment intent</td>
+          </tr>
+          <tr>
+            <td><code>PaymentService</code></td>
+            <td>Stripe integration</td>
+            <td>Creates or updates payment intents, synchronizes basket totals, updates order status from webhook results</td>
+          </tr>
+          <tr>
+            <td><code>TokenService</code></td>
+            <td>JWT generation</td>
+            <td>Creates signed tokens for authenticated users</td>
+          </tr>
+          <tr>
+            <td><code>AiChatService</code></td>
+            <td>AI orchestration</td>
+            <td>Intent detection, retrieval gating, source validation, answer generation</td>
+          </tr>
+          <tr>
+            <td><code>AiRetrieverService</code></td>
+            <td>Vector retrieval</td>
+            <td>Generates embeddings, queries Azure AI Search, returns ranked matches</td>
+          </tr>
+          <tr>
+            <td><code>AzureAiSearchService</code></td>
+            <td>Index management and sync</td>
+            <td>Creates indexes and uploads products/RAG docs in batches</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>7. Authentication And Authorization</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Login Request</div>
+          <div class="arrow">→</div>
+          <div class="box">AccountController</div>
+          <div class="arrow">→</div>
+          <div class="box">UserManager + SignInManager</div>
+          <div class="arrow">→</div>
+          <div class="box">TokenService</div>
+          <div class="arrow">→</div>
+          <div class="box">JWT Response</div>
+        </div>
+      </div>
+
+      <ul>
+        <li>Uses ASP.NET Core Identity with <code>AppUser</code> stored in <code>AppIdentityDbContext</code>.</li>
+        <li>Uses JWT Bearer authentication.</li>
+        <li>Protected endpoints use <code>[Authorize]</code> on controllers or actions.</li>
+        <li>User email is retrieved from claims using a small extension method.</li>
+      </ul>
+
+      <div class="interview">
+        <strong>Interview-friendly explanation</strong>
+        “The API authenticates users with ASP.NET Identity and issues JWTs. Protected endpoints rely on bearer token authentication, and business logic uses the authenticated email claim to scope user data like orders and addresses.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>8. Payments And Checkout Flow</h2>
+      <p>
+        The payment flow is split clearly between order creation and Stripe payment intent creation.
+      </p>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Basket</div>
+          <div class="arrow">→</div>
+          <div class="box">POST /payments/{basketId}</div>
+          <div class="arrow">→</div>
+          <div class="box">PaymentService</div>
+          <div class="arrow">→</div>
+          <div class="box">Stripe PaymentIntent</div>
+          <div class="arrow">→</div>
+          <div class="box">ClientSecret stored in basket</div>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">POST /orders</div>
+          <div class="arrow">→</div>
+          <div class="box">OrderService</div>
+          <div class="arrow">→</div>
+          <div class="box">Order persisted with PaymentIntentId</div>
+          <div class="arrow">→</div>
+          <div class="box">Stripe Webhook</div>
+          <div class="arrow">→</div>
+          <div class="box">Order status updated</div>
+        </div>
+      </div>
+
+      <div class="success">
+        Good design point: the webhook updates the final payment status, so the API does not rely only on the browser saying “payment succeeded.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>9. Caching</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Caching Area</th>
+            <th>How It Works</th>
+            <th>Where Used</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Response cache</td>
+            <td><code>CachedAttribute</code> builds a cache key from request path + query and stores serialized JSON in <code>IMemoryCache</code></td>
+            <td>Products and lookup endpoints</td>
+          </tr>
+          <tr>
+            <td>Basket cache</td>
+            <td><code>BasketRepository</code> stores serialized basket JSON in memory for 30 days</td>
+            <td>Basket operations</td>
+          </tr>
+          <tr>
+            <td>AI embedding cache</td>
+            <td>In-memory cache for computed document embeddings</td>
+            <td>Retriever service internal optimization</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="interview">
+        <strong>Interview-friendly explanation</strong>
+        “The API uses in-memory caching in three different ways: HTTP response caching for product reads, basket persistence for cart state, and AI embedding caching to reduce repeated vector preparation work.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>10. AI And RAG Architecture</h2>
+      <p>
+        This is one of the most interesting parts of the project. The API is not just CRUD-based.
+        It also supports a retrieval-augmented question answering flow.
+      </p>
+
+      <h3>AI Request Flow</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">POST /ai/chat</div>
+          <div class="arrow">→</div>
+          <div class="box">AiChatService</div>
+          <div class="arrow">→</div>
+          <div class="box">AiRetrieverService</div>
+          <div class="arrow">→</div>
+          <div class="box">Azure AI Search</div>
+          <div class="arrow">→</div>
+          <div class="box">Top Chunks</div>
+          <div class="arrow">→</div>
+          <div class="box">OpenAiAnswerGeneratorService</div>
+          <div class="arrow">→</div>
+          <div class="box">Answer + Sources</div>
+        </div>
+      </div>
+
+      <h3>What Makes It Senior-Level</h3>
+      <ul>
+        <li>Intent detection distinguishes product questions from policy/delivery questions.</li>
+        <li>Price constraints can be detected from natural language like “under 100”.</li>
+        <li>Confidence thresholds are used to avoid weak answers.</li>
+        <li>Source coverage checks reduce hallucination risk.</li>
+        <li>Embedding generation falls back locally if OpenAI is not configured.</li>
+        <li>Azure AI Search indexing is separated from query-time answer generation.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>11. Error Handling And Logging</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Mechanism</th>
+            <th>What It Does</th>
+            <th>Assessment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ExceptionMiddleware</code></td>
+            <td>Catches unhandled exceptions and returns JSON error payloads</td>
+            <td>Strong centralized design</td>
+          </tr>
+          <tr>
+            <td><code>ErrorController</code></td>
+            <td>Produces consistent status-code-based error responses</td>
+            <td>Good for 404/other status code handling</td>
+          </tr>
+          <tr>
+            <td>NLog</td>
+            <td>Structured server-side file logging</td>
+            <td>Better than plain console-only logging</td>
+          </tr>
+          <tr>
+            <td>Model validation response factory</td>
+            <td>Converts invalid model state into a clean validation error format</td>
+            <td>Good API consumer experience</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>12. Security Review</h2>
+      <ul>
+        <li>Good: JWT authentication is configured correctly at a high level.</li>
+        <li>Good: protected business endpoints use <code>[Authorize]</code>.</li>
+        <li>Good: Stripe publishable vs secret key responsibilities are separated.</li>
+        <li>Risk: <code>appsettings.json</code> and <code>appsettings.Development.json</code> currently contain development secrets and connection strings directly in the repo.</li>
+        <li>Risk: CORS defaults are permissive for local development, which is okay for dev but should stay locked down in production.</li>
+      </ul>
+
+      <div class="warning">
+        Strong interview note: “One improvement I would prioritize is moving development secrets and tokens fully into user secrets or environment variables so they are not committed in config files.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>13. Performance And Scalability</h2>
+      <div class="two-col">
+        <div class="mini-card">
+          <h4>Good Choices Already Present</h4>
+          <ul>
+            <li>Thin controllers</li>
+            <li>Read caching for products</li>
+            <li>Batch indexing for Azure AI Search</li>
+            <li>Async EF Core and async I/O throughout</li>
+            <li>OpenAI retry logic</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>Possible Improvements</h4>
+          <ul>
+            <li>Replace in-memory basket store with Redis for multi-instance deployment</li>
+            <li>Add health checks and observability endpoints</li>
+            <li>Introduce stricter cache invalidation strategy if write traffic grows</li>
+            <li>Reduce mixed repository/direct DbContext style if consistency matters</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>14. Interview Explanation Pack</h2>
+      <div class="interview">
+        <strong>Tell me about this API project.</strong>
+        “It is an ASP.NET Core 5 backend for an e-commerce platform. It handles catalog reads, baskets, authentication, orders, Stripe payments, and an AI-assisted retrieval flow using Azure AI Search and OpenAI.”
+      </div>
+      <div class="interview">
+        <strong>How is the backend structured?</strong>
+        “The solution separates concerns into API, Core, and Infrastructure. API handles HTTP concerns, Core defines domain contracts and entities, and Infrastructure implements data access and external integrations.”
+      </div>
+      <div class="interview">
+        <strong>How do requests flow through the system?</strong>
+        “A request enters the ASP.NET pipeline, passes through exception handling, routing, CORS, and authentication, then reaches a controller. The controller calls a service, which interacts with EF Core, cache, Stripe, or AI/search services before returning a DTO.”
+      </div>
+      <div class="interview">
+        <strong>How do you handle security?</strong>
+        “Authentication uses ASP.NET Identity and JWT bearer tokens. Authorization is enforced with Authorize attributes, and user-specific operations are scoped using claims such as the authenticated email.”
+      </div>
+      <div class="interview">
+        <strong>What would you improve?</strong>
+        “I would externalize all secrets, replace memory-only basket storage with Redis for scale-out deployments, and add richer observability such as health checks, metrics, and correlation tracing.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>15. Architecture Diagram</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Angular Client</div>
+          <div class="arrow">→</div>
+          <div class="box">API Controller</div>
+          <div class="arrow">→</div>
+          <div class="box">Service Layer</div>
+          <div class="arrow">→</div>
+          <div class="box">Repository / DbContext / External APIs</div>
+          <div class="arrow">→</div>
+          <div class="box">PostgreSQL / Cache / Stripe / Azure Search / OpenAI</div>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="box small">JWT Auth</div>
+          <div class="box small">Exception Middleware</div>
+          <div class="box small">AutoMapper</div>
+          <div class="box small">Memory Cache</div>
+          <div class="box small">NLog</div>
+          <div class="box small">Swagger</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>16. Learning Plan</h2>
+      <h3>Best File Order To Study</h3>
+      <ol>
+        <li><code>Program.cs</code> and <code>Startup.cs</code></li>
+        <li><code>ApplicationServiceExtensions.cs</code> and <code>IdentityServiceExtensions.cs</code></li>
+        <li>Controllers: products, account, orders, payments, AI</li>
+        <li>Services: product, order, payment, AI chat/retriever</li>
+        <li>Contexts, repositories, AutoMapper profiles</li>
+        <li>Exception middleware, caching attribute, logging config</li>
+      </ol>
+
+      <h3>Key Concepts To Learn From This API</h3>
+      <ul>
+        <li>ASP.NET Core request pipeline</li>
+        <li>Dependency injection and service lifetimes</li>
+        <li>JWT authentication with ASP.NET Identity</li>
+        <li>EF Core querying, paging, and includes</li>
+        <li>DTO mapping with AutoMapper</li>
+        <li>Custom middleware</li>
+        <li>Action filters for response caching</li>
+        <li>Webhook processing</li>
+        <li>AI retrieval and answer generation architecture</li>
+      </ul>
+
+      <div class="success">
+        If you understand those files and concepts, you’ll be able to explain this backend like a senior developer instead of just listing controllers.
+      </div>
+    </section>
+
+    <div class="footer">
+      Prepared from the API, Core, and Infrastructure projects in this solution for backend understanding and interview preparation.
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+.git
+.gitignore
+.vscode
+**/bin
+**/obj
+**/node_modules
+docs
+api-build.log
+API.preprocessed.xml
+docker-compose.yml
+README.md

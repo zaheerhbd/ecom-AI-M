@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RAG + LLM Flow Real Example</title>
+  <style>
+    @page {
+      margin: 0.65in;
+    }
+
+    body {
+      color: #1f2933;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      line-height: 1.48;
+      margin: 0;
+    }
+
+    h1 {
+      color: #102a43;
+      font-size: 25px;
+      margin: 0 0 6px;
+    }
+
+    h2 {
+      border-bottom: 1px solid #d9e2ec;
+      color: #243b53;
+      font-size: 17px;
+      margin: 22px 0 8px;
+      padding-bottom: 4px;
+    }
+
+    h3 {
+      color: #334e68;
+      font-size: 14px;
+      margin: 16px 0 6px;
+    }
+
+    p {
+      margin: 6px 0;
+    }
+
+    ul {
+      margin: 6px 0 10px 20px;
+      padding: 0;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    code {
+      background: #f0f4f8;
+      border-radius: 3px;
+      color: #102a43;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      padding: 1px 4px;
+    }
+
+    pre {
+      background: #102a43;
+      border-radius: 6px;
+      color: #f0f4f8;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      margin: 10px 0;
+      overflow-wrap: break-word;
+      padding: 12px;
+      white-space: pre-wrap;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border: 1px solid #bcccdc;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #d9e2ec;
+      color: #102a43;
+    }
+
+    .subtitle {
+      color: #52606d;
+      margin-bottom: 16px;
+    }
+
+    .summary {
+      background: #f0f4f8;
+      border-left: 4px solid #2f80ed;
+      margin: 14px 0;
+      padding: 10px 12px;
+    }
+
+    .good {
+      color: #0b6b3a;
+      font-weight: bold;
+    }
+
+    .muted {
+      color: #52606d;
+    }
+  </style>
+</head>
+<body>
+  <h1>RAG + LLM Flow With A Real Example</h1>
+  <p class="subtitle">Project: eCOM-AI | Example question: <code>Which delivery option is cheapest?</code></p>
+
+  <div class="summary">
+    <p><strong>Correct flow:</strong> The app does not send the user question directly to the LLM. It first detects intent, retrieves filtered store data, checks confidence and source coverage, applies structured ranking, and only then asks the LLM to write the final answer from verified sources.</p>
+  </div>
+
+  <h2>Full Flow</h2>
+  <pre>User question
+  -&gt; AiChatService detects preferredSourceType
+  -&gt; AiChatService detects maximumPrice
+  -&gt; AiRetrieverService searches using question + filters
+  -&gt; Retrieved results are confidence-checked
+  -&gt; Results are reordered for cheapest / most expensive
+  -&gt; Source coverage check verifies support
+  -&gt; LLM writes final answer using verified sources only</pre>
+
+  <h2>Step 1: User Asks A Question</h2>
+  <p>The customer asks:</p>
+  <pre>Which delivery option is cheapest?</pre>
+  <p>This question contains two important signals:</p>
+  <ul>
+    <li><code>delivery option</code> means the app should search delivery/policy documents.</li>
+    <li><code>cheapest</code> means the app should use actual price metadata for ranking.</li>
+  </ul>
+
+  <h2>Step 2: Detect Preferred Source Type</h2>
+  <p><code>AiChatService</code> checks the words in the question.</p>
+  <p>Because the question contains <code>delivery</code>, the service sets:</p>
+  <pre>preferredSourceType = "policy"</pre>
+  <p>This matters because delivery questions should not be answered from product documents.</p>
+
+  <h3>Real Meaning</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Question Signal</th>
+        <th>Detected Intent</th>
+        <th>Effect</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>delivery</td>
+        <td>policy</td>
+        <td>Search delivery policy documents only.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Step 3: Detect Maximum Price</h2>
+  <p>The app also checks whether the question contains a phrase like:</p>
+  <ul>
+    <li><code>under 20</code></li>
+    <li><code>below 20</code></li>
+    <li><code>less than 20</code></li>
+    <li><code>cheaper than 20</code></li>
+  </ul>
+  <p>Our example question does not give a price limit, so:</p>
+  <pre>maximumPrice = null</pre>
+  <p>That means no price filter is applied during retrieval. Price will still be used later for <code>cheapest</code> ranking.</p>
+
+  <h2>Step 4: Retrieve Using Question + Filters</h2>
+  <p><code>AiRetrieverService</code> receives:</p>
+  <pre>question = "Which delivery option is cheapest?"
+preferredSourceType = "policy"
+maximumPrice = null</pre>
+  <p>It searches the RAG index or in-memory fallback and only keeps policy/delivery documents.</p>
+  <p>Example retrieved sources:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Retrieved Source</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Estimated Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>UPS3 delivery</td>
+        <td>policy</td>
+        <td>$2.55</td>
+        <td>5-10 Days</td>
+      </tr>
+      <tr>
+        <td>FREE delivery</td>
+        <td>policy</td>
+        <td>$0.00</td>
+        <td>1-2 Weeks</td>
+      </tr>
+      <tr>
+        <td>UPS2 delivery</td>
+        <td>policy</td>
+        <td>$5.99</td>
+        <td>2-5 Days</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="muted">Note: Retrieval finds relevant documents, but retrieval alone does not decide which one is cheapest.</p>
+
+  <h2>Step 5: Confidence Check</h2>
+  <p>The app checks whether the retrieved results are strong enough to answer.</p>
+  <p>If the top score is too weak, it stops and returns a safe fallback instead of answering confidently.</p>
+  <pre>if topScore &lt; minimumRequiredScore:
+    return "I found some related information, but not enough to answer confidently."</pre>
+  <p>For this example, the delivery sources are strong enough, so the flow continues.</p>
+
+  <h2>Step 6: Structured Ranking For Cheapest</h2>
+  <p>This is the key fix for the cheapest-delivery issue.</p>
+  <p>Because the question contains <code>cheapest</code>, the app sorts retrieved matches by real numeric price:</p>
+  <pre>OrderBy(price)
+ThenByDescending(AI similarity score)
+ThenBy(title)</pre>
+  <p>Before structured ranking, vector similarity might put <code>UPS3 delivery</code> first because its description says "cheap". But actual price proves <code>FREE delivery</code> is cheapest.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Price</th>
+        <th>Rank After Structured Sorting</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>FREE delivery</td>
+        <td>$0.00</td>
+        <td>1</td>
+      </tr>
+      <tr>
+        <td>UPS3 delivery</td>
+        <td>$2.55</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>UPS2 delivery</td>
+        <td>$5.99</td>
+        <td>3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Step 7: Source Coverage Check</h2>
+  <p>The app checks whether the sources actually support the question.</p>
+  <p>For this question, the sources include delivery options and prices, so the app can answer.</p>
+  <p>But if the question were:</p>
+  <pre>Do you offer cash on delivery?</pre>
+  <p>The app would reject it unless the retrieved sources mention <code>cash</code>, <code>COD</code>, or <code>payment</code>. This prevents the LLM from guessing.</p>
+
+  <h2>Step 8: LLM Writes The Final Answer</h2>
+  <p>Only now does the app call the LLM.</p>
+  <p>The LLM receives:</p>
+  <ul>
+    <li>The original question.</li>
+    <li>The verified sources.</li>
+    <li>Instructions to use only those sources.</li>
+    <li>Instructions not to invent products, prices, policies, discounts, warranties, locations, or payment methods.</li>
+  </ul>
+  <p>Final answer from the live test:</p>
+  <pre>The cheapest delivery option is FREE delivery, which costs $0.00.</pre>
+
+  <h2>Why This Is Real RAG</h2>
+  <p>This is RAG because the LLM does not answer from memory. The app retrieves store data first, validates it, and then gives that verified context to the LLM.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Part</th>
+        <th>Responsibility</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Intent detection</td>
+        <td>Decides whether to search products or policy/delivery data.</td>
+      </tr>
+      <tr>
+        <td>Retriever</td>
+        <td>Finds relevant store documents.</td>
+      </tr>
+      <tr>
+        <td>Structured filters/ranking</td>
+        <td>Uses exact metadata like price.</td>
+      </tr>
+      <tr>
+        <td>Source coverage check</td>
+        <td>Blocks unsupported answers.</td>
+      </tr>
+      <tr>
+        <td>LLM</td>
+        <td>Turns verified sources into a clear customer-facing answer.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Another Quick Example: Products Under $20</h2>
+  <pre>Question:
+What products are available under 20 dollars?
+
+Detected preferredSourceType:
+product
+
+Detected maximumPrice:
+20
+
+Retriever uses:
+question + sourceType product + price &lt; 20
+
+LLM answer from live test:
+Products under $20 found in the store data:
+- Green Code Gloves - $15.00
+- Blue Code Gloves - $18.00
+- Green React Gloves - $14.00</pre>
+
+  <h2>Final Takeaway</h2>
+  <p><span class="good">The LLM is the writer, not the source of truth.</span> The source of truth is still the database/search documents and their metadata. That is what keeps the assistant accurate.</p>
+</body>
+</html>

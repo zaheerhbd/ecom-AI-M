@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Redis Replacement Notes</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 40px;
+      color: #1f2937;
+      line-height: 1.5;
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    h1 {
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 10px;
+    }
+    code {
+      font-family: Consolas, monospace;
+      background: #eff6ff;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
+    .note {
+      background: #f8fafc;
+      border-left: 4px solid #2563eb;
+      padding: 12px 14px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Redis Replacement Notes</h1>
+
+  <h2>What Redis was doing in this project</h2>
+  <p>Redis had two jobs in this app:</p>
+  <ul>
+    <li>Basket storage</li>
+    <li>Response caching</li>
+  </ul>
+
+  <h3>Basket storage</h3>
+  <p>The shopping basket was not stored in PostgreSQL. Instead, the app stored each basket in Redis as a JSON string keyed by basket id.</p>
+  <p>Relevant code before the change:</p>
+  <ul>
+    <li><code>API/Startup.cs</code>: created the Redis connection</li>
+    <li><code>Infrastructure/Data/BasketRepository.cs</code>: saved, loaded, and deleted baskets from Redis</li>
+    <li><code>API/Controllers/BasketController.cs</code>: used the basket repository</li>
+  </ul>
+
+  <h3>Response caching</h3>
+  <p>Product endpoints used Redis as a short-term cache.</p>
+  <p>Relevant code before the change:</p>
+  <ul>
+    <li><code>Infrastructure/Services/ResponseCacheService.cs</code>: stored serialized API responses in Redis</li>
+    <li><code>API/Helpers/CachedAttribute.cs</code>: checked Redis before letting the controller run</li>
+    <li><code>API/Controllers/ProductsController.cs</code>: used <code>[Cached(600)]</code></li>
+  </ul>
+
+  <h2>Why replace Redis</h2>
+  <p>For a portfolio deployment on Azure, managed Redis adds cost without adding much value for a low-traffic demo app.</p>
+
+  <h2>What replaced Redis</h2>
+  <p>Redis was replaced with native .NET in-memory storage:</p>
+  <ul>
+    <li><code>IMemoryCache</code> for API response caching</li>
+    <li><code>IMemoryCache</code> for basket storage</li>
+  </ul>
+
+  <div class="note">
+    No external cache server is needed anymore.
+  </div>
+
+  <h2>How the new version works</h2>
+  <h3>Basket storage now</h3>
+  <p><code>Infrastructure/Data/BasketRepository.cs</code> now stores each basket in <code>IMemoryCache</code> for 30 days.</p>
+  <ul>
+    <li>when a basket is saved, it is serialized and put into app memory</li>
+    <li>when a basket is requested, the app reads it from memory</li>
+    <li>when a basket is deleted, the item is removed from memory</li>
+  </ul>
+
+  <h3>Response caching now</h3>
+  <p><code>Infrastructure/Services/ResponseCacheService.cs</code> now stores serialized API responses in <code>IMemoryCache</code> for the requested TTL.</p>
+  <p>The <code>[Cached(600)]</code> attribute still works the same way from the controller's point of view.</p>
+
+  <h2>Code changes made</h2>
+  <ul>
+    <li><code>API/Startup.cs</code>: removed Redis connection setup and kept <code>AddMemoryCache()</code></li>
+    <li><code>Infrastructure/Services/ResponseCacheService.cs</code>: replaced StackExchange Redis usage with <code>IMemoryCache</code></li>
+    <li><code>Infrastructure/Data/BasketRepository.cs</code>: replaced Redis basket storage with <code>IMemoryCache</code></li>
+    <li><code>API/Extensions/ApplicationServiceExtensions.cs</code>: changed <code>IBasketRepository</code> registration to singleton so basket data stays shared inside the running app</li>
+    <li><code>Infrastructure/Infrastructure.csproj</code>: removed the <code>StackExchange.Redis</code> package reference</li>
+  </ul>
+
+  <h2>Tradeoffs of the new approach</h2>
+  <p>Benefits:</p>
+  <ul>
+    <li>no Redis service to deploy</li>
+    <li>lower Azure cost</li>
+    <li>simpler setup</li>
+    <li>minimal code changes</li>
+  </ul>
+  <p>Limitations:</p>
+  <ul>
+    <li>baskets are lost if the app restarts</li>
+    <li>cached responses are lost if the app restarts</li>
+    <li>data is not shared across multiple app instances</li>
+  </ul>
+
+  <h2>Final recommendation</h2>
+  <p>For this repository on Azure with cost in mind: keep PostgreSQL, use in-memory basket storage, use in-memory response caching, and deploy a single app container.</p>
+</body>
+</html>

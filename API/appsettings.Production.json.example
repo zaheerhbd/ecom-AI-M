@@ -1,0 +1,41 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "System.Net.Http": "Warning",
+      "Infrastructure": "Information"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=YOUR_POSTGRES_HOST;Port=5432;Database=skinet;Username=YOUR_USER;Password=YOUR_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true",
+    "IdentityConnection": "Host=YOUR_POSTGRES_HOST;Port=5432;Database=identity;Username=YOUR_USER;Password=YOUR_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true"
+  },
+  "Token": {
+    "Key": "replace-with-a-long-random-secret-at-least-32-characters",
+    "Issuer": "https://YOUR_APP_HOSTNAME"
+  },
+  "ApiUrl": "https://YOUR_APP_HOSTNAME/Content/",
+  "Cors": {
+    "AllowedOrigins": [
+      "https://YOUR_FRONTEND_HOSTNAME"
+    ]
+  },
+  "StripeSettings": {
+    "PublishableKey": "",
+    "SecretKey": "",
+    "WhSecret": ""
+  },
+  "OpenAI": {
+    "ApiKey": "",
+    "BaseUrl": "https://api.openai.com/",
+    "ChatModel": "gpt-5.4-mini",
+    "EmbeddingModel": "text-embedding-3-small"
+  },
+  "AzureSearch": {
+    "Endpoint": "",
+    "ApiKey": "",
+    "IndexName": "products-index",
+    "RagIndexName": "rag-index"
+  }
+}

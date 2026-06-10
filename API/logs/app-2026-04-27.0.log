@@ -1,0 +1,290 @@
+2026-04-27 00:25:18.0844|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 00:25:18.4043|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 00:39:08.6669|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 00:39:08.9683|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 00:46:45.3259|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 00:46:45.6775|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 00:46:45.6775|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 00:46:45.6847|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 00:46:45.6847|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 00:46:45.6847|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 00:46:45.6847|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 00:46:45.7004|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 00:46:45.7004|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 00:46:45.7004|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 00:46:45.7004|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 02:53:06.8060|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 02:53:06.8060|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 10:16:20.5187|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (22ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 10:16:20.5187|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (22ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 10:16:26.7779|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 10:16:26.7779|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 10:16:27.4861|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (440ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 10:16:27.4861|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (440ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:05:40.2163|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:05:40.2163|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:05:40.7580|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (7ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:05:40.7580|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (7ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:18:32.2843|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me nike products" => preferredSourceType=product, maximumPrice=none
+2026-04-27 11:18:34.1026|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me nike products" => topScore=0.59854966, scores=[0.599, 0.597, 0.597, 0.595, 0.588], titles=[Angular Blue Boots, Green React Gloves, Core Red Boots, Core Purple Boots, Green Code Gloves]
+2026-04-27 11:18:34.1026|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me nike products" => topScore=0.59854966, requiredScore=0.59, passed=True
+2026-04-27 11:24:14.0368|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:24:14.0368|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:24:14.0920|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (8ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:24:14.0920|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (8ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:26:10.1837|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:26:10.1837|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:26:10.1837|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:26:10.1837|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:59:25.6124|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:59:25.6124|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 11:59:25.6416|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 11:59:25.6416|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 13:59:51.7008|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 13:59:51.7008|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 13:59:51.7778|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 13:59:51.7778|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 14:05:23.6336|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me nike products" => preferredSourceType=product, maximumPrice=none
+2026-04-27 14:05:25.3384|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me nike products" => topScore=0.59854966, scores=[0.599, 0.597, 0.597, 0.595, 0.588], titles=[Angular Blue Boots, Green React Gloves, Core Red Boots, Core Purple Boots, Green Code Gloves]
+2026-04-27 14:05:25.3395|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me nike products" => topScore=0.59854966, requiredScore=0.59, passed=True
+2026-04-27 14:13:13.4332|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 14:13:13.4332|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 14:13:13.4546|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 14:13:13.4546|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (2ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 14:49:18.4880|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 14:49:18.4880|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 14:49:18.4979|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (5ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 14:49:18.4979|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (5ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 15:20:27.1639|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 15:20:27.1639|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 15:20:27.1872|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 15:20:27.1872|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 15:27:04.7447|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 15:27:04.7447|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 15:27:04.7638|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (3ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 15:27:04.7638|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (3ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 16:35:07.7888|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 16:35:07.7888|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 16:35:07.8145|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 16:35:07.8145|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (4ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 16:57:52.8878|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 16:57:53.1647|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 16:57:53.1647|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 16:57:53.1687|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:01:34.1594|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 17:01:34.1594|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 17:01:34.6045|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (7ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 17:01:34.6045|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (7ms) [Parameters=[@__email_0='?'], CommandType='Text', CommandTimeout='30']
+SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."DisplayName", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+FROM "AspNetUsers" AS a
+WHERE a."Email" = @__email_0
+LIMIT 2
+2026-04-27 17:01:36.0585|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me nike products" => preferredSourceType=product, maximumPrice=none
+2026-04-27 17:01:37.7014|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me nike products" => topScore=0.59854966, scores=[0.599, 0.597, 0.597, 0.595, 0.588], titles=[Angular Blue Boots, Green React Gloves, Core Red Boots, Core Purple Boots, Green Code Gloves]
+2026-04-27 17:01:37.7014|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me nike products" => topScore=0.59854966, requiredScore=0.59, passed=True
+2026-04-27 17:01:55.2281|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me hats" => preferredSourceType=product, maximumPrice=none
+2026-04-27 17:01:55.5345|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me hats" => topScore=0.6320386, scores=[0.632, 0.631, 0.611, 0.566, 0.561], titles=[Green React Woolen Hat, Purple React Woolen Hat, Core Blue Hat, Redis Red Boots, Green React Gloves]
+2026-04-27 17:01:55.5345|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me hats" => topScore=0.6320386, requiredScore=0.59, passed=True
+2026-04-27 17:13:40.5631|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 17:13:40.8324|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 17:13:40.8324|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 17:13:40.8324|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 17:13:40.8324|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 17:13:40.8393|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 17:13:40.8393|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 17:13:40.8393|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 17:13:40.8393|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 17:13:40.8393|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:13:40.8393|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:14:05.8033|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:14:06.0149|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:19:06.6454|INFO|Microsoft.Hosting.Lifetime|Application is shutting down...
+2026-04-27 17:19:06.6454|INFO|Microsoft.Hosting.Lifetime|Application is shutting down...
+2026-04-27 17:20:17.3161|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-04-27 17:20:17.3476|INFO|API.Program|Syncing RAG documents to Azure AI Search...
+2026-04-27 17:20:17.9738|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 17:20:17.9738|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-04-27 17:20:18.4213|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT p."Id", p."Description", p."Name", p."PictureUrl", p."Price", p."ProductBrandId", p."ProductTypeId", p0."Id", p0."Name", p1."Id", p1."Name"
+FROM "Products" AS p
+INNER JOIN "ProductBrands" AS p0 ON p."ProductBrandId" = p0."Id"
+INNER JOIN "ProductTypes" AS p1 ON p."ProductTypeId" = p1."Id"
+ORDER BY p."Name"
+2026-04-27 17:20:18.4213|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT p."Id", p."Description", p."Name", p."PictureUrl", p."Price", p."ProductBrandId", p."ProductTypeId", p0."Id", p0."Name", p1."Id", p1."Name"
+FROM "Products" AS p
+INNER JOIN "ProductBrands" AS p0 ON p."ProductBrandId" = p0."Id"
+INNER JOIN "ProductTypes" AS p1 ON p."ProductTypeId" = p1."Id"
+ORDER BY p."Name"
+2026-04-27 17:20:18.4814|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT d."Id", d."DeliveryTime", d."Description", d."Price", d."ShortName"
+FROM "DeliveryMethods" AS d
+ORDER BY d."ShortName"
+2026-04-27 17:20:18.4814|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT d."Id", d."DeliveryTime", d."Description", d."Price", d."ShortName"
+FROM "DeliveryMethods" AS d
+ORDER BY d."ShortName"
+2026-04-27 17:20:20.3449|INFO|Infrastructure.Services.AzureAiSearchService|Preparing to sync 22 RAG documents to Azure AI Search.
+2026-04-27 17:20:20.7776|INFO|Infrastructure.Services.AzureAiSearchService|Azure AI Search RAG sync completed successfully for 22 documents.
+2026-04-27 17:20:20.7776|INFO|API.Program|Azure AI Search RAG sync completed.
+2026-04-27 17:20:20.9012|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 17:20:20.9012|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:20:20.9026|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI\eCOM-AI\api
+2026-04-27 17:29:10.1945|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me hats" => preferredSourceType=product, maximumPrice=none
+2026-04-27 17:29:12.8602|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me hats" => topScore=0.6320386, scores=[0.632, 0.631, 0.611, 0.566, 0.561], titles=[Green React Woolen Hat, Purple React Woolen Hat, Core Blue Hat, Redis Red Boots, Green React Gloves]
+2026-04-27 17:29:12.8602|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me hats" => topScore=0.6320386, requiredScore=0.5, passed=True
+2026-04-27 17:29:19.1998|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me boots" => preferredSourceType=product, maximumPrice=none
+2026-04-27 17:29:25.2563|WARN|Infrastructure.Services.OpenAiEmbeddingService|OpenAI embeddings request failed with status 500 on attempt 1. Falling back to local embeddings. Response: {
+  "error": {
+    "message": "The server had an error while processing your request. Sorry about that!",
+    "type": "server_error",
+    "param": null,
+    "code": null
+  }
+}
+2026-04-27 17:29:25.3300|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me boots" => topScore=0.5108447, scores=[0.511, 0.506, 0.504, 0.504, 0.504], titles=[Typescript Entry Board, Green React Woolen Hat, Green Code Gloves, Purple React Woolen Hat, Green React Gloves]
+2026-04-27 17:29:25.3300|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me boots" => topScore=0.5108447, requiredScore=0.5, passed=True
+2026-04-27 17:29:37.8740|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me boots" => preferredSourceType=product, maximumPrice=none
+2026-04-27 17:29:38.5266|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me boots" => topScore=0.63470566, scores=[0.635, 0.627, 0.619, 0.619, 0.608], titles=[Angular Blue Boots, Core Red Boots, Redis Red Boots, Angular Purple Boots, Core Purple Boots]
+2026-04-27 17:29:38.5266|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me boots" => topScore=0.63470566, requiredScore=0.5, passed=True

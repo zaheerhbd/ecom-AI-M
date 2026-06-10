@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Angular App Analysis Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --ink: #1f2937;
+      --muted: #5b6470;
+      --line: #d9e0e7;
+      --soft: #f5f7fa;
+      --accent: #0f766e;
+      --accent-2: #d97706;
+      --panel: #ffffff;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: #eef2f6;
+      line-height: 1.55;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f766e, #155e75);
+      color: #fff;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.15;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 18px;
+      max-width: 850px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .pill {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .toc, .section, .callout {
+      background: var(--panel);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    .toc h2, .section h2 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 20px;
+      color: #0f172a;
+    }
+
+    h4 {
+      margin: 18px 0 8px;
+      font-size: 16px;
+      color: #0f172a;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    ul, ol {
+      margin: 10px 0 10px 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .mini-card {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .mini-card h4 {
+      margin-top: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ecfeff;
+      color: #155e75;
+      border: 1px solid #bae6fd;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .warning {
+      border-left: 5px solid var(--accent-2);
+      background: #fff8ed;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 14px 0;
+    }
+
+    .success {
+      border-left: 5px solid var(--accent);
+      background: #effcf6;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 14px 0;
+    }
+
+    .diagram {
+      background: linear-gradient(180deg, #fbfdff, #f4f8fb);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      margin: 18px 0;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .box {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 14px 16px;
+      min-width: 130px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .box.small {
+      min-width: 110px;
+      font-weight: 500;
+    }
+
+    .arrow {
+      font-size: 24px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid var(--line);
+      padding: 12px 10px;
+      vertical-align: top;
+    }
+
+    .table th {
+      background: #f8fafc;
+      text-align: left;
+    }
+
+    .interview {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      margin: 14px 0;
+    }
+
+    .interview strong {
+      color: #0f172a;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { max-width: none; padding: 16px; }
+      .hero, .toc, .section, .callout { box-shadow: none; }
+      .section, .toc, .callout, .diagram, .mini-card, .interview {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>Angular Application Analysis Guide</h1>
+      <p>
+        Easy-to-read project walkthrough for an experienced .NET developer learning Angular deeply.
+        This guide explains the business flow, technical flow, routing, services, forms, RxJS, security,
+        performance, and interview-ready talking points.
+      </p>
+      <div class="meta">
+        <span class="pill">Project Type: Angular 11 + .NET 5 E-Commerce</span>
+        <span class="pill">Frontend Pattern: NgModules + Lazy Loading</span>
+        <span class="pill">State Style: Shared Services + RxJS Subjects</span>
+        <span class="pill">Payments: Stripe</span>
+      </div>
+    </section>
+
+    <section class="toc">
+      <h2>How To Use This Guide</h2>
+      <div class="two-col">
+        <div>
+          <ol>
+            <li>Read the overview first to understand what the app does.</li>
+            <li>Use the structure and routing sections to build a mental map.</li>
+            <li>Study components and services together to connect screen to API.</li>
+            <li>Use the interview sections to practice confident explanations.</li>
+          </ol>
+        </div>
+        <div>
+          <div class="success">
+            Think of this app like a .NET MVC application split into Angular feature areas.
+            Components are like UI controllers + views combined, and services are like client-side application services.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>1. Application Overview</h2>
+      <p>
+        This is an <strong>AI-enhanced e-commerce application</strong>. A user can browse products, search and filter
+        them, add items to a basket, log in, complete checkout with Stripe, and review past orders.
+        There is also an <strong>AI-Lab</strong> page where the user can ask product-related questions in natural language.
+      </p>
+
+      <div class="card-grid">
+        <div class="mini-card">
+          <h4>Main Business Features</h4>
+          <ul>
+            <li>Home page</li>
+            <li>Shop catalog</li>
+            <li>Product details</li>
+            <li>Basket</li>
+            <li>Login and registration</li>
+            <li>Checkout wizard</li>
+            <li>Order history</li>
+            <li>AI-Lab assistant</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>Likely Users</h4>
+          <ul>
+            <li>Online shoppers</li>
+            <li>Returning customers tracking orders</li>
+            <li>Users exploring products through AI queries</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Main Business Workflow</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Open App</div>
+          <div class="arrow">→</div>
+          <div class="box">Browse Shop</div>
+          <div class="arrow">→</div>
+          <div class="box">View Product</div>
+          <div class="arrow">→</div>
+          <div class="box">Add To Basket</div>
+          <div class="arrow">→</div>
+          <div class="box">Login</div>
+          <div class="arrow">→</div>
+          <div class="box">Checkout</div>
+          <div class="arrow">→</div>
+          <div class="box">Pay</div>
+          <div class="arrow">→</div>
+          <div class="box">View Orders</div>
+        </div>
+      </div>
+
+      <div class="interview">
+        <strong>Interview-friendly explanation</strong>
+        “This project is a customer-facing Angular e-commerce frontend integrated with a .NET backend.
+        It covers the full shopping journey from catalog browsing to payment and order tracking, and it also includes an AI-assisted product discovery feature.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. Project Structure</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Folder / File</th>
+            <th>Purpose</th>
+            <th>Easy Analogy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>app.module.ts</code></td>
+            <td>Root Angular module. Wires up the whole application.</td>
+            <td>Main startup assembly in a .NET app.</td>
+          </tr>
+          <tr>
+            <td><code>app-routing.module.ts</code></td>
+            <td>Main route table. Decides which feature loads for each URL.</td>
+            <td>Like endpoint routing for screens.</td>
+          </tr>
+          <tr>
+            <td><code>account/</code>, <code>shop/</code>, <code>basket/</code>, <code>checkout/</code>, <code>orders/</code></td>
+            <td>Feature modules grouped by business area.</td>
+            <td>Like separate bounded contexts or feature folders.</td>
+          </tr>
+          <tr>
+            <td><code>core/</code></td>
+            <td>Cross-cutting UI and infrastructure: navbar, guards, interceptors, errors, busy service.</td>
+            <td>Shared infrastructure layer.</td>
+          </tr>
+          <tr>
+            <td><code>shared/</code></td>
+            <td>Reusable UI components and interfaces/models.</td>
+            <td>Common UI toolkit + contracts.</td>
+          </tr>
+          <tr>
+            <td><code>environments/</code></td>
+            <td>Environment-specific config like API URL.</td>
+            <td><code>appsettings.Development.json</code> vs production config.</td>
+          </tr>
+          <tr>
+            <td><code>assets/</code></td>
+            <td>Static images such as logo and banners.</td>
+            <td>wwwroot static files.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Real Structure of This App</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">AppModule</div>
+          <div class="arrow">→</div>
+          <div class="box small">CoreModule</div>
+          <div class="box small">HomeModule</div>
+          <div class="box small">Lazy ShopModule</div>
+          <div class="box small">Lazy BasketModule</div>
+          <div class="box small">Lazy CheckoutModule</div>
+          <div class="box small">Lazy OrdersModule</div>
+          <div class="box small">Lazy AccountModule</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>3. Routing</h2>
+      <p>
+        Routing is handled using <strong>NgModule-based Angular Router</strong>. The root route file lazy-loads most feature modules.
+        This reduces first-load size and improves startup performance.
+      </p>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>What It Does</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/</code></td><td>Home page</td><td>Eagerly loaded</td></tr>
+          <tr><td><code>/shop</code></td><td>Product catalog</td><td>Lazy-loaded module</td></tr>
+          <tr><td><code>/shop/:id</code></td><td>Product details</td><td>Uses route resolver</td></tr>
+          <tr><td><code>/basket</code></td><td>Shopping basket</td><td>Lazy-loaded module</td></tr>
+          <tr><td><code>/account/login</code></td><td>Login screen</td><td>Supports <code>returnUrl</code></td></tr>
+          <tr><td><code>/account/register</code></td><td>Registration screen</td><td>Reactive form</td></tr>
+          <tr><td><code>/checkout</code></td><td>Checkout wizard</td><td>Protected by auth guard</td></tr>
+          <tr><td><code>/checkout/success</code></td><td>Successful order page</td><td>Reached after payment</td></tr>
+          <tr><td><code>/orders</code></td><td>Order history</td><td>Protected by auth guard</td></tr>
+          <tr><td><code>/orders/:id</code></td><td>Order details</td><td>Uses route param</td></tr>
+          <tr><td><code>/ai-lab</code></td><td>AI shopping playground</td><td>Standalone screen</td></tr>
+          <tr><td><code>**</code></td><td>Unknown route</td><td>Redirects to not-found</td></tr>
+        </tbody>
+      </table>
+
+      <h3>How Navigation Works</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">User clicks Checkout</div>
+          <div class="arrow">→</div>
+          <div class="box">AuthGuard checks currentUser$</div>
+          <div class="arrow">→</div>
+          <div class="box">If logged in: open Checkout</div>
+          <div class="arrow">/</div>
+          <div class="box">If not logged in: redirect to Login with returnUrl</div>
+        </div>
+      </div>
+
+      <div class="success">
+        Simple way to explain it: “Routing is organized by business feature, and protected routes use a guard to check authentication before navigation completes.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. Components</h2>
+
+      <h3>High-Value Components To Study First</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Screen Role</th>
+            <th>Key Concepts</th>
+            <th>Interview Angle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>AppComponent</code></td>
+            <td>Application shell startup</td>
+            <td>Hydrates token and basket from localStorage</td>
+            <td>App initialization and persisted client state</td>
+          </tr>
+          <tr>
+            <td><code>ShopComponent</code></td>
+            <td>Catalog listing</td>
+            <td>Filters, search, sort, pagination</td>
+            <td>API-driven grid page</td>
+          </tr>
+          <tr>
+            <td><code>ProductDetailsComponent</code></td>
+            <td>Product detail screen</td>
+            <td>Route resolver, quantity, add-to-basket</td>
+            <td>Resolver and detail-page design</td>
+          </tr>
+          <tr>
+            <td><code>BasketComponent</code></td>
+            <td>Basket screen</td>
+            <td>Observable state, async pipe, child events</td>
+            <td>State sharing through service</td>
+          </tr>
+          <tr>
+            <td><code>CheckoutComponent</code></td>
+            <td>Checkout parent wizard</td>
+            <td>Nested reactive forms, stepper</td>
+            <td>Complex forms and workflow orchestration</td>
+          </tr>
+          <tr>
+            <td><code>CheckoutPaymentComponent</code></td>
+            <td>Payment step</td>
+            <td>Stripe integration, async flow, cleanup</td>
+            <td>External JS integration in Angular</td>
+          </tr>
+          <tr>
+            <td><code>LoginComponent</code> / <code>RegisterComponent</code></td>
+            <td>Auth screens</td>
+            <td>Reactive forms, validators, async validator</td>
+            <td>Authentication UX and form design</td>
+          </tr>
+          <tr>
+            <td><code>NavBarComponent</code></td>
+            <td>Global top navigation</td>
+            <td>Shared auth and basket streams</td>
+            <td>Shell-level shared state consumption</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Component Communication Pattern</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Parent Component</div>
+          <div class="arrow">passes data via</div>
+          <div class="box small">@Input()</div>
+          <div class="arrow">and receives events via</div>
+          <div class="box small">@Output()</div>
+          <div class="arrow">from</div>
+          <div class="box">Child Component</div>
+        </div>
+      </div>
+
+      <p>
+        Best example: <code>BasketComponent</code> passes items into <code>BasketSummaryComponent</code>, and the child emits
+        increment, decrement, and remove events back to the parent.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>5. Services and API Calls</h2>
+
+      <div class="card-grid">
+        <div class="mini-card">
+          <h4>ShopService</h4>
+          <span class="tag">GET /products</span>
+          <span class="tag">GET /products/:id</span>
+          <span class="tag">GET /products/brands</span>
+          <span class="tag">GET /products/types</span>
+          <p>Handles product listing, filters, paging, and in-memory caching.</p>
+        </div>
+        <div class="mini-card">
+          <h4>AccountService</h4>
+          <span class="tag">POST /account/login</span>
+          <span class="tag">POST /account/register</span>
+          <span class="tag">GET /account</span>
+          <span class="tag">GET/PUT /account/address</span>
+          <p>Owns login state, token persistence, and profile/address actions.</p>
+        </div>
+        <div class="mini-card">
+          <h4>BasketService</h4>
+          <span class="tag">GET /basket</span>
+          <span class="tag">POST /basket</span>
+          <span class="tag">DELETE /basket</span>
+          <span class="tag">POST /payments/{basketId}</span>
+          <p>Owns basket state and totals. Also initializes payment intent.</p>
+        </div>
+        <div class="mini-card">
+          <h4>CheckoutService / OrdersService / AiService</h4>
+          <span class="tag">POST /orders</span>
+          <span class="tag">GET /orders</span>
+          <span class="tag">GET /payments/config</span>
+          <span class="tag">POST /ai/chat</span>
+          <p>Handles checkout, order retrieval, payment config, and AI question flow.</p>
+        </div>
+      </div>
+
+      <h3>Screen To API Flow</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Angular Screen</div>
+          <div class="arrow">→</div>
+          <div class="box">Service</div>
+          <div class="arrow">→</div>
+          <div class="box">HttpClient</div>
+          <div class="arrow">→</div>
+          <div class="box">Interceptor Pipeline</div>
+          <div class="arrow">→</div>
+          <div class="box">.NET API</div>
+          <div class="arrow">→</div>
+          <div class="box">Response</div>
+          <div class="arrow">→</div>
+          <div class="box">UI Update</div>
+        </div>
+      </div>
+
+      <div class="interview">
+        <strong>Interview-friendly explanation</strong>
+        “Components stay thin and delegate server communication to Angular services. Each service wraps HttpClient calls and exposes either direct responses or shared RxJS streams for UI state.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. State Management</h2>
+      <p>
+        This app uses a <strong>service-based state management approach</strong> instead of NgRx.
+        That is a common and reasonable choice for a medium-sized app.
+      </p>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>State Type</th>
+            <th>How It Is Managed</th>
+            <th>Why It Works Here</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>User auth state</td>
+            <td><code>ReplaySubject&lt;IUser&gt;</code> in <code>AccountService</code></td>
+            <td>Late subscribers still get the latest user</td>
+          </tr>
+          <tr>
+            <td>Basket state</td>
+            <td><code>BehaviorSubject&lt;IBasket&gt;</code> in <code>BasketService</code></td>
+            <td>Components can get current basket immediately</td>
+          </tr>
+          <tr>
+            <td>Basket totals</td>
+            <td>Separate <code>BehaviorSubject</code></td>
+            <td>Keeps summary data ready for basket and checkout</td>
+          </tr>
+          <tr>
+            <td>Shop filter state</td>
+            <td>Plain service fields in <code>ShopService</code></td>
+            <td>Simple and enough for the catalog page</td>
+          </tr>
+          <tr>
+            <td>Persisted state</td>
+            <td><code>localStorage</code> for token and basket id</td>
+            <td>Survives refresh</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="success">
+        Simple analogy: this is like keeping lightweight app state in singleton services instead of introducing a full Redux-style store.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>7. Forms</h2>
+      <p>
+        The app uses <strong>reactive forms</strong> for the important business flows: login, registration, and checkout.
+        That is a strong architectural choice because reactive forms are easier to validate, compose, and test.
+      </p>
+
+      <div class="two-col">
+        <div class="mini-card">
+          <h4>Auth Forms</h4>
+          <ul>
+            <li>Email and password validation</li>
+            <li>Async email-exists validation in registration</li>
+            <li>Custom reusable text input control</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>Checkout Form</h4>
+          <ul>
+            <li>Nested <code>FormGroup</code> structure</li>
+            <li>Address section</li>
+            <li>Delivery section</li>
+            <li>Payment section</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Checkout Form Shape</h3>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">checkoutForm</div>
+          <div class="arrow">contains</div>
+          <div class="box small">addressForm</div>
+          <div class="box small">deliveryForm</div>
+          <div class="box small">paymentForm</div>
+        </div>
+      </div>
+
+      <div class="interview">
+        <strong>Interview-friendly explanation</strong>
+        “We used reactive forms because checkout is a multi-step workflow with clear validation rules, nested data, and step-level completion logic.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>8. RxJS</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>RxJS Feature</th>
+            <th>Where Used</th>
+            <th>Why It Is Used</th>
+            <th>Interview Question</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>BehaviorSubject</code></td>
+            <td>Basket service</td>
+            <td>Holds latest basket and totals</td>
+            <td>Why choose BehaviorSubject for shared state?</td>
+          </tr>
+          <tr>
+            <td><code>ReplaySubject(1)</code></td>
+            <td>Account service</td>
+            <td>Replays latest user to new subscribers</td>
+            <td>ReplaySubject vs BehaviorSubject?</td>
+          </tr>
+          <tr>
+            <td><code>map</code></td>
+            <td>Service response transforms</td>
+            <td>Shapes data before component uses it</td>
+            <td>What does map do in RxJS?</td>
+          </tr>
+          <tr>
+            <td><code>switchMap</code></td>
+            <td>Register email validator</td>
+            <td>Cancels old validation requests when typing continues</td>
+            <td>Why is switchMap good for search or validation?</td>
+          </tr>
+          <tr>
+            <td><code>catchError</code></td>
+            <td>Error interceptor</td>
+            <td>Centralized HTTP error handling</td>
+            <td>Where should HTTP error handling live?</td>
+          </tr>
+          <tr>
+            <td><code>async</code> pipe</td>
+            <td>Navbar, basket, totals, breadcrumbs</td>
+            <td>Auto-subscribes and cleans up in templates</td>
+            <td>Why prefer async pipe in templates?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warning">
+        Important observation: the app does not use <code>takeUntil</code> or <code>OnPush</code>, and there are several manual subscriptions.
+        That is not automatically wrong for one-time HTTP requests, but it is a good improvement topic in interviews.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>9. Authentication and Authorization</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">Login Form</div>
+          <div class="arrow">→</div>
+          <div class="box">POST /account/login</div>
+          <div class="arrow">→</div>
+          <div class="box">Receive token</div>
+          <div class="arrow">→</div>
+          <div class="box">Store in localStorage</div>
+          <div class="arrow">→</div>
+          <div class="box">JWT Interceptor adds token to future requests</div>
+        </div>
+      </div>
+
+      <ul>
+        <li>Authentication is token-based.</li>
+        <li>The token is saved in <code>localStorage</code>.</li>
+        <li><code>JwtInterceptor</code> adds the bearer token to outgoing requests.</li>
+        <li><code>AuthGuard</code> protects checkout and orders routes.</li>
+        <li>Login supports returning the user to the originally requested page using <code>returnUrl</code>.</li>
+      </ul>
+
+      <div class="interview">
+        <strong>Interview-friendly explanation</strong>
+        “We used route guards for client-side protection, but real authorization is enforced on the API. The Angular app stores the token, rehydrates user state on startup, and uses an interceptor to attach the bearer token automatically.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>10. Error Handling and Logging</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>What The App Does</th>
+            <th>Assessment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>HTTP errors</td>
+            <td><code>ErrorInterceptor</code> handles 400, 401, 404, 500</td>
+            <td>Good centralized pattern</td>
+          </tr>
+          <tr>
+            <td>User messages</td>
+            <td>Uses toastr notifications</td>
+            <td>Good UX</td>
+          </tr>
+          <tr>
+            <td>404 behavior</td>
+            <td>Redirects to not-found screen</td>
+            <td>Good</td>
+          </tr>
+          <tr>
+            <td>500 behavior</td>
+            <td>Redirects to server-error screen with navigation state</td>
+            <td>Good learning example</td>
+          </tr>
+          <tr>
+            <td>Logging</td>
+            <td>Mostly <code>console.log(error)</code></td>
+            <td>Could be improved with structured logging service</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>11. Performance</h2>
+      <div class="two-col">
+        <div class="mini-card">
+          <h4>Good Choices Already Present</h4>
+          <ul>
+            <li>Lazy-loaded feature modules</li>
+            <li>Shop data caching</li>
+            <li>Async pipe in several shared screens</li>
+            <li>Resolver for product details</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>Improvements To Mention</h4>
+          <ul>
+            <li>Add <code>OnPush</code> where suitable</li>
+            <li>Add <code>trackBy</code> for large lists</li>
+            <li>Reduce repeated async evaluations in templates</li>
+            <li>Replace deprecated <code>toPromise()</code></li>
+            <li>Use debounced search</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="interview">
+        <strong>Senior-level explanation</strong>
+        “The app already uses lazy loading and some useful caching, but I would still improve change detection strategy, list rendering stability, and observable handling to make it scale better.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>12. Security</h2>
+      <ul>
+        <li>Protected backend endpoints are a strong point.</li>
+        <li>No obvious unsafe <code>innerHTML</code> usage was found.</li>
+        <li>Stripe secret remains on the backend, which is correct.</li>
+        <li>Client stores token in <code>localStorage</code>, which is convenient but can be a risk if XSS exists.</li>
+        <li>Route guards help UX but are not the true security boundary. The API is.</li>
+      </ul>
+
+      <div class="warning">
+        Good interview sentence: “Client-side protection improves navigation behavior, but actual authorization must always be enforced by the server.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>13. Interview Explanation Pack</h2>
+
+      <div class="interview">
+        <strong>Tell me about this Angular project.</strong>
+        “It is an Angular 11 e-commerce frontend integrated with a .NET 5 backend. The application supports product browsing, filtering, basket management, authentication, multi-step checkout with Stripe, order tracking, and an AI-assisted shopping experience.”
+      </div>
+
+      <div class="interview">
+        <strong>How does routing work in your application?</strong>
+        “The app uses a root router with lazy-loaded feature modules. Product and order details use route parameters, protected routes use an auth guard, and product details also use a resolver so data is ready before the screen renders.”
+      </div>
+
+      <div class="interview">
+        <strong>How do components communicate?</strong>
+        “Parent-child communication is handled through Input and Output bindings, and cross-feature shared state like the current user or basket is handled through singleton services using RxJS subjects.”
+      </div>
+
+      <div class="interview">
+        <strong>How do you call APIs?</strong>
+        “Components delegate network work to feature services built on HttpClient. Interceptors handle JWT attachment, loading indicators, and centralized HTTP error behavior.”
+      </div>
+
+      <div class="interview">
+        <strong>How do you manage state?</strong>
+        “This app uses service-based state management rather than NgRx. Basket and user state are stored in RxJS subjects, while local component state handles view-specific concerns.”
+      </div>
+
+      <div class="interview">
+        <strong>How do you improve performance?</strong>
+        “The project already uses lazy loading and some response caching. My next steps would be OnPush change detection, trackBy for lists, and more reactive search handling.”
+      </div>
+
+      <div class="interview">
+        <strong>What would you improve?</strong>
+        “I would strengthen client logging, modernize some async handling, improve change detection strategy, and tighten some template and observable patterns for maintainability and scale.”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>14. Architecture Diagram</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="box">User</div>
+          <div class="arrow">→</div>
+          <div class="box">Angular Route</div>
+          <div class="arrow">→</div>
+          <div class="box">Guard / Resolver</div>
+          <div class="arrow">→</div>
+          <div class="box">Component</div>
+          <div class="arrow">→</div>
+          <div class="box">Service</div>
+          <div class="arrow">→</div>
+          <div class="box">HttpClient</div>
+          <div class="arrow">→</div>
+          <div class="box">Interceptors</div>
+          <div class="arrow">→</div>
+          <div class="box">.NET API</div>
+          <div class="arrow">→</div>
+          <div class="box">Database</div>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="box small">Shared User State</div>
+          <div class="box small">Shared Basket State</div>
+          <div class="box small">localStorage</div>
+          <div class="box small">Stripe</div>
+          <div class="box small">AI Endpoint</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>15. Learning Plan</h2>
+      <h3>Best Order To Study</h3>
+      <ol>
+        <li>Read <code>AppModule</code>, <code>AppRoutingModule</code>, and <code>AppComponent</code>.</li>
+        <li>Study the shop flow: list page, detail page, shop service, models.</li>
+        <li>Study basket state: basket component, basket service, shared basket summary component.</li>
+        <li>Study authentication: login, register, account service, auth guard, JWT interceptor.</li>
+        <li>Study checkout carefully: parent form, child steps, payment flow, order creation.</li>
+        <li>Study error interceptor and loading interceptor as cross-cutting concerns.</li>
+        <li>Finish with orders and AI-Lab as advanced feature understanding.</li>
+      </ol>
+
+      <h3>Angular Concepts You Must Learn From This App</h3>
+      <ul>
+        <li>NgModules and feature modules</li>
+        <li>Lazy loading</li>
+        <li>Router parameters, query parameters, guards, resolvers</li>
+        <li>Reactive forms and async validators</li>
+        <li>Custom form controls with ControlValueAccessor</li>
+        <li>HttpClient and interceptors</li>
+        <li>RxJS subjects and async pipe</li>
+        <li>Service-based state management</li>
+        <li>Integration with third-party libraries like Stripe</li>
+      </ul>
+
+      <div class="success">
+        If you learn those topics from this app, you will be able to explain Angular architecture much more confidently in interviews.
+      </div>
+    </section>
+
+    <div class="footer">
+      Prepared from the Angular client codebase in <code>client/src/app</code> and aligned to interview coaching needs.
+    </div>
+  </div>
+</body>
+</html>

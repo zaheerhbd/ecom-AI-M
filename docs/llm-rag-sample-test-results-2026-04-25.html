@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LLM RAG Sample Test Results - 2026-04-25</title>
+  <style>
+    @page {
+      margin: 0.65in;
+    }
+
+    body {
+      color: #1f2933;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12.5px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    h1 {
+      color: #102a43;
+      font-size: 24px;
+      margin: 0 0 6px;
+    }
+
+    h2 {
+      border-bottom: 1px solid #d9e2ec;
+      color: #243b53;
+      font-size: 17px;
+      margin: 22px 0 8px;
+      padding-bottom: 4px;
+    }
+
+    p {
+      margin: 6px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border: 1px solid #bcccdc;
+      padding: 7px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #d9e2ec;
+      color: #102a43;
+    }
+
+    code {
+      background: #f0f4f8;
+      border-radius: 3px;
+      color: #102a43;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11.5px;
+      padding: 1px 4px;
+    }
+
+    .subtitle {
+      color: #52606d;
+      margin-bottom: 16px;
+    }
+
+    .summary {
+      background: #f0f4f8;
+      border-left: 4px solid #2f80ed;
+      margin: 14px 0;
+      padding: 10px 12px;
+    }
+
+    .accepted {
+      color: #0b6b3a;
+      font-weight: bold;
+    }
+
+    .rejected {
+      color: #9a3412;
+      font-weight: bold;
+    }
+
+    .answer {
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <h1>LLM RAG Sample Test Results</h1>
+  <p class="subtitle">Project: eCOM-AI | Date: 2026-04-25 | Endpoint: <code>/api/ai/chat</code></p>
+
+  <div class="summary">
+    <p><strong>Summary:</strong> 14 sample questions were tested after adding the LLM answer-generation layer. Product and delivery questions returned natural customer-facing answers. Unsupported questions were rejected before LLM generation, keeping the assistant grounded in store data.</p>
+  </div>
+
+  <h2>What Was Tested</h2>
+  <p>The test verified the full RAG flow:</p>
+  <p><code>question -> retrieval -> intent filtering -> structured filtering/ranking -> source coverage check -> LLM answer generation</code></p>
+
+  <h2>Accepted Questions</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Question</th>
+        <th>Decision</th>
+        <th>Answer</th>
+        <th>Sources</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Which delivery option is cheapest?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">The cheapest delivery option is FREE delivery, which costs $0.00.</td>
+        <td>FREE delivery | UPS3 delivery | UPS2 delivery</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Which delivery option is fastest?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">The fastest delivery option is UPS1 delivery, with an estimated delivery time of 1-2 days. It costs $10.00.</td>
+        <td>UPS1 delivery | UPS3 delivery | UPS2 delivery</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>What delivery options are available?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">Available delivery options:
+
+- UPS1 - 1-2 days, $10.00
+- UPS2 - 2-5 days, $5.99
+- UPS3 - 5-10 days, $2.55</td>
+        <td>UPS1 delivery | UPS2 delivery | UPS3 delivery</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Do you have free delivery?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">Yes - free delivery is available.
+
+- FREE delivery: $0.00
+- Estimated delivery time: 1-2 weeks
+
+Other delivery options are also available if needed.</td>
+        <td>FREE delivery | UPS3 delivery | UPS2 delivery</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Show me hats</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">Here are the hats I found:
+
+- Green React Woolen Hat - $8.00
+- Purple React Woolen Hat - $15.00
+- Core Blue Hat - $10.00</td>
+        <td>Green React Woolen Hat | Purple React Woolen Hat | Core Blue Hat</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Which hat is cheapest?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">The cheapest hat is Green React Woolen Hat at $8.00.</td>
+        <td>Green React Woolen Hat | Core Blue Hat | Purple React Woolen Hat</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>What products are available under 20 dollars?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">Products under $20 found in the store data:
+
+- Green Code Gloves - $15.00
+- Blue Code Gloves - $18.00
+- Green React Gloves - $14.00</td>
+        <td>Green Code Gloves | Blue Code Gloves | Green React Gloves</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>Show me React products</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">Here are the React products I could find:
+
+- React Board Super Whizzy Fast - $250.00
+- Green React Woolen Hat - $8.00
+- Green React Gloves - $14.00</td>
+        <td>React Board Super Whizzy Fast | Green React Woolen Hat | Green React Gloves</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Do you have blue hats?</td>
+        <td class="accepted">Accepted</td>
+        <td class="answer">Yes - we have a Core Blue Hat for $10.00.</td>
+        <td>Core Blue Hat | Purple React Woolen Hat | Green React Woolen Hat</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Rejected / Unsupported Questions</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Question</th>
+        <th>Decision</th>
+        <th>Answer</th>
+        <th>Sources</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>10</td>
+        <td>Do you offer cash on delivery?</td>
+        <td class="rejected">Rejected</td>
+        <td class="answer">I found related information, but I could not find a source that clearly confirms this. Try asking about a product, delivery option, price, or brand that is listed in the store.</td>
+        <td>None</td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>Can I get next day delivery?</td>
+        <td class="rejected">Rejected</td>
+        <td class="answer">I found related information, but I could not find a source that clearly confirms this. Try asking about a product, delivery option, price, or brand that is listed in the store.</td>
+        <td>None</td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>Do you have discounts on hats?</td>
+        <td class="rejected">Rejected</td>
+        <td class="answer">I found related information, but I could not find a source that clearly confirms this. Try asking about a product, delivery option, price, or brand that is listed in the store.</td>
+        <td>None</td>
+      </tr>
+      <tr>
+        <td>13</td>
+        <td>Do you ship internationally?</td>
+        <td class="rejected">Rejected</td>
+        <td class="answer">I found some related information, but not enough to answer confidently. Try asking in a more specific way.</td>
+        <td>None</td>
+      </tr>
+      <tr>
+        <td>14</td>
+        <td>What warranty comes with laptops?</td>
+        <td class="rejected">Rejected</td>
+        <td class="answer">I found some related information, but not enough to answer confidently. Try asking in a more specific way.</td>
+        <td>None</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Result</h2>
+  <p><strong>Pass:</strong> The LLM layer generated natural answers only after retrieval and validation succeeded. The rejected cases did not reach a fabricated answer, which confirms the grounding checks are still protecting the assistant.</p>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Save Money</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 40px;
+      color: #1f2937;
+      line-height: 1.55;
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+    }
+    h1 {
+      border-bottom: 3px solid #16a34a;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    code {
+      font-family: Consolas, monospace;
+      background: #f0fdf4;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    pre {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .highlight {
+      background: #ecfdf5;
+      border-left: 4px solid #16a34a;
+      padding: 12px 14px;
+      margin: 18px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Save Money</h1>
+  <p>This document explains how to reduce Azure credit usage for the eCOM-AI portfolio deployment.</p>
+
+  <h2>What is costing money</h2>
+  <ul>
+    <li>Azure AI Search service</li>
+    <li>Azure Database for PostgreSQL Flexible Server</li>
+    <li>Azure Container App</li>
+    <li>Azure Container Registry</li>
+    <li>Log Analytics Workspace</li>
+  </ul>
+
+  <h2>Best low-risk way to save money</h2>
+  <p>If you are not actively showing the project, the safest first action is to stop PostgreSQL.</p>
+  <div class="highlight">
+    This saves compute cost while keeping your data.
+  </div>
+  <pre><code>az postgres flexible-server stop --resource-group eCom --name ecom-ai-pg-zahee01</code></pre>
+  <p>To start it again later:</p>
+  <pre><code>az postgres flexible-server start --resource-group eCom --name ecom-ai-pg-zahee01</code></pre>
+
+  <h2>Safe minimal shutdown plan</h2>
+  <p>Use this if you want to save money but keep recovery simple.</p>
+  <h3>1. Stop PostgreSQL</h3>
+  <pre><code>az postgres flexible-server stop --resource-group eCom --name ecom-ai-pg-zahee01</code></pre>
+  <h3>2. Keep the Container App, Registry, and Search service</h3>
+  <p>This keeps your deployment easier to resume later.</p>
+
+  <h2>Aggressive near-zero-cost shutdown plan</h2>
+  <p>Use this if you want to save as much credit as possible and do not need the app live.</p>
+  <h3>1. Stop PostgreSQL</h3>
+  <pre><code>az postgres flexible-server stop --resource-group eCom --name ecom-ai-pg-zahee01</code></pre>
+  <h3>2. Delete the Container App</h3>
+  <pre><code>az containerapp delete --name ecom-ai-ca-zahee01 --resource-group eCom --yes</code></pre>
+  <h3>3. Delete the Log Analytics Workspace</h3>
+  <pre><code>az monitor log-analytics workspace delete --resource-group eCom --workspace-name ecom-ai-logs-zahee01 --yes</code></pre>
+  <h3>4. Delete Azure Container Registry if you do not need fast redeploy</h3>
+  <pre><code>az acr delete --name ecomaiacrzahee01 --resource-group eCom --yes</code></pre>
+
+  <h2>Recommended student strategy</h2>
+  <p>For a portfolio project, keep the app down most of the time and start or recreate it only before demos. Keep screenshots and a short demo video so you do not need to keep Azure resources running continuously.</p>
+
+  <h2>Suggested action right now</h2>
+  <pre><code>az postgres flexible-server stop --resource-group eCom --name ecom-ai-pg-zahee01</code></pre>
+</body>
+</html>

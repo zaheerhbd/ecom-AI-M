@@ -1,0 +1,70 @@
+2026-06-10 00:00:16.1159|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "something to wea" => preferredSourceType=none, maximumPrice=none
+2026-06-10 00:00:17.9156|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "something to wea" => topScore=0.5680479, scores=[0.568, 0.561, 0.556, 0.555, 0.554], titles=[Green React Woolen Hat, Purple React Woolen Hat, Core Red Boots, Blue Code Gloves, Angular Purple Boots]
+2026-06-10 00:00:17.9156|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "something to wea" => topScore=0.5680479, requiredScore=0.5, passed=True
+2026-06-10 00:00:29.2496|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "for hair" => preferredSourceType=none, maximumPrice=none
+2026-06-10 00:00:29.7760|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "for hair" => topScore=0.565342, scores=[0.565, 0.565, 0.556, 0.547, 0.544], titles=[Green React Woolen Hat, Purple React Woolen Hat, Core Blue Hat, Green React Gloves, Green Code Gloves]
+2026-06-10 00:00:29.7760|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "for hair" => topScore=0.565342, requiredScore=0.5, passed=True
+2026-06-10 01:30:07.1055|INFO|API.Program|Skipping automatic database migration and seeding at startup. Use --migrate or RUN_MIGRATIONS=true to enable.
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Now listening on: https://localhost:5001
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Now listening on: http://localhost:5000
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Application started. Press Ctrl+C to shut down.
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Hosting environment: Development
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI-M\eCOM-AI-M\api
+2026-06-10 01:30:07.2944|INFO|Microsoft.Hosting.Lifetime|Content root path: C:\eCOM-AI-M\eCOM-AI-M\api
+2026-06-10 01:32:51.5866|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-06-10 01:32:51.5866|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-06-10 01:32:51.5866|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-06-10 01:32:51.5866|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-06-10 01:32:51.5866|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-06-10 01:32:51.5866|INFO|Microsoft.EntityFrameworkCore.Infrastructure|Entity Framework Core 5.0.3 initialized 'StoreContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL' with options: None
+2026-06-10 01:32:52.1076|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT p."Id", p."Name"
+FROM "ProductTypes" AS p
+ORDER BY p."Name"
+2026-06-10 01:32:52.1076|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)::INT
+FROM "Products" AS p
+2026-06-10 01:32:52.1076|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT p."Id", p."Name"
+FROM "ProductBrands" AS p
+ORDER BY p."Name"
+2026-06-10 01:32:52.1076|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT p."Id", p."Name"
+FROM "ProductTypes" AS p
+ORDER BY p."Name"
+2026-06-10 01:32:52.1076|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)::INT
+FROM "Products" AS p
+2026-06-10 01:32:52.1076|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT p."Id", p."Name"
+FROM "ProductBrands" AS p
+ORDER BY p."Name"
+2026-06-10 01:32:52.2005|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[@__p_1='?' (DbType = Int32), @__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT t."Id", t."Description", t."Name", t."PictureUrl", t."Price", t."ProductBrandId", t."ProductTypeId", p0."Id", p0."Name", p1."Id", p1."Name"
+FROM (
+    SELECT p."Id", p."Description", p."Name", p."PictureUrl", p."Price", p."ProductBrandId", p."ProductTypeId"
+    FROM "Products" AS p
+    ORDER BY p."Name"
+    LIMIT @__p_1 OFFSET @__p_0
+) AS t
+INNER JOIN "ProductBrands" AS p0 ON t."ProductBrandId" = p0."Id"
+INNER JOIN "ProductTypes" AS p1 ON t."ProductTypeId" = p1."Id"
+ORDER BY t."Name"
+2026-06-10 01:32:52.2005|INFO|Microsoft.EntityFrameworkCore.Database.Command|Executed DbCommand (6ms) [Parameters=[@__p_1='?' (DbType = Int32), @__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT t."Id", t."Description", t."Name", t."PictureUrl", t."Price", t."ProductBrandId", t."ProductTypeId", p0."Id", p0."Name", p1."Id", p1."Name"
+FROM (
+    SELECT p."Id", p."Description", p."Name", p."PictureUrl", p."Price", p."ProductBrandId", p."ProductTypeId"
+    FROM "Products" AS p
+    ORDER BY p."Name"
+    LIMIT @__p_1 OFFSET @__p_0
+) AS t
+INNER JOIN "ProductBrands" AS p0 ON t."ProductBrandId" = p0."Id"
+INNER JOIN "ProductTypes" AS p1 ON t."ProductTypeId" = p1."Id"
+ORDER BY t."Name"
+2026-06-10 01:35:12.8896|INFO|Infrastructure.Services.AiChatService|AI chat intent for question "show me nike products" => preferredSourceType=product, maximumPrice=none
+2026-06-10 01:35:14.4874|INFO|Infrastructure.Services.AiChatService|AI chat retrieval for question "show me nike products" => topScore=0.5985599, scores=[0.599, 0.597, 0.597, 0.595, 0.588], titles=[Angular Blue Boots, Green React Gloves, Core Red Boots, Core Purple Boots, Green Code Gloves]
+2026-06-10 01:35:14.4874|INFO|Infrastructure.Services.AiChatService|AI chat score gate for question "show me nike products" => topScore=0.5985599, requiredScore=0.5, passed=True
