@@ -23,7 +23,7 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: secret
+      POSTGRES_PASSWORD: eCom123!
       POSTGRES_USER: appuser
     ports: 
       - 5432:5432

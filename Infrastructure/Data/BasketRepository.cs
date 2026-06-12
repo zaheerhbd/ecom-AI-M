@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure.Data
 {
@@ -30,7 +29,7 @@ namespace Infrastructure.Data
         {
             _cache.TryGetValue(GetCacheKey(basketId), out string data);
 
-            return data.IsNullOrEmpty() ? null : JsonSerializer.Deserialize<CustomerBasket>(data);
+            return string.IsNullOrEmpty(data) ? null : JsonSerializer.Deserialize<CustomerBasket>(data);
         }
 
         public async Task<CustomerBasket> UpdateBasketAsync(CustomerBasket basket)

@@ -43,14 +43,14 @@ namespace Infrastructure.Data
 
         public async Task<IReadOnlyList<T>> ListAllAsync()
         {
-            return await _context.Set<T>().ToListAsync();
+            return await EntityFrameworkQueryableExtensions.ToListAsync(_context.Set<T>());
         }
 
         public async Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec)
         {
             var query = ApplySpecification(spec);
 
-            return await query.ToListAsync();
+            return await EntityFrameworkQueryableExtensions.ToListAsync(query);
         }
 
         public void Update(T entity)
