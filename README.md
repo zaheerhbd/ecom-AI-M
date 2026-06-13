@@ -1,1 +1,3 @@
 Ecom-AI is a modern, full-stack e-commerce platform that leverages artificial intelligence to enhance the shopping experience. Built with .NET 5.0 for the robust backend API and Angular 11 for a dynamic, responsive frontend, this application integrates advanced AI capabilities, including Retrieval-Augmented Generation (RAG), to provide intelligent product recommendations, natural language queries, and personalized assistance.
+
+For GitHub-to-Azure Container Apps deployment steps, see [docs/container-app-github-deploy.md](docs/container-app-github-deploy.md).

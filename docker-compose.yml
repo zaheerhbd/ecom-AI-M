@@ -1,23 +1,20 @@
 services:
 
-  redis:
-    image: redis:latest
-    ports:
-      - 6379:6379
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis-data:/data
-
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-      - HTTP_USER=root
-      - HTTP_PASSWORD=secret
-    ports:
-      - 8081:8081
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
-      - redis
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=skinet;Username=appuser;Password=eCom123!
+      ConnectionStrings__IdentityConnection: Host=db;Port=5432;Database=identity;Username=appuser;Password=eCom123!
+      Token__Issuer: http://localhost:8080
+      ApiUrl: http://localhost:8080/Content/
+      RUN_MIGRATIONS: "false"
+    ports:
+      - 8080:8080
 
   db:
     image: postgres
@@ -32,10 +29,4 @@ services:
     image: adminer
     restart: always
     ports:
-      - 8080:8080
-
-  dotnet:
-    image: mcr.microsoft.com/dotnet/runtime:5.0
-    
-volumes:
-  redis-data:
+      - 8081:8080
