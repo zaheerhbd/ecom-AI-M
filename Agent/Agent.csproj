@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The AGENT ENGINE: the loop, tools, guardrails, memory, run records, evals and telemetry.
+
+    Two rules for this project:
+      1. It knows NOTHING about the shop. It never references Core, Infrastructure or API.
+         The shop plugs its own tools in from the outside (see AgentBuilder.AddTool).
+      2. It has NO NuGet packages. Everything is written by hand so you can read exactly
+         how an agent works, with no framework "magic" hiding the details.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Agent</RootNamespace>
+    <!-- Classic C# 7.3 syntax on the modern runtime: the compiler rejects newer syntax. -->
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Gives us logging, configuration, DI, hosting and HttpClientFactory from the shared ASP.NET Core framework. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets the test project check a few internal helpers (for example the JSON sent to OpenAI). -->
+    <InternalsVisibleTo Include="Agent.Tests" />
+  </ItemGroup>
+
+</Project>
