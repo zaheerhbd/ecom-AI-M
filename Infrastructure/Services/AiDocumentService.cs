@@ -32,8 +32,12 @@ namespace Infrastructure.Services
                 .ToListAsync();
 
             // Convert database rows into simple text documents that are easier for AI search and retrieval.
+            // Policy files (returns, warranty, payments...) are added too, one document per section.
+            // Note: this only BUILDS the documents. Uploading them to Azure Search is a separate,
+            // manual step (--sync-rag) that is never run from the laptop (docs/agentic/04 §6).
             var documents = products.Select(BuildProductDocument)
                 .Concat(deliveryMethods.Select(BuildDeliveryMethodDocument))
+                .Concat(PolicyDocumentLoader.Load())
                 .ToList();
 
             return documents;

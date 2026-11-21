@@ -3,6 +3,8 @@
   <ItemGroup>
     <None Include="Data\SeedData\**" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\Core\Core.csproj" />
+    <!-- So EF can map the agent's run and eval records to tables (Agent never references us back). -->
+    <ProjectReference Include="..\Agent\Agent.csproj" />
   </ItemGroup>
 
   <ItemGroup>
