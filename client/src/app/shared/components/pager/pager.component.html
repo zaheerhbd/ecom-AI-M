@@ -1,5 +1,7 @@
 <pagination 
-[boundaryLinks]="true" 
+[boundaryLinks]="true"
+[maxSize]="5"
+[rotate]="true"
 [totalItems]="totalCount" 
 (pageChanged)="onPagerChange($event)"
 [ngModel]="pageNumber"
