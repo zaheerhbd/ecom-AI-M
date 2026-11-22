@@ -1,0 +1,93 @@
+<div class="row">
+  <!-- Left: the conversation -->
+  <div class="col-lg-7 mb-3">
+    <div class="card chat-card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div>
+          <strong>Shop Assistant</strong>
+          <small class="text-muted ml-2" *ngIf="info">{{info.model}}</small>
+        </div>
+        <div class="d-flex align-items-center">
+          <small class="text-muted mr-3" *ngIf="(currentUser$ | async) as user; else anonymous">
+            <i class="fa fa-user-circle mr-1"></i>Signed in as {{user.email}}: order questions work
+          </small>
+          <ng-template #anonymous>
+            <small class="text-muted mr-3"><i class="fa fa-user-o mr-1"></i>Not signed in: order questions need a
+              <a routerLink="/account/login">login</a></small>
+          </ng-template>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="newChat()" [disabled]="sending">
+            <i class="fa fa-plus mr-1"></i>New chat
+          </button>
+        </div>
+      </div>
+
+      <div class="messages" #messageList>
+        <div *ngIf="messages.length === 0" class="empty">
+          <p class="mb-2"><i class="fa fa-comments-o fa-2x text-muted"></i></p>
+          <p class="mb-3">Ask about products, prices, delivery, returns or (when signed in) your orders.<br>
+            Click an answer to see every step the assistant took.</p>
+          <div class="suggestions">
+            <button *ngFor="let s of suggestions" type="button" class="btn btn-sm btn-outline-primary" (click)="send(s)">{{s}}</button>
+          </div>
+        </div>
+
+        <ng-container *ngFor="let m of messages">
+          <div *ngIf="m.role === 'user'" class="msg msg-user">
+            <div class="bubble">{{m.text}}</div>
+          </div>
+
+          <div *ngIf="m.role === 'assistant'" class="msg msg-assistant">
+            <button type="button" class="bubble" [class.selected]="m.result === selected" (click)="select(m)"
+                    title="Show how this answer was made">
+              <span class="answer" [innerHTML]="m.text | agentMarkdown"></span>
+              <span *ngIf="m.result" class="meta">
+                <span *ngIf="m.result.blocked" class="badge badge-danger mr-1">blocked</span>
+                <span *ngIf="m.result.error" class="badge badge-danger mr-1">error</span>
+                <span *ngFor="let t of m.result.toolsUsed" class="badge badge-light mr-1"><i class="fa fa-wrench mr-1"></i>{{t}}</span>
+                {{m.result.durationMs / 1000 | number:'1.1-1'}} s ·
+                {{m.result.inputTokens + m.result.outputTokens | number}} tokens ·
+                ${{m.result.estimatedCostUsd | number:'1.4-4'}}
+              </span>
+            </button>
+          </div>
+
+          <div *ngIf="m.role === 'notice'" class="msg msg-notice">
+            <i class="fa fa-info-circle mr-1"></i>{{m.text}}
+          </div>
+        </ng-container>
+
+        <div *ngIf="sending" class="msg msg-assistant">
+          <div class="bubble typing"><span></span><span></span><span></span> thinking…</div>
+        </div>
+      </div>
+
+      <form class="composer" (ngSubmit)="send()">
+        <textarea class="form-control" rows="2" name="draft" [(ngModel)]="draft" (keydown)="onKeydown($event)"
+                  placeholder="Ask the assistant… (Enter to send, Shift+Enter for a new line)"
+                  [disabled]="sending" aria-label="Message"></textarea>
+        <div class="d-flex flex-column align-items-end ml-2">
+          <button type="submit" class="btn btn-primary" [disabled]="sending || !draft.trim()">
+            <i class="fa fa-paper-plane mr-1"></i>Send
+          </button>
+          <small class="mt-1" [class.text-danger]="draft.length > maxChars" [class.text-muted]="draft.length <= maxChars">
+            {{draft.length}} / {{maxChars}}
+          </small>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: how the selected answer was made -->
+  <div class="col-lg-5 mb-3">
+    <div class="card panel-card">
+      <div class="card-header"><strong>How this answer was made</strong></div>
+      <div class="card-body">
+        <app-agent-timeline *ngIf="selected; else nothingSelected" [trace]="selected"></app-agent-timeline>
+        <ng-template #nothingSelected>
+          <p class="text-muted mb-0">Send a message, then click any answer to see its safety checks, AI calls,
+            tool calls (with what went in and came out), tokens, time, cost and sources.</p>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

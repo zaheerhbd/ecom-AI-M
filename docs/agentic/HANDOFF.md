@@ -1,8 +1,8 @@
 # HANDOFF: AI agent for eCOM-AI-M
 
-> **Last updated:** 2026-11-21 02:00 EST
-> **Status:** Phases 1–2 committed + pushed. **Phase 3 (tools + API) committed 2026-11-22, not pushed.** The agent answers product, policy, delivery and (signed-in) order questions via `POST api/agent/chat`, using **Gemini (free tier) by default**, OpenAI by one setting. Deploy pipeline fixed (PR #1 on `main`).
-> **Next action:** go through the open questions in **§2a** with the owner (push, eval on Gemini, test order for bob). Then wait for "start Phase 4" and follow **§2b (Phase 4 brief)**. Do **not** merge `feature/agentic-ai` into `main` before Phase 6.
+> **Last updated:** 2026-11-22 04:00 EST
+> **Status:** Phases 1–3 committed + pushed (Phase 3 = `c5ca42f`). **Phase 4 (Angular "Assistant" pages: chat + step timeline, runs, evals, how it works) is built and browser-tested, NOT committed, waiting for the owner's code review.** The agent uses **Gemini (free tier) by default**, OpenAI by one setting. Deploy pipeline fixed (PR #1 on `main`).
+> **Next action:** ask the owner about the open questions in **§2a** (review/commit Phase 4, which also carries 3 small doc changes from earlier). Then wait for "start Phase 5" and follow **§2b (Phase 5 brief)**. Do **not** merge `feature/agentic-ai` into `main` before Phase 6.
 
 This is the **single entry point** for any new session, whether Claude Code, Codex or another assistant. Read it fully before doing anything, then read the docs it points to. **Update it at the end of every session**: the "Last updated" line, Status, Next action and the session log at the bottom.
 
@@ -38,7 +38,20 @@ This is the **single entry point** for any new session, whether Claude Code, Cod
 
 **Committed and pushed** on `feature/agentic-ai`: Phase 1 (`4ab0817`), Phase 2 (`a9679aa`), shop layout tidy (`eafe5c9`). `main` has only the deploy fix (PR #1). **Never merge `feature/agentic-ai` into `main` before Phase 6** (the cloud DB lacks the Phase 2 columns).
 
-**Phase 3 is committed** on `feature/agentic-ai` (2026-11-22, owner said "commit phase 3"; not pushed). Files:
+**Phase 4 is built and tested but NOT committed** (2026-11-22, waiting for the owner's code review). Files:
+
+| Path | What |
+|---|---|
+| `client/src/app/agent/` (new) | Lazy `AgentModule` at `/agent` (tabs: `chat`, `runs`, `runs/:id`, `evals`, `how-it-works`). `agent.service.ts` + `agent.models.ts` (API calls, JSON shapes; `GuardrailOutcome` is a number enum 0–3), `agent-pipes.ts` (`agentMarkdown`: escapes first, then bold/lists; `prettyJson`), `agent-access.ts` (401/403 → "log in" / "admins only"), `agent-shell/` (tab bar), `agent-timeline/` (shared "how this answer was made" panel: totals, guardrail chips, expandable steps, sources), `agent-chat/` (sessionId + messages in `sessionStorage`, suggestions, 429 notice), `agent-runs/` + `agent-run-detail/`, `agent-evals/` (quick check PS-001/TC-018/SF-001 by default; category / case ids / all-with-confirm; polls every 3 s), `agent-how-it-works/` (live `api/agent/info` panel + loop SVG) |
+| `client/src/app/app-routing.module.ts` | `agent` lazy route, breadcrumb "Assistant" |
+| `client/src/app/core/nav-bar/nav-bar.component.html` | "Assistant" link |
+| `client/src/app/core/interceptors/loading.interceptor.ts` | Skips the full-screen spinner for `/agent/` calls |
+| `docs/agentic/reports/phase-4-report.html` | Phase 4 report (screenshots embedded) |
+| Also uncommitted, from earlier on 2026-11-22 | `docs/agentic/reports/agent-architecture.html` (solution design report, owner asked for it), HANDOFF/tracker "pushed" notes |
+
+**Phase 4 tests (2026-11-22):** `ng build` and `ng build --prod`: 0 errors, 0 warnings. Headless Chrome driven by a CDP script (scratchpad, not in repo): anonymous chat "red gloves under $50" → `search_products`, 11 found, timeline OK; follow-up "which is cheapest?" remembered ($12 Alpine Forge); tool step expands; runs list + detail; evals quick check started from the UI → 3/3 pass with progress bar; how-it-works live info; signed in as bob → `get_my_orders` "no orders yet"; **no console errors**. Not tested in the browser: the 429 notice and the production admin-only messages (API side tested in Phase 3); `ng test` not run (no specs added).
+
+**Phase 3 is committed** on `feature/agentic-ai` (`c5ca42f`, 2026-11-22, owner said "commit phase 3"; pushed). Files:
 
 | Path | What |
 |---|---|
@@ -72,9 +85,9 @@ dotnet run -- --evals --repeat 1 --cases <small file>   # CLI eval; free on Gemi
 **Test results (2026-11-21):** product search (right filters), policy answer (local search), anonymous vs bob orders, foreign order → "not found", injection blocked ($0), 11th msg/min → 429, runs/stats saved, Production mode → runs 401 anonymous / 403 non-admin, eval via API (2 cases) and CLI (3 cases, 3/3 pass), prompt + cases included in `dotnet publish`. Two prompt problems found by testing and fixed (see Phase 3 report).
 
 **Open questions for the owner (ask next session):**
-1. Push the Phase 3 commit?
-2. Run the eval on Gemini (51 × 1, free; ×3 may hit the free daily cap) for a first look? (Official baseline is Phase 5.)
-3. Create a test order for `bob@test.com` locally (seeding data) so order tools return real data?
+1. Code review of Phase 4 → "commit phase 4"? (Include `reports/agent-architecture.html` and the doc notes in the same commit.) Push?
+2. Run the eval on Gemini (51 × 1, free; ×3 may hit the free daily cap) for a first look? Can now be started from the Evals tab. (Official baseline is Phase 5, step 5.11.)
+3. Create a test order for `bob@test.com` locally (seeding data) so order tools return real data? Phase 5.9 needs one anyway.
 
 **Loose ends:**
 - `support@skinet-shop.example` in the policies is still a placeholder.
@@ -83,6 +96,10 @@ dotnet run -- --evals --repeat 1 --cases <small file>   # CLI eval; free on Gemi
 - Production needs `Agent__Llm__Provider` (`Gemini` + `Gemini__ApiKey`, or `OpenAI`), else the engine's free Fake model answers. See `appsettings.Production.json.example`.
 - Gemini's `usage.completion_tokens` leaves out thinking tokens, so token counts look low; cost is $0 on the free tier anyway.
 - No unit tests for the shop tools yet (Agent.Tests covers the engine only). Candidate for Phase 5.
+- Gemini free tier is slow at times: 2–60 s per answer on 2026-11-22 (one LLM call took 32 s). The UI copes ("thinking…"); OpenAI is faster for demos.
+- An eval answer from 2026-11-21 (OR-001, OpenAI) had its text repeated twice. Not seen since; check in Phase 5.
+- Runs totals include eval runs (marked "test" in the table). A channel filter could come later.
+- Two dev servers on 4200: if `ng serve` asks "Port 4200 is already in use", an earlier one is still running and already serves the new code (live reload).
 - `appsettings.json` is gitignored: config examples live in `appsettings.Production.json.example` and the docs.
 - PowerShell 5.1: `git commit -F -` with a here-string doesn't work; use Git Bash heredoc or `-F <file>`.
 
@@ -108,29 +125,34 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 
 **Next session, first ask the owner:** (a) did they fix and rotate `AZURE_CREDENTIALS`? (b) run `docker build .` locally now? (c) commit Phase 2 together with the Dockerfile?
 
-## 2b. Phase 4 brief: Angular UI (next phase, only when the owner says "start Phase 4")
+## 2b. Phase 5 brief: end to end, comparison, loop control (next phase, only when the owner says "start Phase 5")
 
-**Goal:** a chat screen that shows *how* each answer was made, plus runs and evals pages. Full steps in [02 Phase 4](02-implementation-plan.md#phase-4--angular-11-ui).
+**Goal:** measure the new assistant against the old AI-Lab chat, add the loop-control and memory improvements, and save the first official eval baseline. Full steps in [02 Phase 5](02-implementation-plan.md#phase-5--end-to-end-and-comparison).
 
-**Before writing code:** Client needs **Node 16**: don't switch the global Node; run with `$env:PATH = "$env:NVM_HOME\v16.20.2;$env:PATH"; node node_modules\@angular\cli\bin\ng serve` from `client/` (that's how it ran on 2026-11-21; it served on **https://localhost:4200**).
+**Before writing code:** Phase 4 should be committed first (ask). Which LLM for the measured runs? Gemini is free but slow and has a daily cap; OpenAI costs ≈ $0.13 per 51-case pass. **Ask the owner** before any OpenAI run, and say the cost.
 
 | Step | Work | Notes for this repo |
 |---|---|---|
-| 4.1 | Lazy `AgentModule` at `/agent`: `chat`, `runs`, `runs/:id`, `evals`, `how-it-works` | Angular 11 + NgModules + Bootstrap 4 (bootswatch "united"); copy the lazy pattern of `shop`/`basket` modules |
-| 4.2 | `AgentService` + models | Match the JSON of `AgentResult`, `AgentRunPage`, `AgentRunStats`, `EvalRunRecord` (camelCase). `environment.apiUrl` is `https://localhost:5001/api/` |
-| 4.3 | Chat page + observability panel | Keep `sessionId` between messages. The JWT interceptor already sends the token, so signed-in users get order tools. Show steps (guardrail / llm / tool with input, output, tokens, ms), totals, sources. Handle 429 nicely. Model the panel on `C:\Agents\SimpleAgent\src\SimpleAgent.Api\wwwroot\index.html` |
-| 4.4 | Runs page | `GET api/agent/runs?page&pageSize`, `runs/{id}`, `stats`. Reuse the timeline component |
-| 4.5 | Evals page | `POST api/agent/evals { caseIds?, category?, repeat?, useJudge? }` → 202 with the run; poll `GET evals/{id}` until `status != "Running"`. **Real runs cost money:** default the UI to a small selection |
-| 4.6 | How it works page | Diagrams from doc 03 as static HTML/SVG |
-| 4.7 | Nav link "Assistant", then **review checkpoint** + `reports/phase-4-report.html` | The shop layout was tidied on 2026-11-21 (72px header, full-width shop); keep new pages consistent |
+| 5.1 | Full stack running | Docker DB, API (`cd API; dotnet run`), website on **https://localhost:4200** (not 4201; see the Node 16 command in §2a) |
+| 5.2 | Evals with and without the judge, results saved | Use the Evals tab or `dotnet run -- --evals`. On Gemini, run ×1 first (daily cap) |
+| 5.3 | Same 21 questions through the old `/api/ai/chat` → comparison table | The old chat needs Azure Search + OpenAI keys (it reads the **live** `rag-index`: read-only is fine, **never sync**). Cost check with the owner first |
+| 5.4 | `docs/agentic/07-results.md`; owner decides on retiring `AiChatService` | |
+| 5.5 | Loop control (R11): `MaxToolCallsPerRun` (10), `ToolTimeoutSeconds` (10) in `AgentOptions`; repeat-call detection | `AgentStep.IsError` from `ToolExecutionResult.Success` is **already done** (Phase 1). `ToolRegistry` already takes a timeout (fixed 10 s today) |
+| 5.6 | UI: error steps red (already), repeated calls amber | In `agent-timeline` (`.step-error` exists; add a `.step-repeat`) |
+| 5.7 | Eval cases: tool-error recovery, repeated call not run twice | `cases.json` |
+| 5.8 | Shrink old tool results in saved history (R12) | `AgentRunner` saves history at the end of the turn; `ITool` gets an optional `Summarise` (C# 7.3: no default interface methods, so use a second interface, e.g. `ISummarisingTool`) |
+| 5.9 | Multi-turn eval format (`turns`) + "Where's my last order?" → "When will it arrive?" | Needs a seeded order for bob (open question 3) |
+| 5.10 | Groundedness grader (prices / stock numbers must appear in tool outputs) | `Graders.cs`, no LLM call |
+| 5.11 | Final eval ×5, metrics S1–S9 in `07-results.md`, `--save-baseline`, **review checkpoint** + `reports/phase-5-report.html` | ×5 × 51 = 255 conversations: likely too many for Gemini's free daily cap; agree the provider with the owner |
 
-**Done when:** you can chat in the browser, see each step of an answer, browse runs, start a small eval and watch it finish; build passes.
+**Done when:** comparison table and `07-results.md` written, R11/R12 in, groundedness reported, baseline saved, build + tests pass.
 
 **Practical tips:**
 - Run the API in the background, wait for "Application started", stop it with `Stop-Process` on `API.exe` (exit code 255 afterwards is expected). Stop it before `dotnet build` (the running exe locks the DLLs).
-- Windows PowerShell doesn't trust the dev certificate: use `curl.exe -sk` (or Git Bash `curl -sk`).
+- Windows PowerShell doesn't trust the dev certificate: use `curl.exe -sk` (or Git Bash `curl -sk`). For JSON bodies use `--data-binary @file.json` (PowerShell mangles inline quotes).
 - Log in as bob for a token: `POST api/account/login { "email": "bob@test.com", "password": "Pa$$w0rd" }`.
 - To test production-only rules locally: `$env:ASPNETCORE_ENVIRONMENT='Production'; dotnet run --no-build --no-launch-profile --urls http://localhost:5055` (uses the free Fake model, since appsettings.json has no Agent section).
+- UI checks: headless Chrome with `--remote-debugging-port` + the `ws` package from `client/node_modules` worked well for clicking through pages and taking screenshots.
 - `dotnet ef` is 8.0.28; it works for EF 10 with a warning.
 
 ## 3. Docs (read in this order)
@@ -161,8 +183,8 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 | 0 | Docs | ✅ Approved 2026-11-16 |
 | 1 | Agent engine project (`Agent/`, generic, scoped, typed tools, guardrail checks, run store, eval runner with repeats + baseline gate, `gen_ai.*` telemetry names) | ✅ Approved, committed `4ab0817` (2026-11-19) |
 | 2 | Schema + seed (4 new Product columns, AgentRuns/EvalRuns/EvalCaseResults tables, ~1,000 products, policy files, idempotent seed) | ✅ Approved, committed + pushed (2026-11-21) |
-| 3 | Tools + API (7 read-only tools, `api/agent/*`, rate limit, system prompt file, 51 eval cases, Admin role) | ✅ Committed 2026-11-22 (not pushed). Gemini default, OpenAI switch |
-| 4 | Angular 11 UI (lazy `agent` module: chat + panel, runs, evals, how it works) | ⬜ |
+| 3 | Tools + API (7 read-only tools, `api/agent/*`, rate limit, system prompt file, 51 eval cases, Admin role) | ✅ Committed + pushed 2026-11-22 (`c5ca42f`). Gemini default, OpenAI switch |
+| 4 | Angular 11 UI (lazy `agent` module: chat + panel, runs, evals, how it works) | 🟨 Built + browser-tested 2026-11-22; waiting for code review (not committed) |
 | 5 | End to end + comparison with the old chat, then improvements: loop control (R11), shrinking tool results + multi-turn eval (R12), groundedness check, first baseline | ⬜ |
 | 6 | Production rollout: cloud DB first, then the live index from the cloud DB, then App Insights traces | ⬜ |
 
@@ -262,3 +284,4 @@ None. All decisions D1–D9 are made.
 | 2026-11-20 | Claude Code | Owner OK'd the policy text and the Dockerfile lines (added). D2 = per user, D3 = 30 days: all decisions made. Added §2b, the Phase 3 brief, for the next session. Phase 2 still not committed. Then checked the Dockerfile and deploy: the committed Dockerfile uses .NET 7/5 images (the owner's uncommitted edits fix that), the only deploy failed at Azure login (bad `AZURE_CREDENTIALS` format; part of the secret shows in the run log, so rotate it), and the `global.json` pin is unverified. Logged in §2a-bis; nothing changed. |
 | 2026-11-21 01:15 EST | Claude Code | **Deploy fixed** with the owner: new service principal + GitHub secrets, old leaked principal and run log deleted, `global.json` rollForward, PR #1 (Dockerfile + global.json) merged to `main`, first green deploy. Shop UI tidied (pager max 5 pages, compact filter panel with scrolling brand list, 72px header, full-width layout, 4 per row, 12 per page). Phase 2 + UI committed and pushed on `feature/agentic-ai`. Note: local Angular dev server ran on **https://localhost:4200** (not 4201). |
 | 2026-11-21 02:00 EST | Claude Code | **Phase 3 built**: 7 tools (`Infrastructure/AgentTools`), `ProductSearchSpecification`, EF run/eval stores, 30-day cleanup service, `AgentController` (8 endpoints), per-user rate limit (10/min), Admin role + policy (D4), system prompt, 51 eval cases, `--evals` in Program.cs. Smoke-tested every endpoint with small real OpenAI calls (total spend ≈ $0.03); two prompt issues found and fixed. Full eval NOT run (needs OK, ≈ $0.40). Report `reports/phase-3-report.html`. Not committed. |
+| 2026-11-22 04:00 EST | Claude Code | Gemini added as the default LLM (free tier), OpenAI kept as a one-setting switch; fixes found by testing: retired model name → `gemini-3.5-flash`, Gemini thought signature sent back on tool calls. Owner said "commit phase 3" → `c5ca42f`, pushed. Wrote `reports/agent-architecture.html` (solution design, owner asked). Owner said "work on phase 4": **Phase 4 built** (`client/src/app/agent/`: chat + timeline, runs + detail, evals, how it works; nav link; no spinner for `/agent/`). `ng build` + `--prod` clean; headless-Chrome test anonymous + bob, quick eval 3/3 from the UI, no console errors. `reports/phase-4-report.html`. **Not committed**, waiting for review. |

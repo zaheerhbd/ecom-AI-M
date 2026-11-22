@@ -1,0 +1,93 @@
+<div *ngIf="trace" class="timeline">
+
+  <!-- Totals -->
+  <div class="totals">
+    <div class="total">
+      <div class="value">{{trace.durationMs / 1000 | number:'1.1-1'}} s</div>
+      <div class="label">time</div>
+    </div>
+    <div class="total">
+      <div class="value">{{trace.inputTokens + trace.outputTokens | number}}</div>
+      <div class="label">tokens ({{trace.inputTokens | number}} in / {{trace.outputTokens | number}} out)</div>
+    </div>
+    <div class="total">
+      <div class="value">${{trace.estimatedCostUsd | number:'1.4-4'}}</div>
+      <div class="label">estimated cost</div>
+    </div>
+    <div class="total">
+      <div class="value">{{llmCalls}} / {{trace.toolsUsed.length}}</div>
+      <div class="label">AI calls / tool calls</div>
+    </div>
+  </div>
+  <p class="model"><i class="fa fa-microchip mr-1"></i> Model: <strong>{{trace.model}}</strong></p>
+
+  <!-- Problems first, so they are not missed -->
+  <div *ngIf="trace.blocked" class="alert alert-danger py-2 mb-2">
+    <i class="fa fa-ban mr-1"></i> Blocked by <strong>{{trace.blockedBy}}</strong>. The safe fallback answer was shown.
+  </div>
+  <div *ngIf="trace.error" class="alert alert-danger py-2 mb-2">
+    <i class="fa fa-exclamation-triangle mr-1"></i> Error: <strong>{{trace.error}}</strong> (details are in the server log).
+  </div>
+  <div *ngIf="trace.stopReason" class="alert alert-warning py-2 mb-2">
+    <i class="fa fa-hand-paper-o mr-1"></i> {{stopReasonText(trace.stopReason)}}
+  </div>
+
+  <!-- Guardrails -->
+  <h6 class="section-title">Safety checks</h6>
+  <div class="checks">
+    <span class="stage">Before the AI</span>
+    <span *ngFor="let c of inputChecks" class="chip" [ngClass]="outcomeClass(c)" [title]="c.reason || outcomeLabel(c)">
+      {{c.name}}: {{outcomeLabel(c)}}
+    </span>
+  </div>
+  <div class="checks">
+    <span class="stage">After the AI</span>
+    <span *ngFor="let c of outputChecks" class="chip" [ngClass]="outcomeClass(c)" [title]="c.reason || outcomeLabel(c)">
+      {{c.name}}: {{outcomeLabel(c)}}
+    </span>
+  </div>
+
+  <!-- Steps -->
+  <h6 class="section-title">Steps <small class="text-muted">(click a step to see what went in and out)</small></h6>
+  <ol class="steps">
+    <li *ngFor="let step of trace.steps" class="step" [ngClass]="'step-' + step.type" [class.step-error]="step.isError">
+      <button type="button" class="step-head" (click)="toggle(step)" [disabled]="!canOpen(step)"
+              [attr.aria-expanded]="open.has(step.index)">
+        <span class="step-icon"><i class="fa" [ngClass]="stepIcon(step)"></i></span>
+        <span class="step-main">
+          <span class="step-kind">{{stepLabel(step)}}</span>
+          <span class="step-name">{{step.name}}</span>
+          <span *ngIf="step.type === 'llm' && step.output" class="step-preview">{{step.output}}</span>
+          <span *ngIf="step.type === 'guardrail'" class="step-preview">{{step.output}}</span>
+        </span>
+        <span class="step-meta">
+          <span *ngIf="step.inputTokens || step.outputTokens">{{step.inputTokens}} / {{step.outputTokens}} tok</span>
+          <span>{{step.durationMs | number:'1.0-1'}} ms</span>
+          <i *ngIf="canOpen(step)" class="fa" [ngClass]="open.has(step.index) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+        </span>
+      </button>
+      <div *ngIf="open.has(step.index)" class="step-body">
+        <div *ngIf="step.input">
+          <div class="io-label">{{step.type === 'tool' ? 'Arguments the AI sent' : 'Input'}}</div>
+          <pre>{{step.input | prettyJson}}</pre>
+        </div>
+        <div *ngIf="step.output">
+          <div class="io-label">{{step.type === 'tool' ? 'What the tool returned' : step.type === 'llm' ? 'What the AI decided' : 'Output'}}</div>
+          <pre>{{step.output | prettyJson}}</pre>
+        </div>
+      </div>
+    </li>
+  </ol>
+
+  <!-- Sources -->
+  <ng-container *ngIf="trace.sources && trace.sources.length > 0">
+    <h6 class="section-title">Sources used</h6>
+    <ul class="sources">
+      <li *ngFor="let s of trace.sources">
+        <span class="chip chip-grey mr-1">{{s.type}}</span>
+        <a *ngIf="s.type === 'product'; else plain" [routerLink]="['/shop', s.id]">{{s.title}}</a>
+        <ng-template #plain>{{s.title}}</ng-template>
+      </li>
+    </ul>
+  </ng-container>
+</div>

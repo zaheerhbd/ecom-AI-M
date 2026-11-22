@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop Assistant Architecture</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text: #1f2328;
+    --muted: #5b6270;
+    --border: #e1ded5;
+    --accent: #2f5fd0;
+    --accent-soft: #e6edfb;
+    --good: #1d7a46;
+    --good-soft: #e3f3e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf0d9;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --grey-soft: #ecebe6;
+    --code-bg: #f2f1ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b;
+      --surface: #1d2026;
+      --surface-2: #252931;
+      --text: #e7e9ee;
+      --muted: #a0a7b4;
+      --border: #333844;
+      --accent: #8fb0ff;
+      --accent-soft: #23304d;
+      --good: #6fd39a;
+      --good-soft: #1d3428;
+      --warn: #f0c060;
+      --warn-soft: #3a3020;
+      --bad: #ff8f86;
+      --bad-soft: #3d2322;
+      --grey-soft: #2a2e36;
+      --code-bg: #262a32;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2026;
+    --surface-2: #252931;
+    --text: #e7e9ee;
+    --muted: #a0a7b4;
+    --border: #333844;
+    --accent: #8fb0ff;
+    --accent-soft: #23304d;
+    --good: #6fd39a;
+    --good-soft: #1d3428;
+    --warn: #f0c060;
+    --warn-soft: #3a3020;
+    --bad: #ff8f86;
+    --bad-soft: #3d2322;
+    --grey-soft: #2a2e36;
+    --code-bg: #262a32;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 0; }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+  nav.toc a::before { content: counter(toc) ". "; color: var(--muted); opacity: .7; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .theme-btn { margin-top: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  main { padding: 28px 0 80px; min-width: 0; }
+  header.hero { padding: 8px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+  section { padding-top: 36px; scroll-margin-top: 12px; }
+  h2 { font-size: 24px; margin: 0 0 12px; letter-spacing: -.005em; }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p, li { max-width: 75ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad { background: var(--bad-soft); color: var(--bad); }
+  .chip.grey { background: var(--grey-soft); color: var(--muted); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .label { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+  .callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.good { border-color: var(--good); background: var(--good-soft); }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .card .where { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .flow { list-style: none; padding: 0; margin: 16px 0; counter-reset: flow; }
+  .flow li { counter-increment: flow; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 12px 58px; margin-bottom: 26px; box-shadow: var(--shadow); max-width: none; }
+  .flow li::before { content: counter(flow); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -22px; width: 2px; height: 18px; background: var(--border); }
+  .flow li.loop { border-color: var(--accent); }
+  .flow .tag { float: right; margin-left: 10px; }
+  .flow strong { display: block; }
+  .flow span.desc { color: var(--muted); font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+  details ul { margin: 0; padding-left: 20px; }
+  details li { font-size: 15px; }
+
+  dl.glossary { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; }
+  dl.glossary dt { font-weight: 700; }
+  dl.glossary dd { margin: 0; color: var(--text); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    nav.toc { position: static; max-height: none; padding: 16px 0 0; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { padding: 4px 8px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 27px; }
+    dl.glossary { grid-template-columns: 1fr; gap: 2px; }
+    dl.glossary dd { margin-bottom: 10px; }
+  }
+</style>
+<style>
+  .figure { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 16px 0; box-shadow: var(--shadow); overflow-x: auto; }
+  .figure svg { display: block; width: 100%; height: auto; min-width: 640px; }
+  .figure figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
+  svg text { fill: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  svg .t-title { font-size: 15px; font-weight: 700; }
+  svg .t-sub { font-size: 12px; fill: var(--muted); }
+  svg .t-small { font-size: 12px; }
+  svg .t-label { font-size: 12.5px; fill: var(--muted); }
+  svg .t-num { font-size: 11px; font-weight: 700; fill: var(--surface); }
+  svg .box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  svg .box-iface { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  svg .box-core { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  svg .box-good { fill: var(--good-soft); stroke: var(--good); stroke-width: 1.5; }
+  svg .box-warn { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+  svg .box-bad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+  svg .band { fill: var(--surface-2); stroke: var(--border); stroke-width: 1; }
+  svg .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+  svg .line-accent { stroke: var(--accent); stroke-width: 2; fill: none; }
+  svg .line-dash { stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  svg .lifeline { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  svg .boundary { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 8 5; }
+  svg .loopbox { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  svg .dot { fill: var(--accent); }
+  svg .arrowhead { fill: var(--muted); }
+  svg .arrowhead-accent { fill: var(--accent); }
+  .why { border-left: 4px solid var(--good); background: var(--good-soft); padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .why::before { content: "Why this way?"; display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--good); margin-bottom: 2px; }
+  .why p { margin: 4px 0; }
+  .flow .src { display: block; font-size: 13.5px; color: var(--muted); margin-bottom: 2px; }
+  .flow .src::before { content: "in "; }
+  .class-list { list-style: none; padding: 0; margin: 8px 0 0; }
+  .class-list li { padding: 6px 0; border-top: 1px dashed var(--border); font-size: 15px; max-width: none; }
+  .class-list li:first-child { border-top: none; }
+  .class-list code { font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .legend span::before { content: ""; display: inline-block; width: 18px; height: 11px; margin-right: 6px; vertical-align: -1px; border-radius: 3px; }
+  .legend .l-core::before { background: var(--accent-soft); border: 2px solid var(--accent); }
+  .legend .l-iface::before { border: 1.5px dashed var(--accent); }
+  .legend .l-box::before { background: var(--surface); border: 1.5px solid var(--border); }
+  .legend .l-shop::before { background: var(--good-soft); border: 1.5px solid var(--good); }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      <li><a href="#summary">In one minute</a></li>
+      <li><a href="#big-picture">The big picture</a></li>
+      <li><a href="#principles">Design rules and why</a></li>
+      <li><a href="#journey">The journey of one question</a></li>
+      <li><a href="#loop">The agent loop</a></li>
+      <li><a href="#classes">How the classes connect</a></li>
+      <li><a href="#catalogue">Every class and its job</a></li>
+      <li><a href="#lifetimes">Who lives how long</a></li>
+      <li><a href="#safety">Safety in layers</a></li>
+      <li><a href="#providers">Switching the AI provider</a></li>
+      <li><a href="#evals">How testing works</a></li>
+      <li><a href="#change">Where to change things</a></li>
+      <li><a href="#limits">Known limits</a></li>
+      <li><a href="#glossary">Words used</a></li>
+    </ol>
+    <button class="theme-btn" type="button" id="themeBtn">Switch light / dark</button>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">eCOM-AI-M · Agentic AI · Solution design</p>
+      <h1>How the Shop Assistant is built</h1>
+      <p class="lede">A plain-English tour of the AI agent's design: the big blocks, every class and its job, how they talk to each other, and the reasoning behind each choice. State of the code after Phase 3 (commit <code>c5ca42f</code>, 2026-11-22).</p>
+      <div class="chips">
+        <span class="chip info">3 projects: Agent · Infrastructure · API</span>
+        <span class="chip info">41 engine files (74 classes &amp; interfaces) · 7 shop tools</span>
+        <span class="chip good">No AI framework: our own small engine</span>
+        <span class="chip grey">Chat screen (Phase 4) not built yet</span>
+      </div>
+    </header>
+
+    <!-- ============================================================ 1 -->
+    <section id="summary">
+      <h2>In one minute</h2>
+      <p>The Shop Assistant answers customer questions like "red gloves under $50?" or "can I return a board after 5 weeks?". It is an <strong>agent</strong>: instead of answering from memory, the AI model can <em>ask our code to look things up</em> (search products, read a policy, check an order), read the results, and then answer.</p>
+      <div class="stats">
+        <div class="stat"><div class="value">1 loop</div><div class="label">The whole agent is one loop: think → use a tool → read the result → repeat</div></div>
+        <div class="stat"><div class="value">7 tools</div><div class="label">All read-only: the agent can look, never change anything</div></div>
+        <div class="stat"><div class="value">5 checks</div><div class="label">Safety checks before and after the AI (guardrails)</div></div>
+        <div class="stat"><div class="value">51 tests</div><div class="label">Test questions that grade the agent's behaviour</div></div>
+      </div>
+      <div class="callout">
+        <p><strong>The one idea to remember:</strong> the AI model never touches the database or the shop directly. It can only <em>ask</em> for a tool by name. Our C# code decides whether to run it, runs it safely, and hands back the result. The model is the "brain"; our code is the "hands" and the "rules".</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 2 -->
+    <section id="big-picture">
+      <h2>The big picture</h2>
+      <p>The solution is split into layers. Each layer has one job, and arrows only point one way, so a change in one place doesn't ripple everywhere.</p>
+
+      <figure class="figure">
+        <svg viewBox="0 0 960 560" role="img" aria-label="Layer diagram: browser, API, agent engine, shop infrastructure, external services">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+            <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--good)"/></marker>
+          </defs>
+
+          <!-- Browser -->
+          <rect x="20" y="14" width="920" height="70" rx="10" class="band"/>
+          <text x="36" y="38" class="t-title">1. Browser</text>
+          <text x="36" y="58" class="t-sub">What the customer uses</text>
+          <rect x="300" y="26" width="270" height="46" rx="8" class="box"/>
+          <text x="435" y="47" text-anchor="middle" class="t-small">Angular website (chat screen = Phase 4)</text>
+          <text x="435" y="63" text-anchor="middle" class="t-sub">https://localhost:4200</text>
+          <rect x="600" y="26" width="200" height="46" rx="8" class="box"/>
+          <text x="700" y="47" text-anchor="middle" class="t-small">Swagger (for testing now)</text>
+          <text x="700" y="63" text-anchor="middle" class="t-sub">/swagger</text>
+
+          <!-- API -->
+          <rect x="20" y="104" width="920" height="92" rx="10" class="band"/>
+          <text x="36" y="128" class="t-title">2. API project</text>
+          <text x="36" y="148" class="t-sub">The front door (HTTP)</text>
+          <rect x="230" y="118" width="210" height="64" rx="8" class="box"/>
+          <text x="335" y="142" text-anchor="middle" class="t-title">AgentController</text>
+          <text x="335" y="161" text-anchor="middle" class="t-sub">8 endpoints under api/agent</text>
+          <rect x="460" y="118" width="230" height="64" rx="8" class="box"/>
+          <text x="575" y="142" text-anchor="middle" class="t-title">AgentServiceExtensions</text>
+          <text x="575" y="161" text-anchor="middle" class="t-sub">wiring · rate limit · admin rule</text>
+          <rect x="710" y="118" width="210" height="64" rx="8" class="box"/>
+          <text x="815" y="142" text-anchor="middle" class="t-title">Program / Startup</text>
+          <text x="815" y="161" text-anchor="middle" class="t-sub">start-up · --evals switch</text>
+
+          <!-- Agent engine -->
+          <rect x="20" y="216" width="920" height="120" rx="10" class="box-core"/>
+          <text x="36" y="240" class="t-title">3. Agent engine</text>
+          <text x="36" y="260" class="t-sub">"Agent" project:</text>
+          <text x="36" y="276" class="t-sub">knows nothing</text>
+          <text x="36" y="292" class="t-sub">about the shop</text>
+          <rect x="230" y="232" width="150" height="40" rx="8" class="box"/><text x="305" y="257" text-anchor="middle" class="t-small">AgentRunner (loop)</text>
+          <rect x="390" y="232" width="130" height="40" rx="8" class="box"/><text x="455" y="257" text-anchor="middle" class="t-small">Guardrails</text>
+          <rect x="530" y="232" width="130" height="40" rx="8" class="box"/><text x="595" y="257" text-anchor="middle" class="t-small">ToolRegistry</text>
+          <rect x="670" y="232" width="120" height="40" rx="8" class="box"/><text x="730" y="257" text-anchor="middle" class="t-small">Memory</text>
+          <rect x="800" y="232" width="120" height="40" rx="8" class="box"/><text x="860" y="257" text-anchor="middle" class="t-small">LLM client</text>
+          <rect x="230" y="282" width="150" height="40" rx="8" class="box"/><text x="305" y="307" text-anchor="middle" class="t-small">System prompt</text>
+          <rect x="390" y="282" width="130" height="40" rx="8" class="box"/><text x="455" y="307" text-anchor="middle" class="t-small">Run records</text>
+          <rect x="530" y="282" width="130" height="40" rx="8" class="box"/><text x="595" y="307" text-anchor="middle" class="t-small">Evals (tests)</text>
+          <rect x="670" y="282" width="250" height="40" rx="8" class="box"/><text x="795" y="307" text-anchor="middle" class="t-small">Telemetry (traces, metrics)</text>
+
+          <!-- Infrastructure -->
+          <rect x="20" y="356" width="920" height="92" rx="10" class="box-good"/>
+          <text x="36" y="380" class="t-title">4. Infrastructure project</text>
+          <text x="36" y="400" class="t-sub">The shop's "plug-ins"</text>
+          <rect x="230" y="370" width="230" height="64" rx="8" class="box"/>
+          <text x="345" y="394" text-anchor="middle" class="t-title">7 shop tools</text>
+          <text x="345" y="413" text-anchor="middle" class="t-sub">search_products, get_order …</text>
+          <rect x="480" y="370" width="210" height="64" rx="8" class="box"/>
+          <text x="585" y="394" text-anchor="middle" class="t-title">EF run / eval stores</text>
+          <text x="585" y="413" text-anchor="middle" class="t-sub">save runs in PostgreSQL</text>
+          <rect x="710" y="370" width="210" height="64" rx="8" class="box"/>
+          <text x="815" y="394" text-anchor="middle" class="t-title">Cleanup service</text>
+          <text x="815" y="413" text-anchor="middle" class="t-sub">deletes runs older than 30 days</text>
+
+          <!-- External -->
+          <rect x="20" y="468" width="920" height="80" rx="10" class="band"/>
+          <text x="36" y="492" class="t-title">5. Outside services</text>
+          <rect x="230" y="482" width="140" height="52" rx="8" class="box"/>
+          <text x="300" y="505" text-anchor="middle" class="t-small">Policy files</text>
+          <text x="300" y="522" text-anchor="middle" class="t-sub">returns, warranty …</text>
+          <rect x="390" y="482" width="300" height="52" rx="8" class="box"/>
+          <text x="540" y="505" text-anchor="middle" class="t-small">PostgreSQL (Docker)</text>
+          <text x="540" y="522" text-anchor="middle" class="t-sub">products, orders, agent runs</text>
+          <rect x="710" y="482" width="210" height="52" rx="8" class="box-warn"/>
+          <text x="815" y="505" text-anchor="middle" class="t-small">Gemini or OpenAI</text>
+          <text x="815" y="522" text-anchor="middle" class="t-sub">the AI model (over HTTPS)</text>
+
+          <!-- arrows -->
+          <line x1="435" y1="72" x2="380" y2="118" class="line" marker-end="url(#ah)"/>
+          <line x1="700" y1="72" x2="400" y2="118" class="line" marker-end="url(#ah)"/>
+          <line x1="335" y1="182" x2="305" y2="232" class="line" marker-end="url(#ah)"/>
+          <text x="328" y="212" class="t-label">calls RunAsync</text>
+          <line x1="345" y1="370" x2="580" y2="274" class="line-dash" marker-end="url(#ahg)" style="stroke: var(--good)"/>
+          <line x1="585" y1="370" x2="470" y2="324" class="line-dash" marker-end="url(#ahg)" style="stroke: var(--good)"/>
+          <text x="600" y="352" class="t-label" style="fill: var(--good)">plugs into the engine's interfaces</text>
+          <line x1="300" y1="434" x2="300" y2="480" class="line" marker-end="url(#ah)"/>
+          <line x1="420" y1="434" x2="470" y2="480" class="line" marker-end="url(#ah)"/>
+          <line x1="585" y1="434" x2="585" y2="480" class="line" marker-end="url(#ah)"/>
+          <path d="M920,252 H932 V462 L905,480" class="line" marker-end="url(#ah)"/>
+        </svg>
+        <figcaption>Solid arrows: "calls". Green dashed arrows: "the shop plugs its own classes into the engine". The engine (blue) never points down at the shop.</figcaption>
+      </figure>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Project</th><th>Its job</th><th>Depends on</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Agent</strong></td><td>The reusable engine: the loop, safety checks, talking to the AI, memory, run records, tests. Could power any app, not just this shop.</td><td>Nothing in this solution (only Microsoft's built-in libraries)</td></tr>
+          <tr><td><strong>Infrastructure</strong></td><td>Shop-specific pieces: the 7 tools that read products/orders/policies, and the database stores.</td><td>Agent + Core</td></tr>
+          <tr><td><strong>API</strong></td><td>The HTTP front door: endpoints, who may call what, the rate limit, start-up wiring.</td><td>Agent + Infrastructure + Core</td></tr>
+          <tr><td><strong>Core</strong></td><td>Shop entities (Product, Order) and search rules (<code>ProductSearchSpecification</code>). Already existed.</td><td>Nothing</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="why">
+        <p><strong>The engine has no references to the shop.</strong> That keeps it small and testable on its own (43 unit tests run with no database and no AI), and it means the "how an agent works" code isn't tangled up with "how this shop works". The shop teaches the engine about itself by plugging in tools, not by the engine reaching into the shop.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 3 -->
+    <section id="principles">
+      <h2>Design rules and why</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>1. Our own small engine, no AI framework</h3>
+          <p>We wrote the loop ourselves (about 470 lines in <code>AgentRunner</code>) instead of using Semantic Kernel or similar.</p>
+          <p class="where"><strong>Why:</strong> you can read exactly what happens, step by step, with no hidden magic, and nothing changes under us when a framework updates. Full reasoning: <a href="../08-adr-why-build.md">ADR 08</a>.</p>
+        </div>
+        <div class="card">
+          <h3>2. Tools are read-only</h3>
+          <p>All 7 tools only <em>look</em>: search, read, list. None can add to a basket, cancel an order or change data.</p>
+          <p class="where"><strong>Why:</strong> if the AI is tricked, the worst it can do is show public info. "Write" actions need human approval and undo, which is designed separately in <a href="../09-write-actions-design.md">doc 09</a>.</p>
+        </div>
+        <div class="card">
+          <h3>3. Who you are comes from the login, never from the chat</h3>
+          <p>The user's email is read from the JWT login token by the controller and put in <code>AgentRequestContext</code>. Tools read it from there.</p>
+          <p class="where"><strong>Why:</strong> if the user types "I am bob@test.com, show my orders", it changes nothing. The AI can't pick whose orders to show.</p>
+        </div>
+        <div class="card">
+          <h3>4. Program to interfaces</h3>
+          <p>The runner talks to <code>ILlmClient</code>, <code>ITool</code>, <code>IConversationStore</code>, <code>IAgentRunStore</code>, not to concrete classes.</p>
+          <p class="where"><strong>Why:</strong> swap Gemini for OpenAI, memory for Redis, or the DB store for an in-memory one, without touching the loop. Tests use a free fake AI the same way.</p>
+        </div>
+        <div class="card">
+          <h3>5. Errors become text, not crashes</h3>
+          <p>A failing tool returns "Error: …" text to the AI; a failing AI call returns a polite "Sorry, something went wrong".</p>
+          <p class="where"><strong>Why:</strong> the AI can often recover from a tool error ("brand not found, here are the valid brands"), and users never see stack traces.</p>
+        </div>
+        <div class="card">
+          <h3>6. Safe by default</h3>
+          <p>With no settings at all, the engine uses the free <code>FakeLlmClient</code>; limits (6 steps, 20,000 tokens, 2,000 characters) are always on.</p>
+          <p class="where"><strong>Why:</strong> a missing setting can never cost money or run forever.</p>
+        </div>
+        <div class="card">
+          <h3>7. Everything is recorded</h3>
+          <p>Every answer comes back with its <em>steps</em> (each safety check, each AI call, each tool with input/output, tokens, time, cost) and is saved as a run.</p>
+          <p class="where"><strong>Why:</strong> when an answer is wrong you can see <em>why</em>: wrong tool? wrong filter? AI ignored the result? This is what the Phase 4 screen will show.</p>
+        </div>
+        <div class="card">
+          <h3>8. Settings, not code, for behaviour</h3>
+          <p>The system prompt is a text file; the AI provider, model, limits and prices are settings.</p>
+          <p class="where"><strong>Why:</strong> change the assistant's tone or switch provider without recompiling.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 4 -->
+    <section id="journey">
+      <h2>The journey of one question</h2>
+      <p>What happens when a customer asks <em>"Show me red gloves under $50"</em>. Time runs top to bottom; each arrow is one message between parts.</p>
+
+      <figure class="figure">
+        <svg viewBox="0 0 960 760" role="img" aria-label="Sequence diagram of one chat request">
+          <defs>
+            <marker id="sq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+          </defs>
+          <!-- heads -->
+          <g>
+            <rect x="10" y="10" width="110" height="44" rx="8" class="box"/><text x="65" y="37" text-anchor="middle" class="t-small">Browser</text>
+            <rect x="145" y="10" width="125" height="44" rx="8" class="box"/><text x="207" y="37" text-anchor="middle" class="t-small">AgentController</text>
+            <rect x="295" y="10" width="125" height="44" rx="8" class="box-core"/><text x="357" y="37" text-anchor="middle" class="t-small">AgentRunner</text>
+            <rect x="445" y="10" width="110" height="44" rx="8" class="box"/><text x="500" y="37" text-anchor="middle" class="t-small">Guardrails</text>
+            <rect x="580" y="10" width="110" height="44" rx="8" class="box-warn"/><text x="635" y="37" text-anchor="middle" class="t-small">AI (Gemini)</text>
+            <rect x="715" y="10" width="110" height="44" rx="8" class="box"/><text x="770" y="32" text-anchor="middle" class="t-small">ToolRegistry</text><text x="770" y="47" text-anchor="middle" class="t-sub">+ tool</text>
+            <rect x="850" y="10" width="100" height="44" rx="8" class="box"/><text x="900" y="37" text-anchor="middle" class="t-small">Database</text>
+          </g>
+          <line x1="65" y1="54" x2="65" y2="745" class="lifeline"/>
+          <line x1="207" y1="54" x2="207" y2="745" class="lifeline"/>
+          <line x1="357" y1="54" x2="357" y2="745" class="lifeline"/>
+          <line x1="500" y1="54" x2="500" y2="745" class="lifeline"/>
+          <line x1="635" y1="54" x2="635" y2="745" class="lifeline"/>
+          <line x1="770" y1="54" x2="770" y2="745" class="lifeline"/>
+          <line x1="900" y1="54" x2="900" y2="745" class="lifeline"/>
+
+          <!-- 1 -->
+          <circle cx="20" cy="84" r="9" class="dot"/><text x="20" y="88" text-anchor="middle" class="t-num">1</text>
+          <line x1="65" y1="90" x2="205" y2="90" class="line" marker-end="url(#sq)"/>
+          <text x="72" y="82" class="t-small">POST api/agent/chat</text>
+          <!-- 2 -->
+          <circle cx="20" cy="124" r="9" class="dot"/><text x="20" y="128" text-anchor="middle" class="t-num">2</text>
+          <line x1="207" y1="130" x2="355" y2="130" class="line" marker-end="url(#sq)"/>
+          <text x="214" y="114" class="t-small">rate limit ok? email</text>
+          <text x="214" y="126" class="t-small">from login → RunAsync</text>
+          <!-- 3 -->
+          <circle cx="20" cy="164" r="9" class="dot"/><text x="20" y="168" text-anchor="middle" class="t-num">3</text>
+          <line x1="357" y1="170" x2="498" y2="170" class="line" marker-end="url(#sq)"/>
+          <text x="364" y="160" class="t-small">input checks</text>
+          <line x1="500" y1="194" x2="359" y2="194" class="line-dash" marker-end="url(#sq)"/>
+          <text x="364" y="210" class="t-label">ok (length, injection, PII masked)</text>
+          <!-- 4 -->
+          <circle cx="20" cy="236" r="9" class="dot"/><text x="20" y="240" text-anchor="middle" class="t-num">4</text>
+          <path d="M357,232 h40 v22 h-38" class="line" marker-end="url(#sq)"/>
+          <text x="404" y="242" class="t-small">load chat history + system prompt</text>
+
+          <!-- loop box -->
+          <rect x="300" y="272" width="645" height="330" rx="8" class="loopbox"/>
+          <text x="310" y="290" class="t-label" style="fill: var(--accent); font-weight:700">loop (max 6 steps)</text>
+
+          <!-- 5 -->
+          <circle cx="20" cy="310" r="9" class="dot"/><text x="20" y="314" text-anchor="middle" class="t-num">5</text>
+          <line x1="357" y1="316" x2="633" y2="316" class="line" marker-end="url(#sq)"/>
+          <text x="420" y="308" class="t-small">history + list of tools this user may use</text>
+          <!-- 6 -->
+          <circle cx="20" cy="350" r="9" class="dot"/><text x="20" y="354" text-anchor="middle" class="t-num">6</text>
+          <line x1="635" y1="356" x2="359" y2="356" class="line-dash" marker-end="url(#sq)"/>
+          <text x="380" y="348" class="t-small">"call search_products {color: red, maxPrice: 50}"</text>
+          <!-- 7 -->
+          <circle cx="20" cy="390" r="9" class="dot"/><text x="20" y="394" text-anchor="middle" class="t-num">7</text>
+          <line x1="357" y1="396" x2="768" y2="396" class="line" marker-end="url(#sq)"/>
+          <text x="440" y="388" class="t-small">ExecuteAsync (sign-in check, 10 s timeout)</text>
+          <!-- 8 -->
+          <circle cx="20" cy="430" r="9" class="dot"/><text x="20" y="434" text-anchor="middle" class="t-num">8</text>
+          <line x1="770" y1="436" x2="898" y2="436" class="line" marker-end="url(#sq)"/>
+          <text x="778" y="428" class="t-small">SQL query</text>
+          <line x1="900" y1="460" x2="772" y2="460" class="line-dash" marker-end="url(#sq)"/>
+          <text x="778" y="476" class="t-label">11 rows</text>
+          <!-- 9 -->
+          <circle cx="20" cy="500" r="9" class="dot"/><text x="20" y="504" text-anchor="middle" class="t-num">9</text>
+          <line x1="770" y1="506" x2="359" y2="506" class="line-dash" marker-end="url(#sq)"/>
+          <text x="420" y="498" class="t-small">JSON result (11 found, top 5 listed) + sources</text>
+          <!-- 10 -->
+          <circle cx="20" cy="540" r="9" class="dot"/><text x="20" y="544" text-anchor="middle" class="t-num">10</text>
+          <line x1="357" y1="546" x2="633" y2="546" class="line" marker-end="url(#sq)"/>
+          <text x="420" y="538" class="t-small">history + the tool result</text>
+          <line x1="635" y1="580" x2="359" y2="580" class="line-dash" marker-end="url(#sq)"/>
+          <text x="380" y="572" class="t-small">final answer text ("We found 11 red gloves…")</text>
+
+          <!-- 11 -->
+          <circle cx="20" cy="630" r="9" class="dot"/><text x="20" y="634" text-anchor="middle" class="t-num">11</text>
+          <line x1="357" y1="636" x2="498" y2="636" class="line" marker-end="url(#sq)"/>
+          <text x="364" y="628" class="t-small">output checks</text>
+          <line x1="500" y1="656" x2="359" y2="656" class="line-dash" marker-end="url(#sq)"/>
+          <text x="364" y="672" class="t-label">ok (no secret leak, PII masked)</text>
+          <!-- 12 -->
+          <circle cx="20" cy="696" r="9" class="dot"/><text x="20" y="700" text-anchor="middle" class="t-num">12</text>
+          <line x1="357" y1="702" x2="898" y2="702" class="line" marker-end="url(#sq)"/>
+          <text x="560" y="694" class="t-small">save history + run record (AgentRuns table)</text>
+          <!-- 13 -->
+          <circle cx="20" cy="730" r="9" class="dot"/><text x="20" y="734" text-anchor="middle" class="t-num">13</text>
+          <line x1="357" y1="736" x2="67" y2="736" class="line-dash" marker-end="url(#sq)"/>
+          <text x="90" y="728" class="t-small">AgentResult: answer + steps + tokens + cost + sources</text>
+        </svg>
+        <figcaption>Solid arrows: a request. Dashed arrows: the reply. The blue dashed box is the loop: for a question that needs two tools (e.g. "cheapest hat and how fast can it arrive?"), steps 5–10 happen twice.</figcaption>
+      </figure>
+
+      <ol class="flow">
+        <li><strong>Front door (steps 1–2)</strong><span class="desc"><code>AgentController.Chat</code> checks the message isn't empty. The rate limiter (10 messages a minute) has already run. The controller reads the email from the login token and writes it into <code>AgentRequestContext</code>, then calls <code>AgentRunner.RunAsync</code>.</span></li>
+        <li><strong>Safety first (step 3)</strong><span class="desc">The input guardrails run <em>before</em> any money is spent. "Ignore all previous instructions…" is blocked here and the AI is never called ($0).</span></li>
+        <li><strong>Memory (step 4)</strong><span class="desc">The AI remembers nothing between calls, so the runner re-sends the conversation each time. It also checks this conversation belongs to <em>this</em> user.</span></li>
+        <li class="loop"><strong>The loop (steps 5–10)</strong><span class="desc">The AI either asks for tools or writes the final answer. Tools run one after another (they share one database connection). The AI reads their results and decides again.</span></li>
+        <li><strong>Safety last (step 11)</strong><span class="desc">The output guardrails check the answer didn't leak the hidden system prompt and mask any personal data.</span></li>
+        <li><strong>Record and reply (steps 12–13)</strong><span class="desc">The run is saved (questions and tool data masked), then the full <code>AgentResult</code> goes back to the browser.</span></li>
+      </ol>
+    </section>
+
+    <!-- ============================================================ 5 -->
+    <section id="loop">
+      <h2>The agent loop</h2>
+      <p>The heart of the engine is <code>AgentRunner.RunAgentLoopAsync</code>. It's the classic <strong>think → act → observe</strong> pattern, with two safety exits so it can never run forever.</p>
+
+      <figure class="figure">
+        <svg viewBox="0 0 960 400" role="img" aria-label="Agent loop flowchart">
+          <defs>
+            <marker id="lp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+            <marker id="lpa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker>
+          </defs>
+          <rect x="20" y="40" width="150" height="56" rx="28" class="box"/>
+          <text x="95" y="73" text-anchor="middle" class="t-small">question arrives</text>
+
+          <rect x="220" y="30" width="190" height="76" rx="8" class="box-warn"/>
+          <text x="315" y="58" text-anchor="middle" class="t-title">Over the limit?</text>
+          <text x="315" y="78" text-anchor="middle" class="t-sub">6 steps or 20,000 tokens</text>
+
+          <rect x="470" y="30" width="190" height="76" rx="8" class="box-core"/>
+          <text x="565" y="58" text-anchor="middle" class="t-title">THINK</text>
+          <text x="565" y="78" text-anchor="middle" class="t-sub">ask the AI what to do</text>
+
+          <rect x="710" y="30" width="170" height="76" rx="8" class="box"/>
+          <text x="795" y="58" text-anchor="middle" class="t-title">Wants a tool?</text>
+          <text x="795" y="78" text-anchor="middle" class="t-sub">reply has tool_calls</text>
+
+          <rect x="710" y="200" width="170" height="76" rx="8" class="box-core"/>
+          <text x="795" y="228" text-anchor="middle" class="t-title">ACT</text>
+          <text x="795" y="248" text-anchor="middle" class="t-sub">run each tool in turn</text>
+
+          <rect x="470" y="200" width="190" height="76" rx="8" class="box-core"/>
+          <text x="565" y="228" text-anchor="middle" class="t-title">OBSERVE</text>
+          <text x="565" y="248" text-anchor="middle" class="t-sub">add results to history</text>
+
+          <rect x="710" y="320" width="170" height="60" rx="30" class="box-good"/>
+          <text x="795" y="355" text-anchor="middle" class="t-small">final answer</text>
+
+          <rect x="220" y="200" width="190" height="76" rx="8" class="box-bad"/>
+          <text x="315" y="228" text-anchor="middle" class="t-title">Stop politely</text>
+          <text x="315" y="248" text-anchor="middle" class="t-sub">"could you simplify it?"</text>
+
+          <line x1="170" y1="68" x2="218" y2="68" class="line" marker-end="url(#lp)"/>
+          <line x1="410" y1="68" x2="468" y2="68" class="line" marker-end="url(#lp)"/>
+          <text x="420" y="60" class="t-label">no</text>
+          <line x1="315" y1="106" x2="315" y2="198" class="line" marker-end="url(#lp)"/>
+          <text x="322" y="156" class="t-label">yes</text>
+          <line x1="660" y1="68" x2="708" y2="68" class="line" marker-end="url(#lp)"/>
+          <line x1="795" y1="106" x2="795" y2="198" class="line-accent" marker-end="url(#lpa)"/>
+          <text x="802" y="156" class="t-label" style="fill: var(--accent)">yes</text>
+          <line x1="710" y1="238" x2="662" y2="238" class="line-accent" marker-end="url(#lpa)"/>
+          <path d="M565,200 C565,160 430,150 330,108" class="line-accent" marker-end="url(#lpa)"/>
+          <text x="440" y="150" class="t-label" style="fill: var(--accent)">next step</text>
+          <path d="M880,68 H935 V350 H882" class="line" marker-end="url(#lp)"/>
+          <text x="942" y="210" class="t-label">no</text>
+        </svg>
+        <figcaption>Blue arrows are the loop. Most questions take 2 trips round: one AI call that asks for a tool, one AI call that writes the answer.</figcaption>
+      </figure>
+
+      <div class="why">
+        <p><strong>Why limits?</strong> A confused AI can keep asking for tools in circles. Each trip costs money and time, so the loop stops at 6 steps or 20,000 tokens and gives a polite message instead. The reason is saved as <code>StopReason</code> (<code>MaxSteps</code> / <code>TokenBudget</code>) so you can find these runs later.</p>
+        <p><strong>Why tools one after another, not in parallel?</strong> They share one database connection (EF Core's <code>DbContext</code>), which isn't safe to use from two threads at once. Our tools are fast (milliseconds), so parallel would save almost nothing.</p>
+        <p><strong>Why trim the history?</strong> Long chats get expensive (the whole history is re-sent every time). <code>TrimHistory</code> keeps the system prompt plus the last 20 messages, and always cuts at a <em>user</em> message, because cutting between a tool request and its result makes the AI API reject the call.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 6 -->
+    <section id="classes">
+      <h2>How the classes connect</h2>
+      <p><code>AgentRunner</code> is in the middle. Everything it needs is handed to it through its constructor (<em>dependency injection</em>). Dashed blue boxes are <em>interfaces</em> (a contract: "anything that can do X"); the name under each is the class that does the work today.</p>
+
+      <figure class="figure">
+        <svg viewBox="0 0 980 560" role="img" aria-label="Class dependency diagram around AgentRunner">
+          <defs>
+            <marker id="cd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+            <marker id="cdg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--surface); stroke: var(--good); stroke-width: 1.5"/></marker>
+          </defs>
+
+          <!-- row 1 -->
+          <rect x="40" y="30" width="230" height="62" rx="8" class="box"/>
+          <text x="155" y="56" text-anchor="middle" class="t-title">AgentOptions</text>
+          <text x="155" y="76" text-anchor="middle" class="t-sub">limits, prices, fallback answer</text>
+          <rect x="375" y="30" width="230" height="62" rx="8" class="box"/>
+          <text x="490" y="56" text-anchor="middle" class="t-title">SystemPromptProvider</text>
+          <text x="490" y="76" text-anchor="middle" class="t-sub">reads Agent/system-prompt.md</text>
+          <rect x="710" y="30" width="230" height="62" rx="8" class="box"/>
+          <text x="825" y="56" text-anchor="middle" class="t-title">AgentGuardrails</text>
+          <text x="825" y="76" text-anchor="middle" class="t-sub">input + output GuardrailPipeline</text>
+
+          <!-- row 2 -->
+          <rect x="40" y="180" width="230" height="62" rx="8" class="box"/>
+          <text x="155" y="206" text-anchor="middle" class="t-title">AgentRequestContext</text>
+          <text x="155" y="226" text-anchor="middle" class="t-sub">who is asking · sources found</text>
+          <rect x="375" y="172" width="230" height="78" rx="10" class="box-core"/>
+          <text x="490" y="204" text-anchor="middle" class="t-title" style="font-size:17px">AgentRunner</text>
+          <text x="490" y="226" text-anchor="middle" class="t-sub">the loop · one per request</text>
+          <rect x="710" y="180" width="230" height="62" rx="8" class="box-iface"/>
+          <text x="825" y="206" text-anchor="middle" class="t-title">ILlmClient</text>
+          <text x="825" y="226" text-anchor="middle" class="t-sub">OpenAiLlmClient · FakeLlmClient</text>
+
+          <!-- row 3 -->
+          <rect x="40" y="330" width="230" height="62" rx="8" class="box-iface"/>
+          <text x="155" y="356" text-anchor="middle" class="t-title">IConversationStore</text>
+          <text x="155" y="376" text-anchor="middle" class="t-sub">InMemoryConversationStore</text>
+          <rect x="375" y="330" width="230" height="62" rx="8" class="box"/>
+          <text x="490" y="356" text-anchor="middle" class="t-title">ToolRegistry</text>
+          <text x="490" y="376" text-anchor="middle" class="t-sub">holds every ITool</text>
+          <rect x="710" y="330" width="230" height="62" rx="8" class="box-iface"/>
+          <text x="825" y="356" text-anchor="middle" class="t-title">IAgentRunStore</text>
+          <text x="825" y="376" text-anchor="middle" class="t-sub">saves each run</text>
+
+          <!-- boundary -->
+          <line x1="20" y1="425" x2="960" y2="425" class="boundary"/>
+          <text x="28" y="418" class="t-label" style="fill: var(--warn)">↑ Agent engine</text>
+          <text x="28" y="442" class="t-label" style="fill: var(--warn)">↓ Shop (API + Infrastructure)</text>
+
+          <!-- row 4 shop -->
+          <rect x="40" y="470" width="230" height="62" rx="8" class="box-good"/>
+          <text x="155" y="496" text-anchor="middle" class="t-title">AgentController</text>
+          <text x="155" y="516" text-anchor="middle" class="t-sub">fills context, calls RunAsync</text>
+          <rect x="375" y="470" width="230" height="62" rx="8" class="box-good"/>
+          <text x="490" y="496" text-anchor="middle" class="t-title">7 shop tools : ITool</text>
+          <text x="490" y="516" text-anchor="middle" class="t-sub">SearchProductsTool, GetOrderTool …</text>
+          <rect x="710" y="470" width="230" height="62" rx="8" class="box-good"/>
+          <text x="825" y="496" text-anchor="middle" class="t-title">EfAgentRunStore</text>
+          <text x="825" y="516" text-anchor="middle" class="t-sub">: IAgentRunStore (PostgreSQL)</text>
+
+          <!-- uses arrows from runner -->
+          <line x1="375" y1="185" x2="270" y2="92" class="line" marker-end="url(#cd)"/>
+          <line x1="490" y1="172" x2="490" y2="94" class="line" marker-end="url(#cd)"/>
+          <line x1="605" y1="185" x2="710" y2="92" class="line" marker-end="url(#cd)"/>
+          <line x1="375" y1="211" x2="272" y2="211" class="line" marker-end="url(#cd)"/>
+          <line x1="605" y1="211" x2="708" y2="211" class="line" marker-end="url(#cd)"/>
+          <line x1="375" y1="240" x2="270" y2="330" class="line" marker-end="url(#cd)"/>
+          <line x1="490" y1="250" x2="490" y2="328" class="line" marker-end="url(#cd)"/>
+          <line x1="605" y1="240" x2="710" y2="330" class="line" marker-end="url(#cd)"/>
+
+          <!-- shop plugs in -->
+          <line x1="490" y1="470" x2="490" y2="394" class="line-dash" style="stroke: var(--good)" marker-end="url(#cdg)"/>
+          <line x1="825" y1="470" x2="825" y2="394" class="line-dash" style="stroke: var(--good)" marker-end="url(#cdg)"/>
+          <path d="M40,501 H22 V211 H38" class="line" marker-end="url(#cd)"/>
+          <text x="40" y="170" class="t-label">↓ set from the login (UserEmail)</text>
+          <path d="M270,490 C340,470 350,300 400,252" class="line" marker-end="url(#cd)"/>
+          <text x="276" y="528" class="t-label">calls RunAsync(…)</text>
+          <text x="500" y="450" class="t-label" style="fill: var(--good)">implements</text>
+          <text x="835" y="450" class="t-label" style="fill: var(--good)">implements</text>
+        </svg>
+        <figcaption>Grey arrows: "uses". Green dashed arrows with an open head: "is one of" (implements the interface). Above the orange line is the engine; below is the shop.</figcaption>
+      </figure>
+      <div class="legend"><span class="l-core">the loop</span><span class="l-iface">interface (contract)</span><span class="l-box">engine class</span><span class="l-shop">shop class</span></div>
+
+      <div class="why">
+        <p><strong>Why pass everything in through the constructor?</strong> The runner never creates its own parts, so a test can hand it a fake AI, a fake memory and a fake tool, and check the loop with no internet or database. And the app can swap a part (say, Redis memory) by changing one line of wiring in <code>ServiceCollectionExtensions</code>.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 7 -->
+    <section id="catalogue">
+      <h2>Every class and its job</h2>
+      <p>Grouped by folder. Click a group to open it. Line counts are rough sizes so you know where the weight is.</p>
+
+      <details open>
+        <summary>Engine core: <code>Agent/</code> (the loop and its inputs/outputs)</summary>
+        <div><ul class="class-list">
+          <li><code>AgentRunner</code> (≈470 lines): <strong>the agent.</strong> Runs guardrails, loads memory, runs the think/act/observe loop, records every step, saves the run. Start reading here.</li>
+          <li><code>AgentOptions</code>, <code>AgentPricing</code>, <code>AgentEvalOptions</code>: settings from the <code>Agent</code> config section: app name, 6 steps, 20,000 tokens, 20 history messages, 2,000 input characters, prices, eval paths.</li>
+          <li><code>AgentRequestContext</code>, <code>AgentSource</code>: "who is asking and through which channel" (chat or eval), plus the list of sources tools found (products, policies) that's shown with the answer. One per request.</li>
+          <li><code>AgentResult</code>, <code>AgentStep</code>, <code>AgentStepTypes</code>, <code>AgentStopReasons</code>: what comes back: the answer, every step (guardrail / llm / tool), tokens, cost, time, sources, and why it stopped.</li>
+          <li><code>SystemPromptProvider</code>: builds the AI's "job description" from <code>Agent/system-prompt.md</code>, filling in <code>{{APP_NAME}}</code> and the secret <code>{{CANARY}}</code>. Read once.</li>
+          <li><code>ContentPathResolver</code>: turns "Agent/system-prompt.md" into a full path, which works both with <code>dotnet run</code> and inside Docker.</li>
+          <li><code>AgentBuilder</code>, <code>ServiceCollectionExtensions</code>: the wiring: <code>services.AddAgent(config).AddTool&lt;T&gt;().UseRunStore&lt;T&gt;()</code>. Chooses the AI provider and stops start-up with a clear message if a key is missing.</li>
+        </ul></div>
+      </details>
+
+      <details>
+        <summary>Talking to the AI: <code>Agent/Llm/</code></summary>
+        <div><ul class="class-list">
+          <li><code>ILlmClient</code>: the contract: "give me messages and tools, I return the AI's reply". The loop only knows this.</li>
+          <li><code>OpenAiLlmClient</code> (≈310 lines): the real client. Sends plain JSON over HTTPS to the Chat Completions API. Works for <strong>OpenAI, Gemini</strong> (Google's OpenAI-compatible address), Azure OpenAI and Ollama. Retries when the provider is busy (429/5xx), honouring "Retry-After". Keeps Gemini's "thought signature" and sends it back.</li>
+          <li><code>FakeLlmClient</code>: a pretend AI: free, offline, same output every time. Used by tests and as the safe default.</li>
+          <li><code>LlmOptions</code>: provider, key, model, address, retries, timeout. Filled from settings by <code>ApplyProviderDefaults</code>.</li>
+          <li><code>ChatMessage</code>, <code>ChatRole</code>, <code>ToolCall</code>, <code>ToolDefinition</code>, <code>LlmRequest</code>, <code>LlmResponse</code>, <code>LlmException</code>: the data shapes: a message (system/user/assistant/tool), a tool request from the AI, a tool description for the AI.</li>
+        </ul></div>
+        <div class="why" style="margin: 0 16px 12px">
+          <p><strong>Why plain HTTP instead of the OpenAI SDK?</strong> You can see exactly what is sent (it's just JSON), there's no extra package, and one class covers several providers, which is how adding Gemini took one small change instead of a new client.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Tools: <code>Agent/Tools/</code> (engine side) and <code>Infrastructure/AgentTools/</code> (shop side)</summary>
+        <div><ul class="class-list">
+          <li><code>ITool</code>: the contract every tool follows: a <code>Name</code>, a <code>Description</code> (the only thing the AI reads to decide when to use it), a parameter schema, and <code>ExecuteAsync</code>.</li>
+          <li><code>IRequiresSignIn</code>: an empty "marker". Tools with it are <em>hidden</em> from anonymous users and <em>refused</em> if called anyway (two locks on one door).</li>
+          <li><code>ToolRegistry</code>, <code>ToolExecutionResult</code>: finds the tool, checks sign-in, parses the arguments, runs it with a <strong>10-second timeout</strong>, and turns every problem into "Error: …" text.</li>
+          <li><code>Schema</code>, <code>ToolParameter</code>, <code>ToolParameterTypes</code>: helpers to describe tool arguments as JSON Schema, plus safe readers (<code>GetInt</code>, <code>GetNumber</code>, <code>GetBool</code>).</li>
+          <li><strong>Shop tools</strong>: <code>SearchProductsTool</code> (filters: brand, type, colour, material, price, in stock, rating; sort), <code>GetProductDetailsTool</code>, <code>ListCatalogFiltersTool</code> (what brands/colours exist), <code>SearchKnowledgeTool</code> (policies), <code>GetDeliveryOptionsTool</code>, <code>GetMyOrdersTool</code>* and <code>GetOrderTool</code>* (*sign-in only).</li>
+          <li><code>ToolHelpers</code>: shared helpers: compact JSON, forgiving name matching ("glove" finds "Gloves").</li>
+          <li><code>LocalPolicySearch</code>: a small keyword search over the policy files, used instead of Azure Search on the laptop.</li>
+          <li><code>ProductSearchParams</code>, <code>ProductSearchSpecification</code> (in <code>Core</code>): turn the tool's filters into one database query, using the shop's existing Specification pattern.</li>
+        </ul></div>
+        <div class="why" style="margin: 0 16px 12px">
+          <p><strong>Why do tools treat their arguments as untrusted?</strong> The AI writes them, and the AI can be tricked or simply wrong. So tools validate everything (limit 1–10, known brand names) and read the user only from <code>AgentRequestContext</code>. An unknown brand returns "brand 'X' not found, known brands: …" so the AI can correct itself.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Safety checks: <code>Agent/Guardrails/</code></summary>
+        <div><ul class="class-list">
+          <li><code>IGuardrail</code>, <code>GuardrailResult</code>: the contract: check a piece of text → Passed, Modified (text cleaned) or Blocked.</li>
+          <li><code>GuardrailPipeline</code>, <code>AgentGuardrails</code>, <code>GuardrailPipelineResult</code>: runs checks top to bottom and stops at the first block. One pipeline for input, one for output.</li>
+          <li><code>GuardrailCheck</code>, <code>GuardrailOutcome</code>, <code>GuardrailStages</code>: the record of each check (shown in the steps).</li>
+          <li><code>InputLengthGuardrail</code>: blocks messages over 2,000 characters (cost and abuse).</li>
+          <li><code>PromptInjectionGuardrail</code>: blocks known attack phrases ("ignore previous instructions", "developer mode"…).</li>
+          <li><code>PiiRedactionGuardrail</code>: masks emails, phone numbers, card numbers, SSNs, on input <em>and</em> output, and in saved records.</li>
+          <li><code>SecretLeakGuardrail</code>: blocks any answer that contains the secret canary hidden in the system prompt (proof the prompt leaked).</li>
+        </ul></div>
+      </details>
+
+      <details>
+        <summary>Memory and run records: <code>Agent/Memory/</code>, <code>Agent/Runs/</code>, <code>Infrastructure/Data/</code></summary>
+        <div><ul class="class-list">
+          <li><code>IConversationStore</code>, <code>ConversationSession</code>, <code>InMemoryConversationStore</code>: each chat's history, keyed by session id, with its owner's email. Kept in the server's memory.</li>
+          <li><code>IAgentRunStore</code>, <code>AgentRunRecord</code>, <code>AgentRunPage</code>, <code>AgentRunStats</code>, <code>ToolUsageCount</code>: the saved "receipt" of each answer, plus paging and totals for the runs/stats endpoints.</li>
+          <li><code>InMemoryAgentRunStore</code>: engine default (tests). The shop replaces it with <code>EfAgentRunStore</code> (PostgreSQL table <code>AgentRuns</code>).</li>
+          <li><code>AgentRunCleanupService</code>: a background job: once a day deletes runs older than 30 days.</li>
+        </ul></div>
+        <div class="why" style="margin: 0 16px 12px">
+          <p><strong>Why are chats in memory but runs in the database?</strong> Runs are the long-term record you'll browse and analyse, so they must survive restarts. Chat history only matters for the next few messages; memory is fastest and simplest for one server. Moving it to Redis later changes one class.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Testing the agent: <code>Agent/Evals/</code></summary>
+        <div><ul class="class-list">
+          <li><code>EvalCase</code>, <code>ExpectedToolCall</code>, <code>EvalCheck</code>: one test question and what good looks like: expected tools and arguments, must / must-not contain, should block, should ask a clarifying question.</li>
+          <li><code>EvalCaseLoader</code>: reads <code>Agent/evals/cases.json</code> (51 cases).</li>
+          <li><code>EvalRunner</code>, <code>EvalRunRequest</code>: runs every case (×repeat) in the background, each in its own fresh scope, and grades it.</li>
+          <li><code>Graders</code>, <code>JudgeResult</code>: code checks (free, always the same) plus an optional "AI judge" that scores the answer 1–5.</li>
+          <li><code>EvalRunRecord</code>, <code>EvalCaseResultRecord</code>, <code>EvalRunPage</code>, <code>EvalRunStatus</code>, <code>IEvalRunStore</code>, <code>InMemoryEvalRunStore</code> (shop: <code>EfEvalRunStore</code>): saved results.</li>
+          <li><code>EvalStatistics</code>: pass rate, flaky cases, median and p95 time.</li>
+          <li><code>EvalBaseline</code>, <code>EvalBaselineCase</code>, <code>EvalCommandLine</code>: the "regression gate": <code>dotnet run --evals</code> compares with a saved baseline and fails if the pass rate drops more than 5 points.</li>
+        </ul></div>
+      </details>
+
+      <details>
+        <summary>Watching it run: <code>Agent/Observability/</code></summary>
+        <div><ul class="class-list">
+          <li><code>AgentTelemetry</code>: the names of traces and counters, using the standard <code>gen_ai.*</code> names so tools like Application Insights understand them (Phase 6).</li>
+          <li><code>MetricsCollector</code>: a tiny in-memory dashboard of running totals (requests, tokens, errors, timings).</li>
+          <li><code>TraceLogger</code>: prints each finished trace span to the log, e.g. "execute_tool search_products took 4.2 ms". Off unless something asks for it.</li>
+        </ul></div>
+      </details>
+
+      <details>
+        <summary>The shop's front door: <code>API/</code></summary>
+        <div><ul class="class-list">
+          <li><code>AgentController</code>: 8 endpoints: <code>chat</code> and <code>info</code> (anyone), <code>runs</code>, <code>runs/{id}</code>, <code>stats</code>, <code>evals</code> ×3 (admin in production).</li>
+          <li><code>AgentChatRequestDto</code>, <code>AgentEvalRequestDto</code>: what the browser sends.</li>
+          <li><code>AgentServiceExtensions</code>, <code>AgentAdminRequirement</code>, <code>AgentAdminHandler</code>: registers the engine, the 7 tools and DB stores; the rate limit (10/min per user, or per IP when anonymous); the "AgentAdmin" rule (open in Development, Admin role elsewhere); shop defaults (prompt path, prices: $0 on Gemini).</li>
+          <li><code>Program</code>: <code>--evals</code> runs the tests from the command line; <code>--migrate</code> also gives the Admin role to the emails in <code>Agent:AdminEmails</code>.</li>
+          <li><code>TokenService</code>, <code>AccountController</code>, <code>IdentityServiceExtensions</code>: roles switched on, and the Admin role put into the login token.</li>
+          <li><code>Agent/system-prompt.md</code>, <code>Agent/evals/cases.json</code>: the assistant's instructions and test questions, shipped with the app.</li>
+        </ul></div>
+      </details>
+    </section>
+
+    <!-- ============================================================ 8 -->
+    <section id="lifetimes">
+      <h2>Who lives how long</h2>
+      <p>.NET creates these objects for us. Each has a <em>lifetime</em>: one for the whole app, or a fresh one for each request. Getting this right matters for safety.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Lifetime</th><th>Classes</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td><span class="chip info">One for the whole app</span><br>(singleton)</td><td><code>SystemPromptProvider</code>, guardrails, <code>InMemoryConversationStore</code>, <code>FakeLlmClient</code>, <code>EvalRunner</code>, <code>MetricsCollector</code>, settings</td><td>They hold no per-user data, so sharing is safe and avoids re-reading the prompt or rebuilding regexes. Memory <em>must</em> be shared, or chats would be forgotten after every message.</td></tr>
+          <tr><td><span class="chip good">One per request</span><br>(scoped)</td><td><code>AgentRunner</code>, <code>ToolRegistry</code>, every tool, <code>AgentRequestContext</code>, EF stores</td><td>Tools use the database connection, which is per request and not thread-safe. And <code>AgentRequestContext</code> holds <em>who is asking</em>: sharing it would mean one user seeing another's orders.</td></tr>
+          <tr><td><span class="chip grey">Managed by .NET</span></td><td><code>OpenAiLlmClient</code> (via <code>IHttpClientFactory</code>)</td><td>Reuses network connections properly, so the app doesn't run out of sockets under load.</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="why"><p><strong>Each eval case gets its own scope too.</strong> <code>EvalRunner</code> creates a fresh scope per case, so test questions never share a context, a signed-in user or tool state. Each one runs as if it were a separate real request.</p></div>
+    </section>
+
+    <!-- ============================================================ 9 -->
+    <section id="safety">
+      <h2>Safety in layers</h2>
+      <p>No single check is perfect, so there are several, each catching what the one before might miss ("defence in depth"). From the outside in:</p>
+      <ol class="flow">
+        <li><strong>Rate limit</strong><span class="src"><code>AgentServiceExtensions</code></span><span class="desc">10 messages a minute per user (per IP when anonymous). The 11th gets "429 Too many messages". Stops cost floods.</span></li>
+        <li><strong>Input guardrails</strong><span class="src"><code>InputLength</code>, <code>PromptInjection</code>, <code>PiiRedaction</code></span><span class="desc">Too long or an attack phrase → blocked before the AI ($0). Emails/phones/cards masked so they never reach Google or OpenAI.</span></li>
+        <li><strong>Conversation owner check</strong><span class="src"><code>AgentRunner</code></span><span class="desc">You can't continue someone else's chat by guessing its session id.</span></li>
+        <li><strong>Strong system prompt</strong><span class="src"><code>system-prompt.md</code></span><span class="desc">Tells the AI its job, to use only tool results for facts, never to reveal its instructions or talk about its tools.</span></li>
+        <li><strong>Tools hidden and refused</strong><span class="src"><code>IRequiresSignIn</code> + <code>ToolRegistry</code></span><span class="desc">Anonymous users don't even see the order tools; if the AI calls one anyway, it's refused.</span></li>
+        <li><strong>Read-only, validated tools</strong><span class="src">each tool</span><span class="desc">Nothing can be changed; the user comes from the login only; someone else's order returns "not found"; 10-second timeout.</span></li>
+        <li><strong>Loop limits</strong><span class="src"><code>AgentOptions</code></span><span class="desc">6 steps, 20,000 tokens per message.</span></li>
+        <li><strong>Output guardrails</strong><span class="src"><code>SecretLeak</code>, <code>PiiRedaction</code></span><span class="desc">The canary trick catches a leaked system prompt; personal data masked in the answer.</span></li>
+        <li><strong>Admin-only history</strong><span class="src"><code>AgentAdminHandler</code></span><span class="desc">In production, only the Admin role can read runs and start evals. Saved records are masked and deleted after 30 days.</span></li>
+      </ol>
+      <div class="callout warn"><p><strong>Honest limit:</strong> the prompt-injection check is a list of known phrases. A clever attacker can word around it. That's acceptable here <em>because</em> the tools are read-only and identity comes from the login: even a fully tricked AI can't change data or see another customer's orders. A real classifier (e.g. Azure AI Content Safety) is an option for later.</p></div>
+    </section>
+
+    <!-- ============================================================ 10 -->
+    <section id="providers">
+      <h2>Switching the AI provider</h2>
+      <p>One setting chooses who answers: <code>Agent:Llm:Provider</code>. Each provider keeps its own key and model in its own section, so switching is one word.</p>
+      <figure class="figure">
+        <svg viewBox="0 0 900 300" role="img" aria-label="How the provider setting picks the AI client">
+          <defs>
+            <marker id="pv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+          </defs>
+          <rect x="20" y="110" width="190" height="80" rx="8" class="box"/>
+          <text x="115" y="140" text-anchor="middle" class="t-title">Settings file</text>
+          <text x="115" y="160" text-anchor="middle" class="t-sub">Agent:Llm:Provider</text>
+          <text x="115" y="176" text-anchor="middle" class="t-sub">= "Gemini"</text>
+
+          <rect x="260" y="110" width="190" height="80" rx="8" class="box-core"/>
+          <text x="355" y="140" text-anchor="middle" class="t-title">ApplyProvider</text>
+          <text x="355" y="158" text-anchor="middle" class="t-title">Defaults</text>
+          <text x="355" y="178" text-anchor="middle" class="t-sub">picks key, model, address</text>
+
+          <rect x="510" y="20" width="200" height="74" rx="8" class="box-good"/>
+          <text x="610" y="46" text-anchor="middle" class="t-title">Gemini (default)</text>
+          <text x="610" y="64" text-anchor="middle" class="t-sub">Gemini:ApiKey · gemini-3.5-flash</text>
+          <text x="610" y="80" text-anchor="middle" class="t-sub">free tier · $0</text>
+
+          <rect x="510" y="113" width="200" height="74" rx="8" class="box"/>
+          <text x="610" y="139" text-anchor="middle" class="t-title">OpenAI</text>
+          <text x="610" y="157" text-anchor="middle" class="t-sub">OpenAI:ApiKey · gpt-5.4-mini</text>
+          <text x="610" y="173" text-anchor="middle" class="t-sub">≈ $0.003 per question</text>
+
+          <rect x="510" y="206" width="200" height="74" rx="8" class="box"/>
+          <text x="610" y="232" text-anchor="middle" class="t-title">Fake</text>
+          <text x="610" y="250" text-anchor="middle" class="t-sub">no key · not smart</text>
+          <text x="610" y="266" text-anchor="middle" class="t-sub">used if nothing is set</text>
+
+          <rect x="750" y="66" width="130" height="74" rx="8" class="box"/>
+          <text x="815" y="98" text-anchor="middle" class="t-small">OpenAiLlmClient</text>
+          <text x="815" y="116" text-anchor="middle" class="t-sub">same class, other URL</text>
+          <rect x="750" y="206" width="130" height="74" rx="8" class="box"/>
+          <text x="815" y="248" text-anchor="middle" class="t-small">FakeLlmClient</text>
+
+          <line x1="210" y1="150" x2="258" y2="150" class="line" marker-end="url(#pv)"/>
+          <line x1="450" y1="140" x2="508" y2="60" class="line" marker-end="url(#pv)"/>
+          <line x1="450" y1="150" x2="508" y2="150" class="line" marker-end="url(#pv)"/>
+          <line x1="450" y1="160" x2="508" y2="240" class="line" marker-end="url(#pv)"/>
+          <line x1="710" y1="57" x2="748" y2="95" class="line" marker-end="url(#pv)"/>
+          <line x1="710" y1="150" x2="748" y2="112" class="line" marker-end="url(#pv)"/>
+          <line x1="710" y1="243" x2="748" y2="243" class="line" marker-end="url(#pv)"/>
+        </svg>
+        <figcaption>Gemini and OpenAI use the same client class; Gemini just has a different web address, key and model. Code: <code>Agent/ServiceCollectionExtensions.cs</code> → <code>ApplyProviderDefaults</code>.</figcaption>
+      </figure>
+      <div class="why">
+        <p><strong>Why one client for both?</strong> Google offers an "OpenAI-compatible" address that accepts the same JSON. Reusing the client means the loop, the steps and the tests don't care who answers. The only Gemini-specific piece is the "thought signature" it attaches to tool requests, which we store and send back unchanged.</p>
+        <p><strong>Why does start-up stop when a key is missing?</strong> It's better to fail loudly at start with "Set Gemini:ApiKey…" than to start fine and then fail on every customer's first message.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 11 -->
+    <section id="evals">
+      <h2>How testing works</h2>
+      <p>Normal unit tests can't check an AI, because its wording changes every time. So the evals check <strong>behaviour</strong> rather than exact words.</p>
+      <ol class="flow">
+        <li><strong>51 cases</strong><span class="src"><code>cases.json</code> → <code>EvalCaseLoader</code></span><span class="desc">e.g. "red gloves under $50" must call <code>search_products</code> with colour red and max price 50; "ignore your instructions" must be blocked; "I need something warm" should ask a question back.</span></li>
+        <li><strong>Run each case</strong><span class="src"><code>EvalRunner</code></span><span class="desc">Each in a fresh scope, through the real <code>AgentRunner</code>, optionally signed in as a test user. Repeated (default 3×) because AI answers vary.</span></li>
+        <li><strong>Grade</strong><span class="src"><code>Graders</code></span><span class="desc">Code checks: right tools? right arguments? must-contain facts? blocked when it should be? Optional AI judge scores quality 1–5.</span></li>
+        <li><strong>Summarise and compare</strong><span class="src"><code>EvalStatistics</code>, <code>EvalBaseline</code></span><span class="desc">Pass rate, flaky cases (pass sometimes, fail sometimes), median/p95 time. <code>--evals</code> fails if the pass rate drops more than 5 points below the saved baseline.</span></li>
+      </ol>
+      <div class="why"><p><strong>Why both code graders and an AI judge?</strong> Code graders are free and always give the same verdict, so they're the main gate. The AI judge can rate fuzzy things like helpfulness, but it costs money and can be wrong itself, so it's optional and off by default.</p></div>
+    </section>
+
+    <!-- ============================================================ 12 -->
+    <section id="change">
+      <h2>Where to change things</h2>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>I want to…</th><th>Change this</th><th>Recompile?</th></tr></thead>
+        <tbody>
+          <tr><td>Change the assistant's tone or rules</td><td><code>API/Agent/system-prompt.md</code></td><td>No (restart)</td></tr>
+          <tr><td>Switch Gemini ↔ OpenAI, or the model</td><td><code>Agent:Llm:Provider</code>, <code>Gemini:Model</code>, <code>OpenAI:ChatModel</code></td><td>No (restart)</td></tr>
+          <tr><td>Change limits (steps, tokens, rate limit)</td><td><code>Agent</code> settings section</td><td>No (restart)</td></tr>
+          <tr><td>Add a new tool</td><td>New class in <code>Infrastructure/AgentTools/</code> implementing <code>ITool</code>, then one <code>.AddTool&lt;T&gt;()</code> line in <code>AgentServiceExtensions</code>. Add eval cases for it.</td><td>Yes</td></tr>
+          <tr><td>Make a tool sign-in only</td><td>Add <code>IRequiresSignIn</code> to the class</td><td>Yes</td></tr>
+          <tr><td>Add a safety check</td><td>New <code>IGuardrail</code> class, add it to the list in <code>AddGuardrails</code></td><td>Yes</td></tr>
+          <tr><td>Keep chats across restarts / several servers</td><td>A Redis <code>IConversationStore</code>, registered before <code>AddAgent</code></td><td>Yes</td></tr>
+          <tr><td>Add a test question</td><td><code>API/Agent/evals/cases.json</code></td><td>No</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ 13 -->
+    <section id="limits">
+      <h2>Known limits</h2>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Limit</th><th>Why it's OK for now</th><th>Fix when needed</th></tr></thead>
+        <tbody>
+          <tr><td>Chat history is lost when the API restarts, and only works on one server</td><td>Single server today; runs (the important record) are in the database</td><td>Redis conversation store (one class)</td></tr>
+          <tr><td>Product search matches words, not meaning ("waterproof" won't find "Gore-Tex")</td><td>Decision D9: SQL filters are predictable and free</td><td>Feature tags or hybrid search later</td></tr>
+          <tr><td>Prompt-injection check is a phrase list</td><td>Read-only tools and login-based identity limit the damage</td><td>Azure AI Content Safety</td></tr>
+          <tr><td>Behind Azure, anonymous rate limit sees the proxy's IP</td><td>Only matters in production</td><td>Forwarded headers (Phase 6)</td></tr>
+          <tr><td>Gemini free tier: per-minute and daily caps; Google may use the data</td><td>Fine for development and testing</td><td>Paid Gemini tier or OpenAI in production</td></tr>
+          <tr><td>No unit tests for the 7 shop tools yet</td><td>Covered by smoke tests and evals</td><td>Phase 5 candidate</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ 14 -->
+    <section id="glossary">
+      <h2>Words used</h2>
+      <dl class="glossary">
+        <dt>Agent</dt><dd>An AI model in a loop that can ask our code to run tools, read the results and decide what to do next.</dd>
+        <dt>LLM</dt><dd>Large Language Model: the AI (Gemini, GPT). It reads text and writes text.</dd>
+        <dt>Tool</dt><dd>A C# method the AI may ask for by name, e.g. <code>search_products</code>. The AI asks; our code runs it.</dd>
+        <dt>System prompt</dt><dd>The hidden "job description" sent as the first message of every chat.</dd>
+        <dt>Guardrail</dt><dd>A safety check in plain code that runs before or after the AI.</dd>
+        <dt>Token</dt><dd>A piece of a word. AI providers count and charge by tokens.</dd>
+        <dt>Canary</dt><dd>A secret marker hidden in the system prompt. If it ever appears in an answer, the prompt leaked.</dd>
+        <dt>PII</dt><dd>Personal data: emails, phone numbers, card numbers.</dd>
+        <dt>Interface</dt><dd>A contract ("anything that can do X") so parts can be swapped without changing the code that uses them.</dd>
+        <dt>Dependency injection</dt><dd>.NET builds each class and hands it the parts it needs, instead of the class creating them itself.</dd>
+        <dt>Scoped / singleton</dt><dd>A fresh object per web request / one object shared by the whole app.</dd>
+        <dt>Run</dt><dd>The saved record of one answer with every step it took.</dd>
+        <dt>Eval</dt><dd>An automatic test of the agent's behaviour on a set of questions.</dd>
+        <dt>Baseline</dt><dd>A saved eval score that later runs are compared with, to catch things getting worse.</dd>
+        <dt>Trace / span</dt><dd>The timed story of one request / one piece of work inside it (an AI call, a tool call).</dd>
+      </dl>
+    </section>
+
+    <footer>
+      eCOM-AI-M · Solution design of the Shop Assistant · written 2026-11-22 from the code at commit <code>c5ca42f</code> (Phase 3). Related: <a href="phase-3-report.html">Phase 3 report</a> · <a href="../05-agent-guide.md">05 Agent guide</a> · <a href="../03-workflow.md">03 Workflow diagrams</a> · <a href="../08-adr-why-build.md">08 ADR</a>.
+    </footer>
+  </main>
+</div>
+<script>
+  // Highlight the section you are reading in the contents list.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var byId = {};
+    links.forEach(function (link) { byId[link.getAttribute('href').slice(1)] = link; });
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  })();
+
+  // Light / dark switch, remembered in this browser when possible.
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('phase-report-theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme');
+      if (!current) current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('phase-report-theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<a routerLink="/agent/runs" class="d-inline-block mb-3"><i class="fa fa-arrow-left mr-1"></i>All runs</a>
+
+<div *ngIf="errorMessage" class="alert alert-warning"><i class="fa fa-lock mr-1"></i>{{errorMessage}}</div>
+
+<div class="row" *ngIf="run">
+  <div class="col-lg-5 mb-3">
+    <div class="card">
+      <div class="card-body">
+        <dl class="mb-0">
+          <dt>When</dt>
+          <dd>{{run.createdAt | date:'d MMM y, HH:mm:ss'}}</dd>
+          <dt>Who</dt>
+          <dd>{{run.userEmail || 'anonymous'}} <span class="text-muted">({{run.channel === 'eval' ? 'test run' : 'chat'}})</span></dd>
+          <dt>Question</dt>
+          <dd>{{run.question}}</dd>
+          <dt>Answer</dt>
+          <dd class="answer" [innerHTML]="run.answer | agentMarkdown"></dd>
+          <dt>Conversation</dt>
+          <dd class="text-muted small">{{run.sessionId}}</dd>
+          <dt>Run id</dt>
+          <dd class="text-muted small mb-0">{{run.id}}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7 mb-3">
+    <div class="card">
+      <div class="card-header"><strong>How this answer was made</strong></div>
+      <div class="card-body">
+        <app-agent-timeline [trace]="run"></app-agent-timeline>
+      </div>
+    </div>
+  </div>
+</div>

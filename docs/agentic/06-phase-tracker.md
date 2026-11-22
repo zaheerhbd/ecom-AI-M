@@ -10,7 +10,7 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 | 1 | Agent engine project | ✅ | 2026-11-16 | 2026-11-16 | 2026-11-19 | Built and tested (38/38). Approved and committed when the owner said "commit phase 1". Report: [phase-1-report.html](reports/phase-1-report.html) |
 | 2 | Schema and seed | ✅ | 2026-11-19 | 2026-11-19 | 2026-11-21 | Local DB migrated + seeded (1,018 products), seed idempotent. Committed and pushed with the owner's OK. Report: [phase-2-report.html](reports/phase-2-report.html) |
 | 3 | Tools and API | ✅ | 2026-11-21 | 2026-11-22 | 2026-11-22 | 7 tools, 8 endpoints, rate limit, Admin role, 51 eval cases, Gemini provider (default) + OpenAI switch. Smoke-tested; full eval not run. Committed when the owner said "commit phase 3". Report: [phase-3-report.html](reports/phase-3-report.html) |
-| 4 | Angular 11 UI | ⬜ | | | | Node 16 (`nvm use 16.20.2`) |
+| 4 | Angular 11 UI | 🟨 | 2026-11-22 | 2026-11-22 | – | Lazy `/agent` module: chat + step timeline, runs + detail, evals (start + progress + results), how it works; "Assistant" nav link. Builds clean; tested in headless Chrome (anonymous + signed in, quick eval 3/3). Waiting for code review. Report: [phase-4-report.html](reports/phase-4-report.html) |
 | 5 | End to end, comparison, loop-control improvements | ⬜ | | | | Owner decides on retiring `AiChatService`; then R11 loop control (steps 5.5–5.7) and R12 tool-result shrinking + two-turn eval (5.8–5.9), groundedness check + first baseline (5.10–5.11) |
 | 6 | Production rollout | ⬜ | | | | Cloud DB first, then live index from the cloud DB ([04 §7](04-database-and-seed.md#7-production-rollout-cloud-database-then-index)). Each step only when the owner says so. Then App Insights traces (6.7) |
 
@@ -88,4 +88,16 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 - Not done / for the owner: full eval run (≈ $0.40), test order for bob, commit.
 - Report: [reports/phase-3-report.html](reports/phase-3-report.html).
 - 2026-11-22: owner asked for Gemini (free tier) as the default with OpenAI kept as a switch. `Agent:Llm:Provider` = `Gemini` | `OpenAI`; keys/models per provider section. Fixes found by testing: retired model name (now `gemini-3.5-flash`), Gemini's thought signature must be sent back on tool calls. 3 questions answered correctly at $0. Tests 43/43.
-- 2026-11-22: owner said "commit phase 3". Committed (not pushed).
+- 2026-11-22: owner said "commit phase 3". Committed as `c5ca42f` and pushed.
+
+### Phase 4 – Angular UI (2026-11-22)
+- 4.1–4.2 Lazy `AgentModule` at `/agent` (`client/src/app/agent/`) with a tab bar; `AgentService` + models matching the Phase 3 JSON.
+- 4.3 Chat page: messages + "How this answer was made" panel (`AgentTimelineComponent`: totals, guardrail chips, expandable LLM/tool steps with pretty JSON, sources). Session id and messages kept per tab (`sessionStorage`); suggestions; 429 and "server down" notices; signed-in banner. Answers formatted with a small escape-first Markdown pipe.
+- 4.4 Runs page (stats cards, most used tools, paged table, "test" badge for eval runs) and run detail (reuses the timeline).
+- 4.5 Evals page: quick check (PS-001, TC-018, SF-001) by default, or a category, case ids, or all 51 with a confirm tick; repeat 1–3; optional judge; progress bar (polls every 3 s); results with per-check chips and a link to each answer's run; earlier runs list.
+- 4.6 How it works: plain-English steps, loop SVG, safety list, live model/limits/tools from `api/agent/info`.
+- 4.7 "Assistant" nav link. The shop's full-screen loading spinner is skipped for `/agent/` calls.
+- Results: `ng build` and `ng build --prod` 0 errors, 0 warnings. Headless-Chrome run: anonymous chat + follow-up (memory OK), tool step expands, runs + detail, quick eval 3/3 from the UI, how it works, signed in as bob → `get_my_orders`; no console errors. All on Gemini's free tier ($0).
+- Not tested in the browser: 429 notice, production admin-only messages (API side tested in Phase 3). No Angular unit tests added.
+- No API, database or settings changes.
+- Report: [reports/phase-4-report.html](reports/phase-4-report.html). Also new on 2026-11-22: [reports/agent-architecture.html](reports/agent-architecture.html) (solution design). Not committed.

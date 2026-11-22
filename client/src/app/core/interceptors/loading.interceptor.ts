@@ -24,6 +24,12 @@ export class LoadingInterceptor implements HttpInterceptor {
     if (request.url.includes('emailexists')) {
       return next.handle(request);
     }
+    // The assistant pages show their own "thinking…" and progress indicators. A full-screen
+    // spinner would hide the chat for the whole answer, and flash every few seconds while
+    // an eval run is being polled.
+    if (request.url.includes('/agent/')) {
+      return next.handle(request);
+    }
     this.busyService.busy();
     return next.handle(request).pipe(
       finalize(() => {

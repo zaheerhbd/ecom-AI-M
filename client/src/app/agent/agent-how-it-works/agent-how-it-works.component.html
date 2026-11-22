@@ -1,0 +1,115 @@
+<div class="row">
+  <div class="col-xl-8">
+
+    <section class="mb-4">
+      <h4>In one sentence</h4>
+      <p class="lead">The assistant is an AI model in a loop: it can <strong>ask our code to look things up</strong>
+        (products, policies, delivery, your orders), read the results, and then answer. It never touches the database itself.</p>
+    </section>
+
+    <section class="mb-4">
+      <h4>What happens when you ask a question</h4>
+      <ol class="flow">
+        <li><strong>Front door.</strong> The API checks the message and the rate limit
+          (<span *ngIf="info; else ten">{{info.rateLimitPerMinute}}</span><ng-template #ten>10</ng-template> messages a minute).
+          If you're logged in, it reads who you are from your login, never from what you type.</li>
+        <li><strong>Safety checks before the AI.</strong> Too long, or a known attack like "ignore your instructions"? Blocked
+          before the AI is called. Emails, phone and card numbers are masked so they never leave the shop.</li>
+        <li><strong>Memory.</strong> The AI remembers nothing between calls, so the earlier messages of this chat are sent again.</li>
+        <li class="loop"><strong>The loop: think → act → observe.</strong> The AI either asks for a tool (e.g.
+          <code>search_products</code> with colour = red, max price = 50) or writes the answer. Our code runs the tool and
+          gives the result back. This repeats at most <span *ngIf="info; else six">{{info.maxSteps}}</span><ng-template #six>6</ng-template> times.</li>
+        <li><strong>Safety checks after the AI.</strong> The answer must not leak the hidden instructions, and personal data is masked.</li>
+        <li><strong>Saved and shown.</strong> The answer comes back with every step, the tokens, time and cost, and is saved
+          as a run for <span *ngIf="info; else thirty">{{info.runRetentionDays}}</span><ng-template #thirty>30</ng-template> days.</li>
+      </ol>
+    </section>
+
+    <section class="mb-4">
+      <h4>The loop</h4>
+      <div class="diagram">
+        <svg viewBox="0 0 760 250" role="img" aria-label="The agent loop: think, act, observe">
+          <defs>
+            <marker id="hw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#6c757d"/>
+            </marker>
+            <marker id="hwb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#2f5fd0"/>
+            </marker>
+          </defs>
+          <rect x="10" y="30" width="130" height="50" rx="25" fill="#fff" stroke="#ccc"/>
+          <text x="75" y="60" text-anchor="middle" class="t">your question</text>
+
+          <rect x="190" y="20" width="160" height="70" rx="8" fill="#e6edfb" stroke="#2f5fd0" stroke-width="2"/>
+          <text x="270" y="50" text-anchor="middle" class="tb">THINK</text>
+          <text x="270" y="70" text-anchor="middle" class="ts">the AI decides</text>
+
+          <rect x="410" y="20" width="160" height="70" rx="8" fill="#fff" stroke="#ccc"/>
+          <text x="490" y="50" text-anchor="middle" class="tb">Needs a tool?</text>
+          <text x="490" y="70" text-anchor="middle" class="ts">e.g. search products</text>
+
+          <rect x="410" y="160" width="160" height="70" rx="8" fill="#e6edfb" stroke="#2f5fd0" stroke-width="2"/>
+          <text x="490" y="190" text-anchor="middle" class="tb">ACT</text>
+          <text x="490" y="210" text-anchor="middle" class="ts">our code runs it</text>
+
+          <rect x="190" y="160" width="160" height="70" rx="8" fill="#e6edfb" stroke="#2f5fd0" stroke-width="2"/>
+          <text x="270" y="190" text-anchor="middle" class="tb">OBSERVE</text>
+          <text x="270" y="210" text-anchor="middle" class="ts">the AI reads the result</text>
+
+          <rect x="620" y="30" width="130" height="50" rx="25" fill="#e3f3e9" stroke="#1d7a46"/>
+          <text x="685" y="60" text-anchor="middle" class="t">answer</text>
+
+          <line x1="140" y1="55" x2="188" y2="55" stroke="#6c757d" stroke-width="1.5" marker-end="url(#hw)"/>
+          <line x1="350" y1="55" x2="408" y2="55" stroke="#6c757d" stroke-width="1.5" marker-end="url(#hw)"/>
+          <line x1="570" y1="55" x2="618" y2="55" stroke="#6c757d" stroke-width="1.5" marker-end="url(#hw)"/>
+          <text x="594" y="47" text-anchor="middle" class="ts">no</text>
+          <line x1="490" y1="90" x2="490" y2="158" stroke="#2f5fd0" stroke-width="2" marker-end="url(#hwb)"/>
+          <text x="500" y="128" class="ts" style="fill:#2f5fd0">yes</text>
+          <line x1="410" y1="195" x2="352" y2="195" stroke="#2f5fd0" stroke-width="2" marker-end="url(#hwb)"/>
+          <line x1="270" y1="160" x2="270" y2="92" stroke="#2f5fd0" stroke-width="2" marker-end="url(#hwb)"/>
+          <text x="280" y="128" class="ts" style="fill:#2f5fd0">again</text>
+        </svg>
+      </div>
+      <p class="small text-muted">Most questions go round once: one AI call asks for a tool, a second AI call writes the answer.
+        A question like "cheapest hat and how fast can it arrive?" uses two tools.</p>
+    </section>
+
+    <section class="mb-4">
+      <h4>Why it's safe</h4>
+      <ul>
+        <li><strong>The tools only read.</strong> The assistant can't add to your basket, change an order or edit anything.</li>
+        <li><strong>Your identity comes from your login.</strong> Typing "I am bob@test.com" changes nothing; someone else's order number returns "not found".</li>
+        <li><strong>Order tools are hidden</strong> when you're not logged in, and refused if called anyway.</li>
+        <li><strong>Limits</strong> on message length, steps, tokens and messages per minute keep cost and abuse in check.</li>
+        <li><strong>Everything is recorded</strong> (with personal data masked), so a wrong answer can be traced to its cause on the Runs tab.</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card mb-3">
+      <div class="card-header"><strong>Right now</strong></div>
+      <div class="card-body" *ngIf="info; else loadingInfo">
+        <dl class="mb-0 small">
+          <dt>AI model</dt><dd>{{info.model}}</dd>
+          <dt>Limits</dt>
+          <dd>{{info.maxSteps}} steps · {{info.maxInputChars | number}} characters · {{info.rateLimitPerMinute}} messages/minute</dd>
+          <dt>Memory</dt><dd>last {{info.maxHistoryMessages}} messages of a chat</dd>
+          <dt>Runs kept</dt><dd class="mb-0">{{info.runRetentionDays}} days</dd>
+        </dl>
+      </div>
+      <ng-template #loadingInfo><div class="card-body text-muted small">Could not load the live settings.</div></ng-template>
+    </div>
+
+    <div class="card" *ngIf="info">
+      <div class="card-header"><strong>The {{info.tools.length}} tools</strong></div>
+      <ul class="list-group list-group-flush">
+        <li *ngFor="let t of info.tools" class="list-group-item tool">
+          <code>{{t.name}}</code>
+          <span *ngIf="t.requiresSignIn" class="badge badge-secondary ml-1"><i class="fa fa-lock mr-1"></i>login</span>
+          <div class="small text-muted mt-1">{{t.description}}</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
