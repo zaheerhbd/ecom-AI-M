@@ -9,7 +9,7 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 | 0 | Docs | ✅ | 2026-11-15 | 2026-11-15 | 2026-11-16 | Approved when the owner said "work on Phase 1" |
 | 1 | Agent engine project | ✅ | 2026-11-16 | 2026-11-16 | 2026-11-19 | Built and tested (38/38). Approved and committed when the owner said "commit phase 1". Report: [phase-1-report.html](reports/phase-1-report.html) |
 | 2 | Schema and seed | ✅ | 2026-11-19 | 2026-11-19 | 2026-11-21 | Local DB migrated + seeded (1,018 products), seed idempotent. Committed and pushed with the owner's OK. Report: [phase-2-report.html](reports/phase-2-report.html) |
-| 3 | Tools and API | ⬜ | | | | No Azure sync without approval |
+| 3 | Tools and API | ✅ | 2026-11-21 | 2026-11-22 | 2026-11-22 | 7 tools, 8 endpoints, rate limit, Admin role, 51 eval cases, Gemini provider (default) + OpenAI switch. Smoke-tested; full eval not run. Committed when the owner said "commit phase 3". Report: [phase-3-report.html](reports/phase-3-report.html) |
 | 4 | Angular 11 UI | ⬜ | | | | Node 16 (`nvm use 16.20.2`) |
 | 5 | End to end, comparison, loop-control improvements | ⬜ | | | | Owner decides on retiring `AiChatService`; then R11 loop control (steps 5.5–5.7) and R12 tool-result shrinking + two-turn eval (5.8–5.9), groundedness check + first baseline (5.10–5.11) |
 | 6 | Production rollout | ⬜ | | | | Cloud DB first, then live index from the cloud DB ([04 §7](04-database-and-seed.md#7-production-rollout-cloud-database-then-index)). Each step only when the owner says so. Then App Insights traces (6.7) |
@@ -75,3 +75,17 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 - `Dockerfile`: added `COPY Agent/Agent.csproj Agent/` and `COPY Agent/. Agent/` (Infrastructure now references Agent) after the owner said OK (2026-11-20). The owner's own uncommitted edits in that file are untouched. Owner also OK'd the policy text, and decided D2 (per user) and D3 (30 days).
 - Report: [reports/phase-2-report.html](reports/phase-2-report.html).
 - 2026-11-21: owner said "commit and push". Committed with the `Dockerfile`, the `global.json` rollForward fix and a shop UI tidy-up (separate commit), pushed. The deploy pipeline was fixed the same day (PR #1 to `main`, see HANDOFF §2a-bis).
+
+### Phase 3 – Tools and API (2026-11-21)
+- 3.1 Seven read-only tools in `Infrastructure/AgentTools/`: `search_products`, `get_product_details`, `list_catalog_filters`, `search_knowledge`, `get_delivery_options`, `get_my_orders`*, `get_order`* (*`IRequiresSignIn`; email only from the JWT).
+- 3.2 `ProductSearchParams` + `ProductSearchSpecification` (brand, type, colour, material, price range, in stock, min rating; sort price/rating/name). Unknown brand/type → list of valid names.
+- 3.3 `search_knowledge`: local keyword search over the policy files (`LocalPolicySearch`); Azure only when `Agent:Knowledge:UseAzureSearch` is true (default false, D7). Result says `source: local|azure`.
+- 3.4 `EfAgentRunStore`, `EfEvalRunStore`; `AgentRunCleanupService` deletes runs older than 30 days (D3).
+- 3.5–3.7 `AgentController` (chat, info, runs, runs/{id}, stats, evals POST/GET, evals/{id}); request context filled from the JWT in the controller; built-in rate limiter, 10/min per user, IP for anonymous (D2); `AgentAdmin` policy: open in Development, Admin role elsewhere (D4). Admin role: roles switched on in Identity, role claims in the JWT, `SeedAdminRoleAsync` for `Agent:AdminEmails` on `--migrate`.
+- 3.8 `API/Agent/system-prompt.md`; `Agent` config in `appsettings.Development.json` (local) and `appsettings.Production.json.example`. Pricing gpt-5.4-mini $0.75 / $4.50 per 1M tokens (2026-11-21).
+- 3.9 `API/Agent/evals/cases.json`: 51 cases (21 ported, 5 product, 6 multi-tool, 6 ambiguous, 4 decline, 6 safety, 3 orders).
+- 3.10 Smoke tests passed (see report). Testing found two prompt issues (signed-in user told to sign in; anonymous "my orders" made a pointless tool call), both fixed. `Program.cs`: `dotnet run -- --evals` works (3/3 small run).
+- Not done / for the owner: full eval run (≈ $0.40), test order for bob, commit.
+- Report: [reports/phase-3-report.html](reports/phase-3-report.html).
+- 2026-11-22: owner asked for Gemini (free tier) as the default with OpenAI kept as a switch. `Agent:Llm:Provider` = `Gemini` | `OpenAI`; keys/models per provider section. Fixes found by testing: retired model name (now `gemini-3.5-flash`), Gemini's thought signature must be sent back on tool calls. 3 questions answered correctly at $0. Tests 43/43.
+- 2026-11-22: owner said "commit phase 3". Committed (not pushed).

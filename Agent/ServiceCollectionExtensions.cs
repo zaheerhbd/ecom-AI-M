@@ -43,12 +43,8 @@ namespace Agent
             services.PostConfigure<AgentOptions>(EnsureSafeDefaults);
             services.Configure<LlmOptions>(llmSection);
 
-            // There is only ONE secret: if Agent:Llm:ApiKey is empty, reuse the shop's existing OpenAI:ApiKey.
-            services.PostConfigure<LlmOptions>(llm =>
-            {
-                if (string.IsNullOrWhiteSpace(llm.ApiKey))
-                    llm.ApiKey = configuration["OpenAI:ApiKey"];
-            });
+            // Fill in the key, address and model for the chosen provider (see ApplyProviderDefaults).
+            services.PostConfigure<LlmOptions>(llm => ApplyProviderDefaults(llm, llmSection, configuration));
 
             AddLlmClient(services, llmSection, configuration);
             AddGuardrails(services);
@@ -96,6 +92,7 @@ namespace Agent
         private static void AddLlmClient(IServiceCollection services, IConfigurationSection llmSection, IConfiguration configuration)
         {
             LlmOptions llm = llmSection.Get<LlmOptions>() ?? new LlmOptions();
+            ApplyProviderDefaults(llm, llmSection, configuration);
 
             if (llm.IsFake)
             {
@@ -107,14 +104,50 @@ namespace Agent
             if (llm.IsAzure && (string.IsNullOrWhiteSpace(llm.Endpoint) || string.IsNullOrWhiteSpace(llm.Deployment)))
                 throw new InvalidOperationException("AzureOpenAI needs Agent:Llm:Endpoint and Agent:Llm:Deployment.");
 
+            bool hasKey = !string.IsNullOrWhiteSpace(llm.ApiKey);
+            if (llm.IsGemini && !hasKey)
+                throw new InvalidOperationException("The agent uses Gemini but there is no API key. Set Gemini:ApiKey (free key from https://aistudio.google.com/apikey), or set Agent:Llm:Provider to \"OpenAI\".");
+
             bool usesOpenAiCloud = !llm.IsAzure && (llm.BaseUrl ?? "").IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0;
-            bool hasKey = !string.IsNullOrWhiteSpace(llm.ApiKey) || !string.IsNullOrWhiteSpace(configuration["OpenAI:ApiKey"]);
             if (usesOpenAiCloud && !hasKey)
                 throw new InvalidOperationException("The agent uses OpenAI but there is no API key. Set OpenAI:ApiKey (or Agent:Llm:ApiKey) in user-secrets.");
 
             // IHttpClientFactory reuses connections properly (avoids running out of sockets under load).
             services.AddHttpClient<OpenAiLlmClient>(http => http.Timeout = TimeSpan.FromSeconds(llm.TimeoutSeconds));
             services.TryAddTransient<ILlmClient>(provider => provider.GetRequiredService<OpenAiLlmClient>());
+        }
+
+        /// <summary>
+        /// Each provider keeps its own key (and model) in its own section, so switching provider
+        /// is ONE setting: Agent:Llm:Provider. Anything set directly in Agent:Llm still wins.
+        ///  - Gemini: key from Gemini:ApiKey, model from Gemini:Model, Gemini's address.
+        ///  - OpenAI: key from OpenAI:ApiKey, model from OpenAI:ChatModel.
+        /// </summary>
+        internal static void ApplyProviderDefaults(LlmOptions llm, IConfigurationSection llmSection, IConfiguration configuration)
+        {
+            bool modelSet = !string.IsNullOrWhiteSpace(llmSection["Model"]);
+            bool baseUrlSet = !string.IsNullOrWhiteSpace(llmSection["BaseUrl"]);
+
+            if (llm.IsGemini)
+            {
+                if (string.IsNullOrWhiteSpace(llm.ApiKey))
+                    llm.ApiKey = configuration["Gemini:ApiKey"];
+                if (!modelSet)
+                    llm.Model = FirstNonEmpty(configuration["Gemini:Model"], LlmOptions.DefaultGeminiModel);
+                if (!baseUrlSet)
+                    llm.BaseUrl = FirstNonEmpty(configuration["Gemini:BaseUrl"], LlmOptions.GeminiBaseUrl);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(llm.ApiKey))
+                llm.ApiKey = configuration["OpenAI:ApiKey"];
+            if (!modelSet && !llm.IsAzure)
+                llm.Model = FirstNonEmpty(configuration["OpenAI:ChatModel"], LlmOptions.DefaultOpenAiModel);
+        }
+
+        private static string FirstNonEmpty(string value, string fallback)
+        {
+            return string.IsNullOrWhiteSpace(value) ? fallback : value;
         }
 
         /// <summary>Guardrails: order matters, they run top to bottom.</summary>

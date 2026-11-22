@@ -9,19 +9,35 @@ namespace Agent.Llm
     /// </summary>
     public sealed class LlmOptions
     {
+        /// <summary>OpenAI's address for the Chat Completions API.</summary>
+        public const string OpenAiBaseUrl = "https://api.openai.com/v1";
+
+        /// <summary>
+        /// Google Gemini's OpenAI-compatible address. Gemini accepts the same Chat Completions JSON,
+        /// so the same client works for both; only the address, key and model name change.
+        /// </summary>
+        public const string GeminiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/openai";
+
+        /// <summary>Model used for Gemini when no model is configured.</summary>
+        public const string DefaultGeminiModel = "gemini-3.5-flash";
+
+        /// <summary>Model used for OpenAI when no model is configured.</summary>
+        public const string DefaultOpenAiModel = "gpt-5.4-mini";
+
         /// <summary>Sets the default values. appsettings.json can override any of them.</summary>
         public LlmOptions()
         {
             Provider = "Fake";
-            Model = "gpt-5.4-mini";
-            BaseUrl = "https://api.openai.com/v1";
+            Model = DefaultOpenAiModel;
+            BaseUrl = OpenAiBaseUrl;
             ApiVersion = "2024-10-21";
             MaxRetries = 3;
             TimeoutSeconds = 60;
         }
 
         /// <summary>
-        /// "Fake" (free, offline, the default), "OpenAI" (also works for Ollama) or "AzureOpenAI".
+        /// "Fake" (free, offline, the default), "Gemini" (Google, has a free tier),
+        /// "OpenAI" (also works for Ollama) or "AzureOpenAI".
         /// The default is Fake so a missing setting can never cost money.
         /// </summary>
         public string Provider { get; set; }
@@ -58,6 +74,12 @@ namespace Agent.Llm
         public bool IsFake
         {
             get { return string.Equals(Provider, "Fake", StringComparison.OrdinalIgnoreCase); }
+        }
+
+        /// <summary>True when using Google Gemini (through its OpenAI-compatible API).</summary>
+        public bool IsGemini
+        {
+            get { return string.Equals(Provider, "Gemini", StringComparison.OrdinalIgnoreCase); }
         }
 
         /// <summary>True when using Azure OpenAI.</summary>

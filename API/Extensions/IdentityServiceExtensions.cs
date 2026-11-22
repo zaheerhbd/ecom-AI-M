@@ -17,6 +17,9 @@ namespace API.Extensions
             var builder = services.AddIdentityCore<AppUser>();
 
             builder = new IdentityBuilder(builder.UserType, builder.Services);
+            // Roles (Phase 3): the "Admin" role guards the agent's runs and evals pages in production (D4).
+            // The role tables already exist in the identity database.
+            builder = builder.AddRoles<IdentityRole>();
             builder.AddEntityFrameworkStores<AppIdentityDbContext>();
             builder.AddSignInManager<SignInManager<AppUser>>();
 

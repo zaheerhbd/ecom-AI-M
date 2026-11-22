@@ -27,12 +27,20 @@ namespace Agent.Llm
     public sealed class ToolCall
     {
         /// <summary>Creates a tool call.</summary>
-        public ToolCall(string id, string name, string argumentsJson)
+        public ToolCall(string id, string name, string argumentsJson, string extraContentJson = null)
         {
             Id = id;
             Name = name;
             ArgumentsJson = argumentsJson;
+            ExtraContentJson = extraContentJson;
         }
+
+        /// <summary>
+        /// Provider-specific data that must be sent back unchanged with the conversation, as raw JSON.
+        /// Gemini puts its "thought_signature" here and refuses the next call without it.
+        /// Null for OpenAI.
+        /// </summary>
+        public string ExtraContentJson { get; }
 
         /// <summary>Unique id. The tool's result must quote it so the model can match them up.</summary>
         public string Id { get; }

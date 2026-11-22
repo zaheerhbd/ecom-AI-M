@@ -1,8 +1,8 @@
 # HANDOFF: AI agent for eCOM-AI-M
 
-> **Last updated:** 2026-11-21 01:15 EST
-> **Status:** Phases 1 and 2 approved, committed and pushed on `feature/agentic-ai`. The deploy pipeline is **fixed and working** (PR #1 merged to `main`, run `44873563741` green; live site serves the 18 original products). Shop UI tidied for 1,018 products.
-> **Next action:** wait for the owner to say "start Phase 3", then follow **§2b (Phase 3 brief)**. Do **not** merge `feature/agentic-ai` into `main`: Phase 2 needs DB columns the cloud DB doesn't have yet (Phase 6).
+> **Last updated:** 2026-11-21 02:00 EST
+> **Status:** Phases 1–2 committed + pushed. **Phase 3 (tools + API) committed 2026-11-22, not pushed.** The agent answers product, policy, delivery and (signed-in) order questions via `POST api/agent/chat`, using **Gemini (free tier) by default**, OpenAI by one setting. Deploy pipeline fixed (PR #1 on `main`).
+> **Next action:** go through the open questions in **§2a** with the owner (push, eval on Gemini, test order for bob). Then wait for "start Phase 4" and follow **§2b (Phase 4 brief)**. Do **not** merge `feature/agentic-ai` into `main` before Phase 6.
 
 This is the **single entry point** for any new session, whether Claude Code, Codex or another assistant. Read it fully before doing anything, then read the docs it points to. **Update it at the end of every session**: the "Last updated" line, Status, Next action and the session log at the bottom.
 
@@ -36,46 +36,55 @@ This is the **single entry point** for any new session, whether Claude Code, Cod
 
 ## 2a. Resume here (state at the end of the last session)
 
-**Committed:** Phase 1 (`Agent/`, `Agent.Tests/`, `eCom.sln`, `docs/agentic/`) as `4ab0817`. Not pushed.
+**Committed and pushed** on `feature/agentic-ai`: Phase 1 (`4ab0817`), Phase 2 (`a9679aa`), shop layout tidy (`eafe5c9`). `main` has only the deploy fix (PR #1). **Never merge `feature/agentic-ai` into `main` before Phase 6** (the cloud DB lacks the Phase 2 columns).
 
-**Uncommitted Phase 2 work** (ours; commit only when asked):
+**Phase 3 is committed** on `feature/agentic-ai` (2026-11-22, owner said "commit phase 3"; not pushed). Files:
 
 | Path | What |
 |---|---|
-| `Core/Entities/Product.cs`, `API/Dtos/ProductToReturnDto.cs` | 4 new fields: Color, Material, StockQuantity, Rating |
-| `Infrastructure/Infrastructure.csproj` | Now references `Agent` |
-| `Infrastructure/Data/StoreContext.cs`, `Data/Config/{ProductConfiguration,JsonColumn,AgentRunConfiguration,EvalRunConfiguration}.cs` | New tables + mappings |
-| `Infrastructure/Data/Migrations/20261120044648_AgentAndProductAttributes*` + snapshot | The migration (already applied to the local DB) |
-| `Infrastructure/Data/StoreContextSeed.cs` | Idempotent seed |
-| `Infrastructure/Data/SeedData/{products,brands}.json`, `SeedData/policies/*.md` | Generated catalogue + 6 policy files |
-| `Infrastructure/Services/{PolicyDocumentLoader,AiDocumentService}.cs` | Policy documents for the AI |
-| `tools/seed-gen/` | Generator + copies of the original products/brands |
-| `docs/agentic/` | Tracker, this file, `reports/phase-2-report.html` |
+| `Infrastructure/AgentTools/*` (new) | 7 tools + `ToolHelpers` + `LocalPolicySearch` (keyword search over the policy files) |
+| `Core/Specifications/ProductSearchParams.cs`, `ProductSearchSpecification.cs` (new) | Filters/sorting for `search_products` |
+| `Infrastructure/Data/EfAgentRunStore.cs`, `EfEvalRunStore.cs` (new) | DB stores for runs/evals |
+| `Infrastructure/Services/AgentRunCleanupService.cs` (new) | Deletes runs older than `Agent:RunRetentionDays` (30), daily |
+| `API/Controllers/AgentController.cs`, `API/Dtos/AgentDtos.cs`, `API/Extensions/AgentServiceExtensions.cs` (new) | Endpoints, DI wiring, rate limit, admin policy, shop defaults (prompt path, pricing) |
+| `API/Agent/system-prompt.md`, `API/Agent/evals/cases.json` (new) | Prompt + 51 eval cases; published with the app (`API.csproj`) |
+| `API/Startup.cs` | **2 lines only** (`AddShopAgent`, `UseRateLimiter`); the owner's earlier edits were already committed |
+| `Agent/Llm/*`, `Agent/ServiceCollectionExtensions.cs`, `Agent.Tests/ProviderSettingsTests.cs` | **Gemini provider (2026-11-22)**: `Agent:Llm:Provider` = `Gemini` (default in config) or `OpenAI`. Each provider keeps its own section (`Gemini:ApiKey/Model`, `OpenAI:ApiKey/ChatModel`), resolved by `ApplyProviderDefaults`. Gemini uses its OpenAI-compatible endpoint; the client sends back Gemini's `extra_content` (thought signature) on tool calls, honours `Retry-After` (≤60s). Price default $0 on Gemini |
+| `API/Program.cs` | `--evals` switch; Admin role seeding on `--migrate` |
+| `API/Extensions/IdentityServiceExtensions.cs`, `Core/Interfaces/ITokenService.cs`, `Infrastructure/Services/TokenService.cs`, `API/Controllers/AccountController.cs`, `Infrastructure/Identity/AppIdentityDbContextSeed.cs` | Admin role (D4): roles on, role claims in the JWT, `SeedAdminRoleAsync` for `Agent:AdminEmails` |
+| `API/API.csproj`, `API/appsettings.Production.json.example` | Ship prompt/cases; `Agent` config example |
+| `docs/agentic/` | Tracker, this file, `reports/phase-3-report.html` |
+| *(gitignored, local only)* `API/appsettings.Development.json` | `Agent` section (Provider **Gemini**, rate limit, retention, `UseAzureSearch: false`, `AdminEmails: []`), `Gemini` section (owner's free key, model `gemini-3.5-flash`), `OpenAI:ChatModel`. Logging `Microsoft` = Warning (owner). Backups: `%TEMP%\appsettings.Development.backup.json`, `%TEMP%\appsettings.Development.before-gemini.json` |
 
-Everything else in `git status` (`API/Startup.cs`, `Dockerfile`, `API/logs/`, `CLAUDE.md`, `tmp/`, `docs/container-app-github-deploy.md`) is the **owner's**. Leave it alone (rule 4).
+Owner's files, still leave alone (rule 4): `API/Startup.cs` (except our 2 lines), `API/logs/`, `CLAUDE.md`, `tmp/`, `docs/container-app-github-deploy.md`.
 
-**Check it still works** (Docker Desktop on; free, no network):
+**Check it still works** (Docker Desktop on):
 
 ```powershell
-dotnet build eCom.sln            # expect 0 errors; 5 old warnings in API code only
-dotnet test Agent.Tests          # expect Passed: 38, Failed: 0
-node tools/seed-gen/generate.js  # rewrites the same files: git shows no change
-cd API; dotnet run -- --migrate  # "Seed finished: added 0 brands, 0 types, 0 products"
+dotnet build eCom.sln            # 0 errors; 5 old warnings in API code
+dotnet test Agent.Tests          # Passed: 43
+cd API; dotnet run               # then Swagger: POST /api/agent/chat { "message": "Show me navy hats under $30" }
+dotnet run -- --evals --repeat 1 --cases <small file>   # CLI eval; free on Gemini (daily cap), ~$0.40 for 51x3 on OpenAI
 ```
 
-**Local DB state:** `skinet` has 1,018 products, 20 brands, both migrations. Backups from before Phase 2: `C:\Backups\skinet-before-phase2.sql`, `C:\Backups\identity-before-phase2.sql`.
+**Gemini test (2026-11-22):** red gloves → `search_products` (11 found), returns after 5 weeks → `search_knowledge` (no, 30 days), delivery → `get_delivery_options`; all $0, 2–25 s. `gemini-2.5-flash` is retired for new keys (404); `gemini-3.8-flash`, `3.7-flash`, `flash-latest` returned 503 "high demand" that day, so the model is `gemini-3.5-flash`. List models: `GET https://generativelanguage.googleapis.com/v1beta/openai/models` with the key as Bearer. Free tier: Google may use the data, so production should use the paid tier or OpenAI.
+
+**Test results (2026-11-21):** product search (right filters), policy answer (local search), anonymous vs bob orders, foreign order → "not found", injection blocked ($0), 11th msg/min → 429, runs/stats saved, Production mode → runs 401 anonymous / 403 non-admin, eval via API (2 cases) and CLI (3 cases, 3/3 pass), prompt + cases included in `dotnet publish`. Two prompt problems found by testing and fixed (see Phase 3 report).
+
+**Open questions for the owner (ask next session):**
+1. Push the Phase 3 commit?
+2. Run the eval on Gemini (51 × 1, free; ×3 may hit the free daily cap) for a first look? (Official baseline is Phase 5.)
+3. Create a test order for `bob@test.com` locally (seeding data) so order tools return real data?
 
 **Loose ends:**
-- **Dockerfile:** the two `Agent` COPY lines were added with the owner's OK (2026-11-20). The rest of the file is still the owner's uncommitted edits: when committing, ask whether to include the Dockerfile (it mixes their changes and ours).
-- Policy text: the owner said OK (2026-11-20). `support@skinet-shop.example` is still a placeholder.
-- Phase 3 extras (doc 02): `Program.cs` `--evals`; the new tool signature; a DB-backed `IAgentRunStore`/`IEvalRunStore` using the new tables.
-- There is no Admin role in identity yet. D4 needs one in Phase 3/4.
-- `appsettings.json` is gitignored. Put new config examples in the docs, not only in that file.
-- PowerShell 5.1: `git commit -F -` with a here-string doesn't work; write the message to a file in the scratchpad and use `-F <file>`.
-
-**If the owner asks for review changes:** edit, re-run build/tests (and the seed if data changed), update the Phase 2 report and tracker. Stop again for review.
-
-**When the owner says "start Phase 3":** follow §2b below, then Phase 3 in doc 02. End with `reports/phase-3-report.html` (rule 10).
+- `support@skinet-shop.example` in the policies is still a placeholder.
+- Rate limit is per IP for anonymous users; behind Azure Container Apps that is the proxy IP until forwarded headers are configured (Phase 6).
+- `Agent:AdminEmails` is empty: the owner adds their email in production (Phase 6), then runs with `--migrate`/`RUN_MIGRATIONS`.
+- Production needs `Agent__Llm__Provider` (`Gemini` + `Gemini__ApiKey`, or `OpenAI`), else the engine's free Fake model answers. See `appsettings.Production.json.example`.
+- Gemini's `usage.completion_tokens` leaves out thinking tokens, so token counts look low; cost is $0 on the free tier anyway.
+- No unit tests for the shop tools yet (Agent.Tests covers the engine only). Candidate for Phase 5.
+- `appsettings.json` is gitignored: config examples live in `appsettings.Production.json.example` and the docs.
+- PowerShell 5.1: `git commit -F -` with a here-string doesn't work; use Git Bash heredoc or `-F <file>`.
 
 ## 2a-bis. Deploy / Dockerfile findings (2026-11-20) — ✅ all fixed 2026-11-21
 
@@ -99,40 +108,30 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 
 **Next session, first ask the owner:** (a) did they fix and rotate `AZURE_CREDENTIALS`? (b) run `docker build .` locally now? (c) commit Phase 2 together with the Dockerfile?
 
-## 2b. Phase 3 brief: tools and API (next phase)
+## 2b. Phase 4 brief: Angular UI (next phase, only when the owner says "start Phase 4")
 
-**Goal:** wire the Phase 1 engine into the API with the shop's 7 read-only tools, so you can chat with the agent through Swagger. No UI yet (Phase 4).
+**Goal:** a chat screen that shows *how* each answer was made, plus runs and evals pages. Full steps in [02 Phase 4](02-implementation-plan.md#phase-4--angular-11-ui).
 
-**Before writing code:**
-1. Phase 2 is committed and pushed (2026-11-21), so Phase 3 starts clean.
-2. Start Docker Desktop (`& "C:\Program Files\Docker\Docker\Docker Desktop.exe"`, then wait until `docker info` works). Run the checks in §2a.
-
-**Steps** (full detail in [02 Phase 3](02-implementation-plan.md#phase-3--tools-and-api), tool contracts in [05 §3](05-agent-guide.md#3-tools)):
+**Before writing code:** Client needs **Node 16**: don't switch the global Node; run with `$env:PATH = "$env:NVM_HOME\v16.20.2;$env:PATH"; node node_modules\@angular\cli\bin\ng serve` from `client/` (that's how it ran on 2026-11-21; it served on **https://localhost:4200**).
 
 | Step | Work | Notes for this repo |
 |---|---|---|
-| 3.1 | 7 tools in `Infrastructure/AgentTools/`: `search_products`, `get_product_details`, `list_catalog_filters`, `search_knowledge`, `get_delivery_options`, `get_my_orders`* , `get_order`* (*sign-in, `IRequiresSignIn`) | Signature: `ExecuteAsync(JsonElement arguments, AgentRequestContext context, CancellationToken)`. User email **only** from `context.UserEmail`, never from arguments. Orders are owned by `Order.BuyerEmail` |
-| 3.2 | `ProductSearchSpecification`: brand, type, colour, material, price range, in stock, min rating; sort price/rating/name | Spec base class is spelled `BaseSpecifcation<T>`; the evaluator applies OrderBy **or** OrderByDescending. Unknown brand/type → return the list of valid names |
-| 3.3 | `search_knowledge`: Azure retriever if configured, else local keyword search over the policy files | Reuse `PolicyDocumentLoader.Load()` (Phase 2). Result says `source: azure` or `local`. **Never sync to Azure** (rule 8) |
-| 3.4 | `EfAgentRunStore`, `EfEvalRunStore` | Tables already exist (Phase 2). Also add **30-day retention** (D3): delete `AgentRuns` older than 30 days, e.g. a cleanup on startup or a hosted service |
-| 3.5 | `AgentController`: `POST api/agent/chat`, `GET runs`, `runs/{id}`, `stats`, `info`, `POST evals`, `GET evals`, `evals/{id}` | Runs/evals endpoints: admin only in production, open in dev (D4). No Admin role exists yet: create it and give it to the owner's account |
-| 3.6 | Fill `AgentRequestContext` from the JWT | Chat allows anonymous **and** signed-in |
-| 3.7 | Rate limit, built-in `Microsoft.AspNetCore.RateLimiting` | **D2: per user**, 10/minute; anonymous falls back to IP |
-| 3.8 | `API/Agent/system-prompt.md` + `Agent` section in `appsettings.json` | `appsettings.json` is gitignored: also put the config example in the docs. Look up current OpenAI prices for `Pricing`. Read the key from `OpenAI:ApiKey` |
-| 3.9 | `API/Agent/evals/cases.json`, ~45 cases with `expectedTools` | Port the 21 in `docs/ai-retrieval-test-cases.csv`. TC-012…021 are answered by the Phase 2 policy files. Order cases: the seeded user is `bob@test.com`, but there are **0 orders** locally, so create a test order for him (ask first if it means seeding data) |
-| 3.10 | Swagger smoke test of every endpoint, then **review checkpoint** | Real OpenAI calls cost a little: keep testing small; full eval runs only with the owner's OK (rule 7) |
+| 4.1 | Lazy `AgentModule` at `/agent`: `chat`, `runs`, `runs/:id`, `evals`, `how-it-works` | Angular 11 + NgModules + Bootstrap 4 (bootswatch "united"); copy the lazy pattern of `shop`/`basket` modules |
+| 4.2 | `AgentService` + models | Match the JSON of `AgentResult`, `AgentRunPage`, `AgentRunStats`, `EvalRunRecord` (camelCase). `environment.apiUrl` is `https://localhost:5001/api/` |
+| 4.3 | Chat page + observability panel | Keep `sessionId` between messages. The JWT interceptor already sends the token, so signed-in users get order tools. Show steps (guardrail / llm / tool with input, output, tokens, ms), totals, sources. Handle 429 nicely. Model the panel on `C:\Agents\SimpleAgent\src\SimpleAgent.Api\wwwroot\index.html` |
+| 4.4 | Runs page | `GET api/agent/runs?page&pageSize`, `runs/{id}`, `stats`. Reuse the timeline component |
+| 4.5 | Evals page | `POST api/agent/evals { caseIds?, category?, repeat?, useJudge? }` → 202 with the run; poll `GET evals/{id}` until `status != "Running"`. **Real runs cost money:** default the UI to a small selection |
+| 4.6 | How it works page | Diagrams from doc 03 as static HTML/SVG |
+| 4.7 | Nav link "Assistant", then **review checkpoint** + `reports/phase-4-report.html` | The shop layout was tidied on 2026-11-21 (72px header, full-width shop); keep new pages consistent |
 
-**Also in Phase 3:**
-- `Program.cs`: `EvalCommandLine.IsEvalCommand(args)` / `RunAsync(...)`, so `dotnet run --evals` works.
-- Register in `Startup.cs` with `services.AddAgent(Configuration).AddTool<...>()`. **`Startup.cs` has the owner's uncommitted edits:** add only our lines, and tell the owner.
-- Swap the in-memory run/eval stores for the EF ones.
+**Done when:** you can chat in the browser, see each step of an answer, browse runs, start a small eval and watch it finish; build passes.
 
-**Done when:** `POST api/agent/chat` answers a product question using `search_products`, a policy question using `search_knowledge`, refuses "my orders" when anonymous and answers it for `bob@test.com`; runs appear in `GET api/agent/runs`; a small eval run completes; build and tests pass.
-
-**Practical tips from Phase 2:**
-- Run the API in the background, wait for "Application started" in the log, and stop it with `Stop-Process` on `API.exe`. The "exit code 255" afterwards is expected.
-- The default launch profile redirects to `https://localhost:5001`. Windows PowerShell doesn't trust the dev certificate, so use `curl.exe -sk` instead of `Invoke-RestMethod`.
-- `dotnet ef` is 8.0.28. It works for EF 10 with only a warning.
+**Practical tips:**
+- Run the API in the background, wait for "Application started", stop it with `Stop-Process` on `API.exe` (exit code 255 afterwards is expected). Stop it before `dotnet build` (the running exe locks the DLLs).
+- Windows PowerShell doesn't trust the dev certificate: use `curl.exe -sk` (or Git Bash `curl -sk`).
+- Log in as bob for a token: `POST api/account/login { "email": "bob@test.com", "password": "Pa$$w0rd" }`.
+- To test production-only rules locally: `$env:ASPNETCORE_ENVIRONMENT='Production'; dotnet run --no-build --no-launch-profile --urls http://localhost:5055` (uses the free Fake model, since appsettings.json has no Agent section).
+- `dotnet ef` is 8.0.28; it works for EF 10 with a warning.
 
 ## 3. Docs (read in this order)
 
@@ -162,7 +161,7 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 | 0 | Docs | ✅ Approved 2026-11-16 |
 | 1 | Agent engine project (`Agent/`, generic, scoped, typed tools, guardrail checks, run store, eval runner with repeats + baseline gate, `gen_ai.*` telemetry names) | ✅ Approved, committed `4ab0817` (2026-11-19) |
 | 2 | Schema + seed (4 new Product columns, AgentRuns/EvalRuns/EvalCaseResults tables, ~1,000 products, policy files, idempotent seed) | ✅ Approved, committed + pushed (2026-11-21) |
-| 3 | Tools + API (7 read-only tools, `api/agent/*`, rate limit, system prompt file, ~45 eval cases) | ⬜ |
+| 3 | Tools + API (7 read-only tools, `api/agent/*`, rate limit, system prompt file, 51 eval cases, Admin role) | ✅ Committed 2026-11-22 (not pushed). Gemini default, OpenAI switch |
 | 4 | Angular 11 UI (lazy `agent` module: chat + panel, runs, evals, how it works) | ⬜ |
 | 5 | End to end + comparison with the old chat, then improvements: loop control (R11), shrinking tool results + multi-turn eval (R12), groundedness check, first baseline | ⬜ |
 | 6 | Production rollout: cloud DB first, then the live index from the cloud DB, then App Insights traces | ⬜ |
@@ -262,3 +261,4 @@ None. All decisions D1–D9 are made.
 | 2026-11-19 23:58 EST | Claude Code | Owner approved Phase 1 → committed `4ab0817` (D5, D6 confirmed; D1 = templates for now). **Phase 2 built**: backups in `C:\Backups`, 4 Product columns, AgentRuns/EvalRuns/EvalCaseResults, migration `AgentAndProductAttributes`, `tools/seed-gen/generate.js` (1,018 products, 20 brands), 6 policy files, idempotent seed, `PolicyDocumentLoader`. Local DB migrated + seeded and checked (originals unchanged, second run adds 0, API starts). Dockerfile needs 2 `Agent` COPY lines: asked the owner. Phase 2 not committed. |
 | 2026-11-20 | Claude Code | Owner OK'd the policy text and the Dockerfile lines (added). D2 = per user, D3 = 30 days: all decisions made. Added §2b, the Phase 3 brief, for the next session. Phase 2 still not committed. Then checked the Dockerfile and deploy: the committed Dockerfile uses .NET 7/5 images (the owner's uncommitted edits fix that), the only deploy failed at Azure login (bad `AZURE_CREDENTIALS` format; part of the secret shows in the run log, so rotate it), and the `global.json` pin is unverified. Logged in §2a-bis; nothing changed. |
 | 2026-11-21 01:15 EST | Claude Code | **Deploy fixed** with the owner: new service principal + GitHub secrets, old leaked principal and run log deleted, `global.json` rollForward, PR #1 (Dockerfile + global.json) merged to `main`, first green deploy. Shop UI tidied (pager max 5 pages, compact filter panel with scrolling brand list, 72px header, full-width layout, 4 per row, 12 per page). Phase 2 + UI committed and pushed on `feature/agentic-ai`. Note: local Angular dev server ran on **https://localhost:4200** (not 4201). |
+| 2026-11-21 02:00 EST | Claude Code | **Phase 3 built**: 7 tools (`Infrastructure/AgentTools`), `ProductSearchSpecification`, EF run/eval stores, 30-day cleanup service, `AgentController` (8 endpoints), per-user rate limit (10/min), Admin role + policy (D4), system prompt, 51 eval cases, `--evals` in Program.cs. Smoke-tested every endpoint with small real OpenAI calls (total spend ≈ $0.03); two prompt issues found and fixed. Full eval NOT run (needs OK, ≈ $0.40). Report `reports/phase-3-report.html`. Not committed. |

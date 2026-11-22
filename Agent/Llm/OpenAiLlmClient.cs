@@ -42,6 +42,9 @@ namespace Agent.Llm
                 if (_options.IsAzure)
                     return "AzureOpenAI:" + _options.Deployment;
 
+                if (_options.IsGemini)
+                    return "Gemini:" + _options.Model;
+
                 return "OpenAI:" + _options.Model;
             }
         }
@@ -78,7 +81,7 @@ namespace Agent.Llm
                         bool isTransient = response.StatusCode == HttpStatusCode.TooManyRequests || statusCode >= 500;
                         if (isTransient && attempt <= _options.MaxRetries)
                         {
-                            TimeSpan delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+                            TimeSpan delay = RetryDelay(response, attempt);
                             _logger.LogWarning("LLM returned {Status}. Retry {Attempt}/{Max} in {Delay}s",
                                 statusCode, attempt, _options.MaxRetries, delay.TotalSeconds);
                             await Task.Delay(delay, cancellationToken);
@@ -90,6 +93,28 @@ namespace Agent.Llm
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// How long to wait before retrying. If the provider says how long (the Retry-After header,
+        /// common on free tiers with a per-minute limit), wait that long, up to 60 seconds.
+        /// Otherwise wait 1s, 2s, 4s...
+        /// </summary>
+        private static TimeSpan RetryDelay(HttpResponseMessage response, int attempt)
+        {
+            TimeSpan backoff = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+            RetryConditionHeaderValue retryAfter = response.Headers.RetryAfter;
+            if (retryAfter == null)
+                return backoff;
+
+            TimeSpan? asked = retryAfter.Delta;
+            if (!asked.HasValue && retryAfter.Date.HasValue)
+                asked = retryAfter.Date.Value - DateTimeOffset.UtcNow;
+
+            if (!asked.HasValue || asked.Value <= backoff)
+                return backoff;
+
+            return asked.Value > TimeSpan.FromSeconds(60) ? TimeSpan.FromSeconds(60) : asked.Value;
         }
 
         // ----- Building the request -------------------------------------------------
@@ -180,6 +205,11 @@ namespace Agent.Llm
                     callJson["id"] = call.Id;
                     callJson["type"] = "function";
                     callJson["function"] = function;
+
+                    // Send back what the provider gave us (Gemini's thought signature), unchanged.
+                    if (!string.IsNullOrEmpty(call.ExtraContentJson))
+                        callJson["extra_content"] = JsonNode.Parse(call.ExtraContentJson);
+
                     calls.Add(callJson);
                 }
 
@@ -216,10 +246,34 @@ namespace Agent.Llm
                     foreach (JsonElement call in calls.EnumerateArray())
                     {
                         JsonElement function = call.GetProperty("function");
-                        string id = call.GetProperty("id").GetString() ?? Guid.NewGuid().ToString("N");
+
+                        // Some OpenAI-compatible providers leave the id out or empty: make one up.
+                        string id = null;
+                        JsonElement idElement;
+                        if (call.TryGetProperty("id", out idElement) && idElement.ValueKind == JsonValueKind.String)
+                            id = idElement.GetString();
+                        if (string.IsNullOrEmpty(id))
+                            id = "call_" + Guid.NewGuid().ToString("N");
+
                         string name = function.GetProperty("name").GetString() ?? "";
-                        string arguments = function.GetProperty("arguments").GetString() ?? "{}";
-                        toolCalls.Add(new ToolCall(id, name, arguments));
+
+                        // Normally a JSON string; accept a JSON object too.
+                        string arguments = "{}";
+                        JsonElement argumentsElement;
+                        if (function.TryGetProperty("arguments", out argumentsElement))
+                        {
+                            if (argumentsElement.ValueKind == JsonValueKind.String)
+                                arguments = argumentsElement.GetString() ?? "{}";
+                            else if (argumentsElement.ValueKind == JsonValueKind.Object)
+                                arguments = argumentsElement.GetRawText();
+                        }
+                        // Gemini: {"google": {"thought_signature": "..."}}. Kept so we can send it back.
+                        string extraContent = null;
+                        JsonElement extraElement;
+                        if (call.TryGetProperty("extra_content", out extraElement) && extraElement.ValueKind == JsonValueKind.Object)
+                            extraContent = extraElement.GetRawText();
+
+                        toolCalls.Add(new ToolCall(id, name, arguments, extraContent));
                     }
                 }
 

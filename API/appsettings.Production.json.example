@@ -32,10 +32,31 @@
     "ChatModel": "gpt-5.4-mini",
     "EmbeddingModel": "text-embedding-3-small"
   },
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-3.5-flash"
+  },
   "AzureSearch": {
     "Endpoint": "",
     "ApiKey": "",
     "IndexName": "products-index",
     "RagIndexName": "rag-index"
+  },
+  "Agent": {
+    "AppName": "Shop Assistant",
+    "SystemPromptPath": "Agent/system-prompt.md",
+    "Llm": {
+      "Provider": "Gemini"
+    },
+    "RateLimit": {
+      "PermitPerMinute": 10
+    },
+    "RunRetentionDays": 30,
+    "Knowledge": {
+      "UseAzureSearch": false
+    },
+    "AdminEmails": [
+      "YOUR_ADMIN_EMAIL"
+    ]
   }
 }

@@ -21,6 +21,9 @@
   <ItemGroup>
     <Content Include="Content\**" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="nlog.config" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Phase 3: the agent's system prompt and eval cases are read at run time, so they ship with the app. -->
+    <None Update="Agent\**\*.md" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="Agent\**\*.json" CopyToPublishDirectory="PreserveNewest" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 

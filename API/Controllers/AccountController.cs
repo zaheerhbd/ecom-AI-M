@@ -41,7 +41,7 @@ namespace API.Controllers
             return new UserDto
             {
                 Email = user.Email,
-                Token = _tokenService.CreateToken(user),
+                Token = _tokenService.CreateToken(user, await _userManager.GetRolesAsync(user)),
                 DisplayName = user.DisplayName
             };
         }
@@ -91,7 +91,7 @@ namespace API.Controllers
             return new UserDto
             {
                 Email = user.Email,
-                Token = _tokenService.CreateToken(user),
+                Token = _tokenService.CreateToken(user, await _userManager.GetRolesAsync(user)),
                 DisplayName = user.DisplayName
             };
         }
