@@ -16,11 +16,13 @@ COPY global.json ./
 COPY API/API.csproj API/
 COPY Core/Core.csproj Core/
 COPY Infrastructure/Infrastructure.csproj Infrastructure/
+COPY Agent/Agent.csproj Agent/
 RUN dotnet restore API/API.csproj
 
 COPY API/. API/
 COPY Core/. Core/
 COPY Infrastructure/. Infrastructure/
+COPY Agent/. Agent/
 COPY --from=client-build /src/API/wwwroot ./API/wwwroot
 
 RUN dotnet publish API/API.csproj -c Release -o /app/publish

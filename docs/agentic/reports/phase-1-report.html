@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1 Report</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text: #1f2328;
+    --muted: #5b6270;
+    --border: #e1ded5;
+    --accent: #2f5fd0;
+    --accent-soft: #e6edfb;
+    --good: #1d7a46;
+    --good-soft: #e3f3e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf0d9;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --grey-soft: #ecebe6;
+    --code-bg: #f2f1ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b;
+      --surface: #1d2026;
+      --surface-2: #252931;
+      --text: #e7e9ee;
+      --muted: #a0a7b4;
+      --border: #333844;
+      --accent: #8fb0ff;
+      --accent-soft: #23304d;
+      --good: #6fd39a;
+      --good-soft: #1d3428;
+      --warn: #f0c060;
+      --warn-soft: #3a3020;
+      --bad: #ff8f86;
+      --bad-soft: #3d2322;
+      --grey-soft: #2a2e36;
+      --code-bg: #262a32;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2026;
+    --surface-2: #252931;
+    --text: #e7e9ee;
+    --muted: #a0a7b4;
+    --border: #333844;
+    --accent: #8fb0ff;
+    --accent-soft: #23304d;
+    --good: #6fd39a;
+    --good-soft: #1d3428;
+    --warn: #f0c060;
+    --warn-soft: #3a3020;
+    --bad: #ff8f86;
+    --bad-soft: #3d2322;
+    --grey-soft: #2a2e36;
+    --code-bg: #262a32;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 0; }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+  nav.toc a::before { content: counter(toc) ". "; color: var(--muted); opacity: .7; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .theme-btn { margin-top: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  main { padding: 28px 0 80px; min-width: 0; }
+  header.hero { padding: 8px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+  section { padding-top: 36px; scroll-margin-top: 12px; }
+  h2 { font-size: 24px; margin: 0 0 12px; letter-spacing: -.005em; }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p, li { max-width: 75ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad { background: var(--bad-soft); color: var(--bad); }
+  .chip.grey { background: var(--grey-soft); color: var(--muted); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .label { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+  .callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.good { border-color: var(--good); background: var(--good-soft); }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .card .where { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .flow { list-style: none; padding: 0; margin: 16px 0; counter-reset: flow; }
+  .flow li { counter-increment: flow; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 12px 58px; margin-bottom: 26px; box-shadow: var(--shadow); max-width: none; }
+  .flow li::before { content: counter(flow); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -22px; width: 2px; height: 18px; background: var(--border); }
+  .flow li.loop { border-color: var(--accent); }
+  .flow .tag { float: right; margin-left: 10px; }
+  .flow strong { display: block; }
+  .flow span.desc { color: var(--muted); font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+  details ul { margin: 0; padding-left: 20px; }
+  details li { font-size: 15px; }
+
+  dl.glossary { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; }
+  dl.glossary dt { font-weight: 700; }
+  dl.glossary dd { margin: 0; color: var(--text); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    nav.toc { position: static; max-height: none; padding: 16px 0 0; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { padding: 4px 8px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 27px; }
+    dl.glossary { grid-template-columns: 1fr; gap: 2px; }
+    dl.glossary dd { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      <li><a href="#summary">In one minute</a></li>
+      <li><a href="#what">What the engine is</a></li>
+      <li><a href="#flow">How one question flows</a></li>
+      <li><a href="#parts">The parts we built</a></li>
+      <li><a href="#safety">Safety built in</a></li>
+      <li><a href="#evals">Evals: testing the AI</a></li>
+      <li><a href="#tests">Tests and results</a></li>
+      <li><a href="#check">Check it yourself</a></li>
+      <li><a href="#changes">Changes from the plan</a></li>
+      <li><a href="#open">Not done yet</a></li>
+      <li><a href="#files">Files for review</a></li>
+      <li><a href="#next">What's next</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ol>
+    <button class="theme-btn" type="button" id="themeBtn">Switch light / dark</button>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">eCOM-AI-M · Agentic AI · Phase 1 of 6</p>
+      <h1>Phase 1: the agent engine</h1>
+      <p class="lede">We built the "brain" of the new shop assistant: a reusable engine that lets an AI model use tools, stay safe, remember a conversation, record every step it takes, and be tested automatically. It doesn't know about the shop yet. That comes in Phase 3.</p>
+      <div class="chips">
+        <span class="chip warn">Waiting for your code review</span>
+        <span class="chip good">38 of 38 tests pass</span>
+        <span class="chip good">Solution builds</span>
+        <span class="chip grey">Nothing committed</span>
+        <span class="chip info">Branch: feature/agentic-ai</span>
+      </div>
+    </header>
+
+    <section id="summary">
+      <h2>In one minute</h2>
+      <div class="stats">
+        <div class="stat"><div class="value">2</div><div class="label">new projects (engine + tests)</div></div>
+        <div class="stat"><div class="value">42</div><div class="label">engine files (.cs + project)</div></div>
+        <div class="stat"><div class="value">38</div><div class="label">automatic tests, all passing</div></div>
+        <div class="stat"><div class="value">$0</div><div class="label">spent: tests use a fake model</div></div>
+      </div>
+      <ul>
+        <li><strong>What's new:</strong> a project called <code>Agent</code> (the engine) and <code>Agent.Tests</code> (its tests), both added to <code>eCom.sln</code>.</li>
+        <li><strong>What's untouched:</strong> the shop itself. No changes to <code>API</code>, <code>Core</code>, <code>Infrastructure</code>, the database, settings files or the Dockerfile. The website works exactly as before.</li>
+        <li><strong>Built from:</strong> your SimpleAgent engine, copied in and upgraded with everything the plan asked for in steps 1.1 to 1.14b.</li>
+        <li><strong>Style:</strong> classic C# 7.3 syntax on .NET 10, commented in plain English, with no NuGet packages in the engine.</li>
+      </ul>
+    </section>
+
+    <section id="what">
+      <h2>What the engine is</h2>
+      <p>An AI model on its own can only write text. An <strong>agent</strong> is a loop around the model that lets it <em>do things</em>. We hand the model a list of tools, for example "search products" or "get my orders". The model replies either "please run this tool with these inputs" or "here is my final answer". Our code runs the tool, shows the model the result, and asks again. That repeats until the model has its answer.</p>
+      <div class="callout">
+        <p><strong>An analogy:</strong> the model is a smart new shop assistant who has never seen the stockroom. The engine is the shop's rulebook and its walkie-talkie. The assistant can ask the stockroom (a tool) questions, but security (guardrails) checks what goes in and out, a manager's notebook (the run record) writes down every step, and a mystery shopper (evals) tests them regularly.</p>
+      </div>
+      <p><strong>Why it's a separate project:</strong> the engine knows nothing about snowboards, orders or your database. The shop plugs its tools in from the outside. That keeps the engine small and easy to test, and you could reuse it for another app.</p>
+      <div class="callout good">
+        <p><strong>How it differs from the old chat:</strong> in today's <code>/ai-lab</code> chat, <em>our code</em> guesses what to search using keywords, and the model only writes the answer. With the agent, <em>the model</em> decides what to look up, and it can look up several things or try again.</p>
+      </div>
+    </section>
+
+    <section id="flow">
+      <h2>How one question flows</h2>
+      <p>This is what <code>AgentRunner.RunAsync</code> does with every message. Steps 4 to 6 are the "agent loop".</p>
+      <ol class="flow">
+        <li><span class="chip info tag">guardrails</span><strong>Input checks</strong><span class="desc">Too long or empty? Looks like "ignore your instructions"? Blocked, and the model is never called (free). Emails, phone and card numbers are masked before anything else happens.</span></li>
+        <li><span class="chip info tag">memory</span><strong>Load the conversation, check who owns it</strong><span class="desc">The model forgets everything between calls, so we re-send the chat. If this chat belongs to a different signed-in user, it is refused.</span></li>
+        <li><strong>Add the system prompt and the question</strong><span class="desc">The system prompt is the assistant's job description. It comes from a file or setting, and contains a hidden "canary" marker.</span></li>
+        <li class="loop"><span class="chip info tag">loop</span><strong>Ask the model</strong><span class="desc">The model gets the chat plus the tools this user may use. Sign-in tools are hidden from anonymous users. Tokens and time are recorded.</span></li>
+        <li class="loop"><span class="chip info tag">loop</span><strong>Run the tools it asked for, one by one</strong><span class="desc">Unknown tool, bad input, crash or timeout? The model gets a polite "Error: ..." message instead, and can try again.</span></li>
+        <li class="loop"><span class="chip info tag">loop</span><strong>Repeat, or stop at a safety limit</strong><span class="desc">At most 6 rounds and 20,000 tokens per question, so a confused model can't loop forever or burn money.</span></li>
+        <li><span class="chip info tag">guardrails</span><strong>Output checks</strong><span class="desc">If the answer contains the canary, the model leaked its instructions, so the answer is replaced. Personal data is masked.</span></li>
+        <li><span class="chip info tag">records</span><strong>Save memory and the run record, return the answer</strong><span class="desc">Every step, check, token count, cost estimate and source is saved. If saving fails, the user still gets the answer.</span></li>
+      </ol>
+    </section>
+
+    <section id="parts">
+      <h2>The parts we built</h2>
+      <p>Each card says what the part is, why it exists, and where to find it. All paths are inside <code>Agent/</code>.</p>
+      <div class="cards">
+        <div class="card">
+          <h3>The loop</h3>
+          <p>The flow above: guardrails, memory, model, tools, limits, records.</p>
+          <p><strong>Why:</strong> this is what makes it an agent rather than a chatbot.</p>
+          <p class="where"><code>AgentRunner.cs</code></p>
+        </div>
+        <div class="card">
+          <h3>Settings from config</h3>
+          <p>App name, prompt file, fallback answer, limits, temperature (left out when empty, because gpt-5 models reject it), canary and token prices.</p>
+          <p><strong>Why:</strong> you can change how the agent behaves without recompiling.</p>
+          <p class="where"><code>AgentOptions.cs</code>, <code>Llm/LlmOptions.cs</code>, <code>SystemPromptProvider.cs</code></p>
+        </div>
+        <div class="card">
+          <h3>Tools and the tool registry</h3>
+          <p>A tool is a class with a name, a description the model reads, an input schema and an <code>ExecuteAsync</code> method. Inputs can now be text, number, whole number, true/false or a fixed list.</p>
+          <p><strong>Why:</strong> models are sloppy and send <code>"5"</code> instead of <code>5</code>, so the <code>GetInt</code> / <code>GetNumber</code> / <code>GetBool</code> readers accept both.</p>
+          <p class="where"><code>Tools/ITool.cs</code>, <code>Tools/Schema.cs</code>, <code>Tools/ToolRegistry.cs</code></p>
+        </div>
+        <div class="card">
+          <h3>Request context</h3>
+          <p>Holds the signed-in user's email (from the login token), the channel (chat or eval) and the sources the tools used.</p>
+          <p><strong>Why:</strong> tools take the user from <em>here</em>, never from the model, which could be tricked into asking for someone else's orders.</p>
+          <p class="where"><code>AgentRequestContext.cs</code></p>
+        </div>
+        <div class="card">
+          <h3>Guardrails with clear results</h3>
+          <p>Five checks (length, injection, personal data on the way in; canary leak and personal data on the way out). Each one now records <em>Passed</em>, <em>Modified</em>, <em>Blocked</em> or <em>Skipped</em>, with a reason and its time.</p>
+          <p><strong>Why:</strong> the UI in Phase 4 can show a green, amber, red or grey chip for each check.</p>
+          <p class="where"><code>Guardrails/</code></p>
+        </div>
+        <div class="card">
+          <h3>Memory</h3>
+          <p>Keeps the last 20 messages of each conversation in server memory, and remembers who started it.</p>
+          <p><strong>Why:</strong> so "When will it arrive?" makes sense after "Where's my order?", and so nobody else can continue your chat.</p>
+          <p class="where"><code>Memory/</code></p>
+        </div>
+        <div class="card">
+          <h3>Run records</h3>
+          <p>Every answer is saved with its numbered steps (what went in, what came out, tokens, time, error flag), guardrail checks, sources, total tokens, estimated cost and model.</p>
+          <p><strong>Why:</strong> this is the data the Runs page will show. A memory-only store exists now; the database store comes in Phase 3.</p>
+          <p class="where"><code>Runs/</code>, <code>AgentResult.cs</code></p>
+        </div>
+        <div class="card">
+          <h3>Telemetry with standard names</h3>
+          <p>Each run, model call and tool call becomes a "span" named the standard OpenTelemetry way (<code>invoke_agent</code>, <code>chat</code>, <code>execute_tool</code>, <code>gen_ai.usage.input_tokens</code>, and so on).</p>
+          <p><strong>Why:</strong> in Phase 6, Application Insights will understand these names without any engine changes.</p>
+          <p class="where"><code>Observability/</code></p>
+        </div>
+        <div class="card">
+          <h3>Fake model</h3>
+          <p>A pretend model that costs nothing. Tests "script" its replies exactly. It's also the default, so a missing setting can never cost money.</p>
+          <p><strong>Why:</strong> free, fast tests that give the same result every time.</p>
+          <p class="where"><code>Llm/FakeLlmClient.cs</code></p>
+        </div>
+        <div class="card">
+          <h3>One-line setup</h3>
+          <p><code>services.AddAgent(Configuration).AddTool&lt;SearchProductsTool&gt;()...</code> registers everything with the right lifetimes. Tools, the runner and the registry are created fresh for each request.</p>
+          <p><strong>Why:</strong> the shop's tools use the database, which must never be shared between requests.</p>
+          <p class="where"><code>ServiceCollectionExtensions.cs</code>, <code>AgentBuilder.cs</code></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="safety">
+      <h2>Safety built in</h2>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risk</th><th>What the engine does</th></tr></thead>
+        <tbody>
+          <tr><td>An anonymous user asks for "my orders"</td><td>Sign-in tools are <strong>hidden</strong> from the model, and <strong>refused</strong> if the model calls one anyway.</td></tr>
+          <tr><td>The model is tricked into passing someone else's email</td><td>Tools read the user from the login token in the request context, not from the model's inputs. Tested.</td></tr>
+          <tr><td>Someone reuses another user's chat id</td><td>Each conversation remembers its owner, so another signed-in user is refused.</td></tr>
+          <tr><td>Personal data in saved records</td><td>Questions, tool inputs and outputs are masked before saving, <em>even when the message was blocked</em>. Only the exception type is saved, never a stack trace.</td></tr>
+          <tr><td>The model leaks its instructions</td><td>A random canary marker is hidden in the prompt. If it shows up in an answer, the answer is blocked. Each app start gets its own canary unless config sets one.</td></tr>
+          <tr><td>Runaway cost</td><td>Max 6 rounds and 20,000 tokens per question, a 10-second tool timeout, the fake model as the default, and only one eval run at a time.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="evals">
+      <h2>Evals: testing the AI</h2>
+      <p>Normal tests check code. <strong>Evals</strong> check the AI's <em>behaviour</em>: did it call the right tool with the right inputs, include the key fact, refuse when it should? The engine now has a full eval runner. The shop's ~45 real cases arrive in Phase 3.</p>
+      <h3>What a case can check</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Check</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>expectedTools</code></td><td>Each tool was called with inputs that include these values. Text ignores upper/lower case; numbers compare as numbers, so 40, 40.0 and "40" all match. An empty list means "no tool should be called".</td></tr>
+          <tr><td><code>mustContain</code> / <code>mustNotContain</code></td><td>Words that must or must not be in the answer.</td></tr>
+          <tr><td><code>shouldBlock</code></td><td>A guardrail must (or must not) block it.</td></tr>
+          <tr><td><code>shouldClarify</code> / <code>shouldDecline</code></td><td>The answer must ask a question back, or say "we don't sell that" / "I don't know".</td></tr>
+          <tr><td><code>signedInAs</code></td><td>Run the case as a signed-in user, to test the order tools.</td></tr>
+          <tr><td>LLM judge (optional)</td><td>A second model call scores the answer from 1 to 5; 4 or more passes. It costs extra, so it's off by default.</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <h3>Run each case several times</h3>
+      <p>AI answers change from run to run, so one pass proves little. Each case runs <strong>3 times</strong> by default and shows "2/3", "3/3" and so on. A case that passes only sometimes is flagged <span class="chip warn">flaky</span>. The summary reports the pass rate, the correct-tool rate, median and p95 time, median tokens and the estimated cost.</p>
+      <h3>The regression gate</h3>
+      <p>Once you're happy with a result, save it as the <strong>baseline</strong>. Before merging a change to the prompt, tools or engine, run the gate. It fails (exit code 1) if the pass rate drops more than 5 points below the baseline, and lists which cases got worse.</p>
+      <pre><code>dotnet run --evals --save-baseline     # accept today's result
+dotnet run --evals --baseline          # later: compare, fail on a drop</code></pre>
+      <div class="callout warn"><p>These commands will work once Phase 3 wires them into the API's <code>Program.cs</code>. The engine side is built and tested now.</p></div>
+    </section>
+
+    <section id="tests">
+      <h2>Tests and results</h2>
+      <div class="callout good"><p><strong>Result:</strong> <code>dotnet test Agent.Tests</code>: <strong>38 passed, 0 failed</strong>, in about 0.3 seconds. <code>dotnet build eCom.sln</code>: 0 errors. The 5 warnings come from existing API code (<code>Program.cs</code>, <code>PaymentsController.cs</code>), not the new projects.</p></div>
+      <details open>
+        <summary>The agent loop (17 tests)</summary>
+        <div><ul>
+          <li>Runs a tool, then returns the final answer, with the steps in the right order and numbered.</li>
+          <li>Saves the run with user, channel, model and the right cost estimate.</li>
+          <li>Stops at the step limit and at the token budget.</li>
+          <li>Blocks prompt injection <em>without calling the model</em>; marks the remaining checks as Skipped.</li>
+          <li>Blocks an answer that leaks the canary; puts the app name and canary into the system prompt.</li>
+          <li>Masks emails before the model sees them, and in saved questions, even blocked ones.</li>
+          <li>Hides sign-in tools from anonymous users, refuses them if called, and uses the token's email, not the model's.</li>
+          <li>Remembers earlier messages; refuses a chat owned by another user; trims history without breaking it.</li>
+          <li>Turns an unknown tool into an error step and carries on; replaces a bad session id.</li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>Tools and inputs (8 tests)</summary>
+        <div><ul>
+          <li><code>GetInt</code>, <code>GetNumber</code>, <code>GetBool</code>, <code>GetString</code> accept the usual sloppy forms and reject nonsense.</li>
+          <li>The schema writes types, fixed lists and required fields correctly.</li>
+          <li>The registry times out a slow tool, turns crashes and bad JSON into error text, and rejects two tools with the same name.</li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>Evals (11 tests)</summary>
+        <div><ul>
+          <li>Tool inputs match the way the docs describe (case, numbers as numbers, extra inputs allowed).</li>
+          <li>The "no tools", "clarify" and "decline" checks work.</li>
+          <li>Repeat runs give "2/3" and a flaky flag, and the failing attempt is the one shown.</li>
+          <li>Cases can run as a signed-in user; every attempt is saved as an eval run.</li>
+          <li>The regression gate saves a baseline, then fails with exit code 1 when results get worse.</li>
+          <li>The case file loader reads the documented format and rejects duplicate ids; median and p95 are right.</li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>LLM request and telemetry (2 tests)</summary>
+        <div><ul>
+          <li>Temperature is left out of the OpenAI request when it isn't set.</li>
+          <li>Spans carry the standard <code>gen_ai.*</code> names for the run, the model call and the tool call.</li>
+        </ul></div>
+      </details>
+    </section>
+
+    <section id="check">
+      <h2>Check it yourself</h2>
+      <p>From the repo folder <code>C:\eCOM-AI-M\eCOM-AI-M</code>:</p>
+      <pre><code>git -c safe.directory=* branch --show-current     # feature/agentic-ai
+dotnet build eCom.sln                             # 0 errors
+dotnet test Agent.Tests                           # 38 passed</code></pre>
+      <p><strong>A good file to read first:</strong> <code>Agent/AgentRunner.cs</code>. It starts with a diagram of the loop and reads top to bottom. Then look at <code>Agent.Tests/AgentRunnerTests.cs</code> to see each feature tested in a few lines.</p>
+    </section>
+
+    <section id="changes">
+      <h2>Changes from the plan</h2>
+      <p>Small decisions made while building. The docs (02, 04, 05, 06) are already updated to match.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>What</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Tools get the request context passed in: <code>ExecuteAsync(arguments, context, token)</code></td><td>Makes it obvious where the user comes from, and tools don't need to inject it.</td></tr>
+          <tr><td>LLM settings live in <code>Agent:Llm</code> (provider, model), and the provider defaults to <code>Fake</code></td><td>Keeps model settings together; a missing setting can never cost money. The key still comes from your existing <code>OpenAI:ApiKey</code>.</td></tr>
+          <tr><td>New <code>StopReason</code> on runs (<code>max-steps</code> / <code>token-budget</code>)</td><td>So the Runs page can show <em>why</em> a run stopped early.</td></tr>
+          <tr><td>Eval runs also store repeat, flaky count, attempts, pass rate, correct-tool rate, median/p95 time and median tokens</td><td>These are the numbers the docs promise in the summary. The table design in doc 04 now matches.</td></tr>
+          <tr><td>Error steps (<code>IsError</code>) are marked now, not in Phase 5</td><td>It was one line, and the timeline will need it anyway.</td></tr>
+          <tr><td>Fixed an edge case in history trimming copied from SimpleAgent</td><td>A single very long turn could have cut out the user's own question.</td></tr>
+          <tr><td>Default baseline file: <code>Agent/evals/baseline.json</code></td><td>Keeps it next to the eval cases.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="open">
+      <h2>Not done yet</h2>
+      <div class="callout warn">
+        <p><strong>Not checked: starting the API.</strong> Docker Desktop wasn't running, so the database wasn't available. The API project has no changes and builds fine, so the risk is low. Start Docker and run <code>cd API; dotnet run</code> to confirm.</p>
+      </div>
+      <ul>
+        <li><strong>D5 (test project) and D6 (Chat Completions):</strong> I went with my recommendation for both. Please confirm, or tell me to change them.</li>
+        <li><strong>Token prices:</strong> they go in when the <code>Agent</code> settings section is added to <code>appsettings.json</code> in Phase 3. Until then the cost estimate shows $0.</li>
+        <li><strong>Nothing committed or pushed.</strong> Say the word when you want a commit.</li>
+      </ul>
+    </section>
+
+    <section id="files">
+      <h2>Files for review</h2>
+      <p>Everything is new except <code>eCom.sln</code>, which gained two project lines.</p>
+      <details open>
+        <summary>Engine: <code>Agent/</code> (42 files)</summary>
+        <div><ul>
+          <li><code>Agent.csproj</code>, <code>AgentOptions.cs</code>, <code>AgentRequestContext.cs</code>, <code>AgentResult.cs</code>, <code>AgentRunner.cs</code>, <code>AgentBuilder.cs</code>, <code>ServiceCollectionExtensions.cs</code>, <code>SystemPromptProvider.cs</code>, <code>ContentPathResolver.cs</code></li>
+          <li><code>Guardrails/</code>: <code>Guardrail.cs</code>, <code>GuardrailCheck.cs</code>, <code>GuardrailPipeline.cs</code>, <code>InputLengthGuardrail.cs</code>, <code>PromptInjectionGuardrail.cs</code>, <code>PiiRedactionGuardrail.cs</code>, <code>SecretLeakGuardrail.cs</code></li>
+          <li><code>Llm/</code>: <code>ILlmClient.cs</code>, <code>LlmModels.cs</code>, <code>LlmOptions.cs</code>, <code>OpenAiLlmClient.cs</code>, <code>FakeLlmClient.cs</code></li>
+          <li><code>Memory/</code>: <code>IConversationStore.cs</code>, <code>InMemoryConversationStore.cs</code></li>
+          <li><code>Observability/</code>: <code>AgentTelemetry.cs</code>, <code>MetricsCollector.cs</code>, <code>TraceLogger.cs</code></li>
+          <li><code>Tools/</code>: <code>ITool.cs</code>, <code>Schema.cs</code>, <code>ToolRegistry.cs</code></li>
+          <li><code>Runs/</code>: <code>AgentRunRecord.cs</code>, <code>IAgentRunStore.cs</code>, <code>InMemoryAgentRunStore.cs</code></li>
+          <li><code>Evals/</code>: <code>EvalCase.cs</code>, <code>EvalRecords.cs</code>, <code>Graders.cs</code>, <code>EvalRunner.cs</code>, <code>EvalCaseLoader.cs</code>, <code>EvalBaseline.cs</code>, <code>EvalCommandLine.cs</code>, <code>EvalStatistics.cs</code>, <code>IEvalRunStore.cs</code>, <code>InMemoryEvalRunStore.cs</code></li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>Tests: <code>Agent.Tests/</code> (6 files)</summary>
+        <div><ul>
+          <li><code>Agent.Tests.csproj</code>, <code>TestHost.cs</code> (test setup + test tools), <code>AgentRunnerTests.cs</code>, <code>ToolAndSchemaTests.cs</code>, <code>EvalTests.cs</code>, <code>LlmAndTelemetryTests.cs</code></li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>Docs updated</summary>
+        <div><ul>
+          <li><code>docs/agentic/HANDOFF.md</code>: status, new rule #10 (an HTML report after every phase), decisions, session log</li>
+          <li><code>docs/agentic/02-implementation-plan.md</code>: report rule, config shape, Phase 3 to-dos found in Phase 1</li>
+          <li><code>docs/agentic/04-database-and-seed.md</code>: table columns match the record classes</li>
+          <li><code>docs/agentic/05-agent-guide.md</code>: tool signature</li>
+          <li><code>docs/agentic/06-phase-tracker.md</code>: Phase 0 done, Phase 1 waiting for review, D4–D6, phase log</li>
+          <li><code>docs/agentic/reports/phase-1-report.html</code>: this page</li>
+        </ul></div>
+      </details>
+    </section>
+
+    <section id="next">
+      <h2>What's next</h2>
+      <ol>
+        <li><strong>You review the code</strong> and tell me what to change. Nothing moves on until you approve.</li>
+        <li><strong>Decisions still open:</strong> D1 (product descriptions: templates or AI-written), D2 (rate limit per user or IP), D3 (how long to keep runs; I suggest 30 days).</li>
+        <li><strong>Phase 2: schema and seed</strong>, when you say so: a fresh database backup in a permanent folder, 4 new product columns, the runs and evals tables, about 1,000 products and the policy documents, with seeding that's safe to run twice.</li>
+      </ol>
+      <div class="callout"><p>Two things I've noted for Phase 3: the <code>Dockerfile</code> needs two extra lines to include the engine (it has your uncommitted changes, so I'll ask first), and <code>Program.cs</code> needs the <code>--evals</code> switch.</p></div>
+    </section>
+
+    <section id="glossary">
+      <h2>Glossary</h2>
+      <dl class="glossary">
+        <dt>Agent</dt><dd>A loop around an AI model that lets it use tools until it has an answer.</dd>
+        <dt>Tool</dt><dd>A normal C# method the model may ask us to run, like "search products".</dd>
+        <dt>Guardrail</dt><dd>A safety check in plain code before or after the model. Code can't be talked out of its job.</dd>
+        <dt>System prompt</dt><dd>The assistant's job description, sent first in every conversation.</dd>
+        <dt>Canary</dt><dd>A secret marker hidden in the prompt. If it shows up in an answer, the prompt leaked.</dd>
+        <dt>Token</dt><dd>A word-piece. AI providers count and charge by tokens, in and out.</dd>
+        <dt>Scoped / singleton</dt><dd>Scoped = a fresh object for each web request. Singleton = one object for the whole app.</dd>
+        <dt>Eval</dt><dd>An automatic test of the AI's behaviour, not of the code.</dd>
+        <dt>Flaky</dt><dd>Passes some of the time and fails some of the time.</dd>
+        <dt>Baseline</dt><dd>A saved eval result you accepted as good, used to spot things getting worse.</dd>
+        <dt>Median / p95</dt><dd>Median = the middle value. p95 = 95% of runs were at least this fast.</dd>
+        <dt>Span / trace</dt><dd>A trace is the story of one request; each piece of work in it (model call, tool call) is a span.</dd>
+      </dl>
+    </section>
+
+    <footer>
+      Phase 1 report · written 2026-11-16 · eCOM-AI-M agentic AI project · next report: phase-2-report.html
+    </footer>
+  </main>
+</div>
+
+<script>
+  // Highlight the section you are reading in the contents list.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var byId = {};
+    links.forEach(function (link) { byId[link.getAttribute('href').slice(1)] = link; });
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  })();
+
+  // Light / dark switch, remembered in this browser when possible.
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('phase-report-theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme');
+      if (!current) current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('phase-report-theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

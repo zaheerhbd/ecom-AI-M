@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Agent.Evals;
+using Agent.Runs;
 using Core.Entities;
 using Core.Entities.OrderAggregate;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +22,11 @@ namespace Infrastructure.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<DeliveryMethod> DeliveryMethods { get; set; }
+
+        // Agent history and eval results (Phase 2). Mapped in Data/Config.
+        public DbSet<AgentRunRecord> AgentRuns { get; set; }
+        public DbSet<EvalRunRecord> EvalRuns { get; set; }
+        public DbSet<EvalCaseResultRecord> EvalCaseResults { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

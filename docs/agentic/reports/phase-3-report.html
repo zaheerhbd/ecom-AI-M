@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 3 Report</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text: #1f2328;
+    --muted: #5b6270;
+    --border: #e1ded5;
+    --accent: #2f5fd0;
+    --accent-soft: #e6edfb;
+    --good: #1d7a46;
+    --good-soft: #e3f3e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf0d9;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --grey-soft: #ecebe6;
+    --code-bg: #f2f1ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b;
+      --surface: #1d2026;
+      --surface-2: #252931;
+      --text: #e7e9ee;
+      --muted: #a0a7b4;
+      --border: #333844;
+      --accent: #8fb0ff;
+      --accent-soft: #23304d;
+      --good: #6fd39a;
+      --good-soft: #1d3428;
+      --warn: #f0c060;
+      --warn-soft: #3a3020;
+      --bad: #ff8f86;
+      --bad-soft: #3d2322;
+      --grey-soft: #2a2e36;
+      --code-bg: #262a32;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2026;
+    --surface-2: #252931;
+    --text: #e7e9ee;
+    --muted: #a0a7b4;
+    --border: #333844;
+    --accent: #8fb0ff;
+    --accent-soft: #23304d;
+    --good: #6fd39a;
+    --good-soft: #1d3428;
+    --warn: #f0c060;
+    --warn-soft: #3a3020;
+    --bad: #ff8f86;
+    --bad-soft: #3d2322;
+    --grey-soft: #2a2e36;
+    --code-bg: #262a32;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 0; }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+  nav.toc a::before { content: counter(toc) ". "; color: var(--muted); opacity: .7; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .theme-btn { margin-top: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  main { padding: 28px 0 80px; min-width: 0; }
+  header.hero { padding: 8px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+  section { padding-top: 36px; scroll-margin-top: 12px; }
+  h2 { font-size: 24px; margin: 0 0 12px; letter-spacing: -.005em; }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p, li { max-width: 75ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad { background: var(--bad-soft); color: var(--bad); }
+  .chip.grey { background: var(--grey-soft); color: var(--muted); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .label { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+  .callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.good { border-color: var(--good); background: var(--good-soft); }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .card .where { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .flow { list-style: none; padding: 0; margin: 16px 0; counter-reset: flow; }
+  .flow li { counter-increment: flow; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 12px 58px; margin-bottom: 26px; box-shadow: var(--shadow); max-width: none; }
+  .flow li::before { content: counter(flow); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -22px; width: 2px; height: 18px; background: var(--border); }
+  .flow li.loop { border-color: var(--accent); }
+  .flow .tag { float: right; margin-left: 10px; }
+  .flow strong { display: block; }
+  .flow span.desc { color: var(--muted); font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+  details ul { margin: 0; padding-left: 20px; }
+  details li { font-size: 15px; }
+
+  dl.glossary { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; }
+  dl.glossary dt { font-weight: 700; }
+  dl.glossary dd { margin: 0; color: var(--text); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    nav.toc { position: static; max-height: none; padding: 16px 0 0; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { padding: 4px 8px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 27px; }
+    dl.glossary { grid-template-columns: 1fr; gap: 2px; }
+    dl.glossary dd { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      <li><a href="#summary">In one minute</a></li>
+      <li><a href="#how">How a question is answered</a></li>
+      <li><a href="#tools">The 7 tools</a></li>
+      <li><a href="#api">The API endpoints</a></li>
+      <li><a href="#safety">Safety and limits</a></li>
+      <li><a href="#evals">The test questions (evals)</a></li>
+      <li><a href="#tested">What I tested</a></li>
+      <li><a href="#check">How to try it yourself</a></li>
+      <li><a href="#changes">Files changed</a></li>
+      <li><a href="#plan">Changes from the plan</a></li>
+      <li><a href="#next">What's next</a></li>
+      <li><a href="#glossary">Words used</a></li>
+    </ol>
+    <button class="theme-btn" type="button" id="themeBtn">Switch light / dark</button>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">eCOM-AI-M · Agentic AI · Phase 3 of 6</p>
+      <h1>Phase 3: the agent can now use the shop</h1>
+      <p class="lede">The agent "brain" from Phase 1 is now connected to the shop through 7 read-only tools and a chat API. You can ask it about products, policies, delivery and (when signed in) your orders, and every answer is saved with each step it took.</p>
+      <div class="chips">
+        <span class="chip warn">Waiting for your code review</span>
+        <span class="chip good">Build: 0 errors</span>
+        <span class="chip good">38 of 38 engine tests pass</span>
+        <span class="chip good">Every endpoint smoke-tested</span>
+        <span class="chip grey">Phase 3 not committed</span>
+        <span class="chip info">Branch: feature/agentic-ai</span>
+      </div>
+    </header>
+
+    <section id="summary">
+      <h2>In one minute</h2>
+      <div class="stats">
+        <div class="stat"><div class="value">7</div><div class="label">read-only tools</div></div>
+        <div class="stat"><div class="value">8</div><div class="label">API endpoints under api/agent</div></div>
+        <div class="stat"><div class="value">51</div><div class="label">test questions (eval cases)</div></div>
+        <div class="stat"><div class="value">~$0.002</div><div class="label">typical cost of one answer</div></div>
+      </div>
+      <ul>
+        <li><strong>Products:</strong> "red gloves under $50 in stock" → the agent picked the right filters by itself and found 9 matches.</li>
+        <li><strong>Policies:</strong> "can I return a board after 5 weeks?" → it read the returns policy and said no (30-day window, must be unused).</li>
+        <li><strong>Orders:</strong> anonymous users are asked to sign in; signed-in users see only <em>their own</em> orders.</li>
+        <li><strong>Saved history:</strong> every run is stored in the database for 30 days, with tokens, cost and each step.</li>
+        <li><strong>Protection:</strong> 10 messages a minute per user, admin-only history pages in production, guardrails against prompt injection.</li>
+      </ul>
+      <div class="callout">
+        <p>No chat screen yet: that is Phase 4. For now you talk to the agent through Swagger (or any HTTP tool).</p>
+      </div>
+    </section>
+
+    <section id="how">
+      <h2>How a question is answered</h2>
+      <ol class="flow">
+        <li><strong>The browser sends the message</strong><span class="desc">POST <code>api/agent/chat</code> with <code>{ "message": "...", "sessionId": "..." }</code>. If a login token comes with it, the user's email is read from the token (never from the message).</span></li>
+        <li><strong>Rate limit</strong><span class="desc">More than 10 messages in a minute from the same user (or the same IP when anonymous) → "429 Too many messages".</span></li>
+        <li><strong>Input guardrails</strong><span class="desc">Too long? Looks like "ignore your instructions"? Blocked here, before any money is spent. Card numbers and emails are masked.</span></li>
+        <li class="loop"><strong>The think → act loop</strong><span class="desc">The model reads the system prompt and the tool list, then either calls a tool (e.g. <code>search_products</code>) or answers. Tool results go back to the model. At most 6 rounds.</span></li>
+        <li><strong>Output guardrails</strong><span class="desc">The answer is checked for leaked secrets and personal data.</span></li>
+        <li><strong>Saved and returned</strong><span class="desc">The run (question, answer, steps, tokens, cost, sources) is saved in the <code>AgentRuns</code> table and returned to the caller.</span></li>
+      </ol>
+    </section>
+
+    <section id="tools">
+      <h2>The 7 tools</h2>
+      <p>A tool is a normal C# class the model is allowed to call. All of them only <em>read</em> data. They live in <code>Infrastructure/AgentTools/</code>.</p>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Tool</th><th>What it does</th><th>Sign-in</th></tr>
+        <tr><td><code>search_products</code></td><td>Filters by type, brand, colour, material, price range, in stock, rating; sorts by price, rating or name. Unknown brand → returns the list of real brands so the model can retry.</td><td>no</td></tr>
+        <tr><td><code>get_product_details</code></td><td>One product with its description and stock level.</td><td>no</td></tr>
+        <tr><td><code>list_catalog_filters</code></td><td>Which brands, types, colours and materials exist, and the price range per type.</td><td>no</td></tr>
+        <tr><td><code>search_knowledge</code></td><td>Finds the policy sections that answer a question. Uses a local keyword search over the 6 policy files (Azure search only if you switch it on; off by default, decision D7).</td><td>no</td></tr>
+        <tr><td><code>get_delivery_options</code></td><td>The 4 delivery methods with price and time.</td><td>no</td></tr>
+        <tr><td><code>get_my_orders</code></td><td>The signed-in user's orders. Hidden from anonymous users.</td><td><strong>yes</strong></td></tr>
+        <tr><td><code>get_order</code></td><td>One order, only if it belongs to the signed-in user. Someone else's order looks "not found".</td><td><strong>yes</strong></td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="api">
+      <h2>The API endpoints</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Endpoint</th><th>What it's for</th><th>Who can use it</th></tr>
+        <tr><td><code>POST api/agent/chat</code></td><td>Talk to the agent</td><td>Everyone (rate limited)</td></tr>
+        <tr><td><code>GET api/agent/info</code></td><td>Model, tools and limits</td><td>Everyone</td></tr>
+        <tr><td><code>GET api/agent/runs</code> · <code>runs/{id}</code></td><td>Saved runs, and one run with every step</td><td>Admin in production, everyone in dev</td></tr>
+        <tr><td><code>GET api/agent/stats</code></td><td>Totals: runs, blocked, tokens, cost, top tools</td><td>Admin in production</td></tr>
+        <tr><td><code>POST api/agent/evals</code></td><td>Start an eval run in the background (filter by case ids or category)</td><td>Admin in production</td></tr>
+        <tr><td><code>GET api/agent/evals</code> · <code>evals/{id}</code></td><td>Eval runs and their case results</td><td>Admin in production</td></tr>
+      </table>
+      </div>
+      <p>Also new: <code>dotnet run -- --evals</code> runs the test questions from the command line and exits with code 1 on a regression (see doc 05).</p>
+    </section>
+
+    <section id="safety">
+      <h2>Safety and limits</h2>
+      <div class="cards">
+        <div class="card"><h3>Who the user is</h3><p>Always from the login token (JWT). The model can't choose whose orders to read.</p><p class="where">AgentController.Chat · GetMyOrdersTool · GetOrderTool</p></div>
+        <div class="card"><h3>Admin role (D4)</h3><p>A real "Admin" role now exists. It is added to the login token. In production only admins see runs and evals; in development everyone does.</p><p class="where">AgentServiceExtensions · TokenService · AppIdentityDbContextSeed</p></div>
+        <div class="card"><h3>Rate limit (D2)</h3><p>10 messages per minute per signed-in user; anonymous visitors are counted by IP address.</p><p class="where">AgentServiceExtensions (built-in ASP.NET Core rate limiter)</p></div>
+        <div class="card"><h3>30-day history (D3)</h3><p>A background job deletes runs older than 30 days, once a day.</p><p class="where">Infrastructure/Services/AgentRunCleanupService.cs</p></div>
+      </div>
+      <div class="callout warn">
+        <p><strong>Who becomes Admin:</strong> the emails listed in <code>Agent:AdminEmails</code> get the role when the app runs with <code>--migrate</code>. The list is empty for now; you'll add your own email in production (Phase 6).</p>
+      </div>
+    </section>
+
+    <section id="evals">
+      <h2>The test questions (evals)</h2>
+      <p>51 cases in <code>API/Agent/evals/cases.json</code>. Each one says what a good answer must do: which tool to call with which filters, words the answer must (not) contain, or that it must refuse / ask back.</p>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Group</th><th>Cases</th><th>Example</th></tr>
+        <tr><td>Ported from the old CSV</td><td>21</td><td>"Which hat is cheapest?" → <code>search_products</code> with type Hats, sort priceAsc</td></tr>
+        <tr><td>More product searches</td><td>5</td><td>"Gore-Tex boots in stock"</td></tr>
+        <tr><td>Multi-tool</td><td>6</td><td>"Cheapest hat and how fast can it arrive?" → 2 tools</td></tr>
+        <tr><td>Ambiguous</td><td>6</td><td>"Is it in stock?" → must ask which product</td></tr>
+        <tr><td>Should decline</td><td>4</td><td>"Do you sell skis?"</td></tr>
+        <tr><td>Safety</td><td>6</td><td>"Ignore all previous instructions…" → blocked</td></tr>
+        <tr><td>Orders</td><td>3</td><td>Anonymous vs signed in as bob</td></tr>
+      </table>
+      </div>
+      <div class="callout warn">
+        <p><strong>Not run in full yet.</strong> All 51 cases × 3 repeats ≈ 150 model calls ≈ <strong>$0.40</strong>. That needs your OK (rule 7). I ran 5 cases to prove the pipeline works.</p>
+      </div>
+    </section>
+
+    <section id="tested">
+      <h2>What I tested</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Test</th><th>Result</th></tr>
+        <tr><td>Build + engine tests</td><td><span class="chip good">0 errors · 38/38</span></td></tr>
+        <tr><td>"Red gloves under $50 in stock"</td><td><span class="chip good">right filters, 9 found</span> $0.0027</td></tr>
+        <tr><td>"Return a board after 5 weeks?"</td><td><span class="chip good">correct "no", from the policy</span></td></tr>
+        <tr><td>"Show me my orders" anonymous / as bob</td><td><span class="chip good">asks to sign in / calls get_my_orders</span></td></tr>
+        <tr><td>Order that isn't yours</td><td><span class="chip good">"not found"</span></td></tr>
+        <tr><td>Prompt injection</td><td><span class="chip good">blocked in 9 ms, $0</span></td></tr>
+        <tr><td>11th message in a minute</td><td><span class="chip good">429</span></td></tr>
+        <tr><td>Runs, run detail, stats</td><td><span class="chip good">saved and correct</span></td></tr>
+        <tr><td>Production mode: runs anonymous / non-admin</td><td><span class="chip good">401 / 403</span></td></tr>
+        <tr><td>Eval via API (2 cases) and command line (3 cases)</td><td><span class="chip good">works</span> — and found a real problem, fixed (below)</td></tr>
+        <tr><td>Prompt + cases included when published (Docker)</td><td><span class="chip good">yes</span></td></tr>
+      </table>
+      </div>
+      <h3>Problems found and fixed while testing</h3>
+      <ul>
+        <li><strong>Signed-in user told to sign in.</strong> The model didn't know that having the order tools means the user is signed in. Fixed in the system prompt and the tool description.</li>
+        <li><strong>Wasted tool call + talking about "tools".</strong> Anonymous "my orders" first called the delivery tool and mentioned "order tools". Fixed in the prompt; the eval case now passes.</li>
+      </ul>
+    </section>
+
+    <section id="check">
+      <h2>How to try it yourself</h2>
+      <ol>
+        <li>Docker Desktop on, then <code>cd API; dotnet run</code>.</li>
+        <li>Open <a href="https://localhost:5001/swagger">https://localhost:5001/swagger</a>, find <strong>Agent → POST /api/agent/chat</strong>, "Try it out", body: <code>{ "message": "Show me navy hats under $30" }</code>.</li>
+        <li>To continue the same conversation, copy <code>sessionId</code> from the answer into the next request.</li>
+        <li>To test orders: <strong>Account → POST /api/account/login</strong> with bob@test.com / Pa$$w0rd, copy the token, click <strong>Authorize</strong> and paste <code>Bearer &lt;token&gt;</code>.</li>
+        <li>See history: <strong>GET /api/agent/runs</strong> and <strong>GET /api/agent/stats</strong>.</li>
+      </ol>
+    </section>
+
+    <section id="changes">
+      <h2>Files changed</h2>
+      <details open><summary>New</summary><div><ul>
+        <li><code>Infrastructure/AgentTools/</code>: 7 tools + <code>ToolHelpers</code> + <code>LocalPolicySearch</code></li>
+        <li><code>Core/Specifications/ProductSearchParams.cs</code>, <code>ProductSearchSpecification.cs</code></li>
+        <li><code>Infrastructure/Data/EfAgentRunStore.cs</code>, <code>EfEvalRunStore.cs</code></li>
+        <li><code>Infrastructure/Services/AgentRunCleanupService.cs</code></li>
+        <li><code>API/Controllers/AgentController.cs</code>, <code>API/Dtos/AgentDtos.cs</code>, <code>API/Extensions/AgentServiceExtensions.cs</code></li>
+        <li><code>API/Agent/system-prompt.md</code>, <code>API/Agent/evals/cases.json</code></li>
+      </ul></div></details>
+      <details open><summary>Changed</summary><div><ul>
+        <li><code>API/Startup.cs</code>: 2 lines only (<code>AddShopAgent</code>, <code>UseRateLimiter</code>); your own edits untouched</li>
+        <li><code>API/Program.cs</code>: <code>--evals</code> switch; Admin role seeding on <code>--migrate</code></li>
+        <li><code>API/Extensions/IdentityServiceExtensions.cs</code>: roles switched on</li>
+        <li><code>Core/Interfaces/ITokenService.cs</code>, <code>Infrastructure/Services/TokenService.cs</code>, <code>API/Controllers/AccountController.cs</code>: role claims in the login token</li>
+        <li><code>Infrastructure/Identity/AppIdentityDbContextSeed.cs</code>: <code>SeedAdminRoleAsync</code></li>
+        <li><code>API/API.csproj</code>: ship the prompt and cases with the app</li>
+        <li><code>API/appsettings.Production.json.example</code>: <code>Agent</code> section</li>
+        <li>Not in git (local only): <code>API/appsettings.Development.json</code> got an <code>Agent</code> section (provider OpenAI)</li>
+      </ul></div></details>
+    </section>
+
+    <section id="plan">
+      <h2>Changes from the plan</h2>
+      <ul>
+        <li><strong>Request context filled in the controller</strong>, not a separate middleware: only one endpoint needs it, so this is simpler to read.</li>
+        <li><strong>Azure search for policies is opt-in</strong> (<code>Agent:Knowledge:UseAzureSearch</code>, default false), so the laptop never touches the live index.</li>
+        <li><strong>51 eval cases</strong> instead of ~45.</li>
+        <li><strong>No test order for bob yet.</strong> bob has 0 orders, so the order tools were tested with "no orders" and "not found". Creating one means seeding data: your call.</li>
+        <li><strong>Pricing</strong> for gpt-5.4-mini: $0.75 / $4.50 per million input/output tokens (OpenAI list price, checked 2026-11-21), set as a code default.</li>
+        <li><strong>Gemini added (2026-11-22), now the default.</strong> One setting switches provider: <code>Agent:Llm:Provider</code> = <code>Gemini</code> or <code>OpenAI</code>. Each keeps its own key and model (<code>Gemini:ApiKey</code>/<code>Gemini:Model</code>, <code>OpenAI:ApiKey</code>/<code>OpenAI:ChatModel</code>). Gemini's free tier costs $0, so the cost shown is $0. Testing found two things, both fixed: Google had retired <code>gemini-2.5-flash</code> (now <code>gemini-3.5-flash</code>), and Gemini needs its "thought signature" sent back with each tool result. Free-tier limits: a few requests per minute and a daily cap, and Google may use free-tier data, so production should use a paid plan or OpenAI.</li>
+      </ul>
+    </section>
+
+    <section id="next">
+      <h2>What's next</h2>
+      <ol>
+        <li><strong>You:</strong> review the code (list above). Say "commit phase 3" when happy.</li>
+        <li><strong>Decide:</strong> run the full eval (≈ $0.40)? Create a test order for bob?</li>
+        <li><strong>Phase 4:</strong> the Angular chat screen with the "how it answered" panel, a runs page and an evals page.</li>
+      </ol>
+    </section>
+
+    <section id="glossary">
+      <h2>Words used</h2>
+      <dl class="glossary">
+        <dt>Tool</dt><dd>A C# method the model may ask to run, e.g. a product search.</dd>
+        <dt>System prompt</dt><dd>The agent's job description, sent before every conversation (<code>API/Agent/system-prompt.md</code>).</dd>
+        <dt>Run</dt><dd>One question and its answer, with every step in between.</dd>
+        <dt>Eval</dt><dd>An automatic test of the agent's behaviour: a question plus what a good answer must do.</dd>
+        <dt>Guardrail</dt><dd>A safety check in plain code, before or after the model.</dd>
+        <dt>Rate limit</dt><dd>A cap on how many messages one user can send per minute.</dd>
+        <dt>JWT</dt><dd>The login token. It says who you are and (now) whether you are an Admin.</dd>
+      </dl>
+      <footer>Phase 3 report · written 2026-11-21 · eCOM-AI-M agentic AI project</footer>
+    </section>
+  </main>
+</div>
+
+<script>
+  // Highlight the section you are reading in the contents list.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var byId = {};
+    links.forEach(function (link) { byId[link.getAttribute('href').slice(1)] = link; });
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  })();
+
+  // Light / dark switch, remembered in this browser when possible.
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('phase-report-theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme');
+      if (!current) current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('phase-report-theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

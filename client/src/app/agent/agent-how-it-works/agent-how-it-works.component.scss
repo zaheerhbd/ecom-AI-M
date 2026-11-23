@@ -1,0 +1,21 @@
+.flow {
+  padding-left: 22px;
+
+  li { margin-bottom: 8px; }
+  li.loop { background: #e6edfb; border-radius: 6px; padding: 6px 10px; margin-left: -10px; }
+}
+
+.diagram {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 10px;
+  overflow-x: auto;
+
+  svg { display: block; width: 100%; min-width: 560px; height: auto; }
+  .t { font-size: 14px; fill: #333; }
+  .tb { font-size: 15px; font-weight: 700; fill: #222; }
+  .ts { font-size: 12px; fill: #6c757d; }
+}
+
+.tool { font-size: .9rem; }

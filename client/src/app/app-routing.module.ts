@@ -44,6 +44,11 @@ const routes: Routes = [
     data: { breadcrumb: 'Orders' }
   },
   {
+    // Phase 4: the Shop Assistant (chat, runs, evals, how it works), lazy loaded like the shop.
+    path: 'agent', loadChildren: () => import('./agent/agent.module').then(mod => mod.AgentModule),
+    data: { breadcrumb: 'Assistant' }
+  },
+  {
     // The breadcrumb library is told to skip this route because account pages
     // like login/register usually do not need a breadcrumb label in the UI.
     path: 'account', loadChildren: () => import('./account/account.module').then(mod => mod.AccountModule),

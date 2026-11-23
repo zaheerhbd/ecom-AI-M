@@ -20,7 +20,11 @@ a {
     }
 }
 
+// Keep the logo small so the fixed header stays slim (about 72px tall).
+// The pages below start 72px down; see section-header and home.
 .logo {
+    height: 64px;
+    width: auto;
     cursor: pointer;
 
     &:focus {

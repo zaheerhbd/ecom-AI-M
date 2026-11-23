@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 5 Report</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text: #1f2328;
+    --muted: #5b6270;
+    --border: #e1ded5;
+    --accent: #2f5fd0;
+    --accent-soft: #e6edfb;
+    --good: #1d7a46;
+    --good-soft: #e3f3e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf0d9;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --grey-soft: #ecebe6;
+    --code-bg: #f2f1ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b;
+      --surface: #1d2026;
+      --surface-2: #252931;
+      --text: #e7e9ee;
+      --muted: #a0a7b4;
+      --border: #333844;
+      --accent: #8fb0ff;
+      --accent-soft: #23304d;
+      --good: #6fd39a;
+      --good-soft: #1d3428;
+      --warn: #f0c060;
+      --warn-soft: #3a3020;
+      --bad: #ff8f86;
+      --bad-soft: #3d2322;
+      --grey-soft: #2a2e36;
+      --code-bg: #262a32;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2026;
+    --surface-2: #252931;
+    --text: #e7e9ee;
+    --muted: #a0a7b4;
+    --border: #333844;
+    --accent: #8fb0ff;
+    --accent-soft: #23304d;
+    --good: #6fd39a;
+    --good-soft: #1d3428;
+    --warn: #f0c060;
+    --warn-soft: #3a3020;
+    --bad: #ff8f86;
+    --bad-soft: #3d2322;
+    --grey-soft: #2a2e36;
+    --code-bg: #262a32;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 0; }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+  nav.toc a::before { content: counter(toc) ". "; color: var(--muted); opacity: .7; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .theme-btn { margin-top: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  main { padding: 28px 0 80px; min-width: 0; }
+  header.hero { padding: 8px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+  section { padding-top: 36px; scroll-margin-top: 12px; }
+  h2 { font-size: 24px; margin: 0 0 12px; letter-spacing: -.005em; }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p, li { max-width: 75ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad { background: var(--bad-soft); color: var(--bad); }
+  .chip.grey { background: var(--grey-soft); color: var(--muted); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .label { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+  .callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.good { border-color: var(--good); background: var(--good-soft); }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .card .where { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .flow { list-style: none; padding: 0; margin: 16px 0; counter-reset: flow; }
+  .flow li { counter-increment: flow; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 12px 58px; margin-bottom: 26px; box-shadow: var(--shadow); max-width: none; }
+  .flow li::before { content: counter(flow); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -22px; width: 2px; height: 18px; background: var(--border); }
+  .flow li.loop { border-color: var(--accent); }
+  .flow .tag { float: right; margin-left: 10px; }
+  .flow strong { display: block; }
+  .flow span.desc { color: var(--muted); font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+  details ul { margin: 0; padding-left: 20px; }
+  details li { font-size: 15px; }
+
+  dl.glossary { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; }
+  dl.glossary dt { font-weight: 700; }
+  dl.glossary dd { margin: 0; color: var(--text); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    nav.toc { position: static; max-height: none; padding: 16px 0 0; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { padding: 4px 8px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 27px; }
+    dl.glossary { grid-template-columns: 1fr; gap: 2px; }
+    dl.glossary dd { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      <li><a href="#summary">In one minute</a></li>
+      <li><a href="#loop">Loop control</a></li>
+      <li><a href="#memory">Shorter memory</a></li>
+      <li><a href="#grounded">Made-up numbers check</a></li>
+      <li><a href="#multiturn">Multi-turn tests</a></li>
+      <li><a href="#ui">What changed in the website</a></li>
+      <li><a href="#tested">What I tested</a></li>
+      <li><a href="#notrun">What was not run, and why</a></li>
+      <li><a href="#check">How to try it yourself</a></li>
+      <li><a href="#changes">Files changed</a></li>
+      <li><a href="#plan">Changes from the plan</a></li>
+      <li><a href="#next">What's next: Phase 6</a></li>
+    </ol>
+    <button class="theme-btn" type="button" id="themeBtn">Switch light / dark</button>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">eCOM-AI-M · Agentic AI · Phase 5 of 6</p>
+      <h1>Phase 5: safer loop, cheaper memory, and a made-up-numbers check</h1>
+      <p class="lede">The agent now refuses to run the same tool twice, has a cap on tool calls, keeps old tool results short, and checks every price and stock number in its answers against real shop data. The official scoreboard (the 5× test run) is ready to go but was not run, because free Gemini ran out for the day and paid runs were declined for now.</p>
+      <div class="chips">
+        <span class="chip warn">Waiting for your code review</span>
+        <span class="chip good">Build: 0 errors</span>
+        <span class="chip good">57 of 57 engine tests pass</span>
+        <span class="chip warn">Baseline (×5) not run</span>
+        <span class="chip grey">Old-chat comparison skipped</span>
+        <span class="chip info">Branch: feature/agentic-ai</span>
+      </div>
+    </header>
+
+    <section id="summary">
+      <h2>In one minute</h2>
+      <div class="stats">
+        <div class="stat"><div class="value">14</div><div class="label">new unit tests (57 in total)</div></div>
+        <div class="stat"><div class="value">5</div><div class="label">new test questions (56 in total)</div></div>
+        <div class="stat"><div class="value">−16%</div><div class="label">input tokens per later message (free Fake-model measure)</div></div>
+        <div class="stat"><div class="value">20/day</div><div class="label">Gemini free limit we found</div></div>
+      </div>
+      <ul>
+        <li><strong>Loop control:</strong> the same tool with the same arguments is never run twice in one answer. There is a cap of 10 tool calls per answer, and the tool timeout can now be set in config.</li>
+        <li><strong>Memory:</strong> once an answer is written, its big tool results are replaced in the saved chat by a short note that keeps the product or order ids.</li>
+        <li><strong>Groundedness:</strong> every price ("$12.99") and stock number ("3 left") in an answer must appear in the data the tools returned. Anything else is counted as <em>made up</em> and shown in the answer panel and on the Evals page.</li>
+        <li><strong>Multi-turn tests:</strong> a test can now be a short conversation, e.g. "Where's my last order?" → "When will it arrive?".</li>
+      </ul>
+      <div class="callout warn">
+        <p><strong>The real scores are still missing.</strong> Everything is built and unit-tested, but the 56 test questions have not been run against a real AI this phase. See <a href="#notrun">What was not run</a>.</p>
+      </div>
+    </section>
+
+    <section id="loop">
+      <h2>Loop control</h2>
+      <p>The agent works in a loop: ask the AI → run the tools it asks for → give it the results → repeat. A confused AI can go round in circles, which costs time and money. Phase 1 already stopped it after 6 rounds or 20,000 tokens. Phase 5 adds three more rules:</p>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Rule</th><th>What happens</th><th>Why</th></tr>
+        <tr><td><strong>No repeats</strong></td><td>If the AI asks for exactly the same tool and arguments again in one answer, the tool is <em>not</em> run. The AI gets the message "You already called this… use the earlier result". The step shows in <span class="chip warn">amber</span>.</td><td>The same search twice is pure waste, and a model stuck in a repeat would otherwise use up all 6 rounds.</td></tr>
+        <tr><td><strong>Max 10 tool calls</strong> (<code>MaxToolCallsPerRun</code>)</td><td>Calls after the 10th are not run, and the agent says politely that it needed too many lookups. Stop reason: <code>max-tool-calls</code>.</td><td>One round can ask for many tools at once, so the 6-round limit alone doesn't cap database work.</td></tr>
+        <tr><td><strong>Tool timeout in config</strong> (<code>ToolTimeoutSeconds</code>, 10)</td><td>A tool that takes longer is cancelled and the AI gets an error text instead.</td><td>Before, the 10 seconds were fixed in code.</td></tr>
+      </table>
+      </div>
+      <p>"The same arguments" ignores the order of fields, spaces and upper/lower case, so <code>{"type":"Hats","maxPrice":30}</code> and <code>{"maxPrice":30, "type":"hats"}</code> count as the same call.</p>
+      <div class="callout"><p><strong>A detail that matters:</strong> even a call that is refused still gets an answer in the chat history. The AI providers reject a chat where a tool request has no reply, so without this, the <em>next</em> message in the same chat would fail. A unit test checks this.</p></div>
+    </section>
+
+    <section id="memory">
+      <h2>Shorter memory (shrinking old tool results)</h2>
+      <p>The AI remembers nothing between messages, so the agent re-sends the whole conversation every time. A product search returns about 800 characters of data. Before Phase 5, that data was re-sent with <em>every</em> later message in the chat, and paid for each time.</p>
+      <p>Now, when an answer is finished, each of its tool results is replaced in the saved conversation by a short note:</p>
+<pre><code>[search_products: 5 items, ids 47, 112, 300, 512, 871. Full result shortened; call the tool again for details.]</code></pre>
+      <ul>
+        <li>The answer the user saw already contains the facts, so nothing is lost.</li>
+        <li>The ids stay, so if the user asks "tell me more about the second one", the AI can look it up again.</li>
+        <li>The <strong>current</strong> answer always works with the full results.</li>
+        <li>Text results (e.g. policy sections) keep their first 200 characters.</li>
+        <li>A tool can write its own note by also implementing <code>ISummarisingTool</code>. None needs to yet.</li>
+      </ul>
+      <h3>Measured (free Fake model, same 3-message chat)</h3>
+      <div class="table-wrap">
+      <table>
+        <tr><th></th><th>Message 1</th><th>Message 2</th><th>Message 3</th></tr>
+        <tr><td>Shrinking off</td><td>1,548</td><td>1,110</td><td>1,152</td></tr>
+        <tr><td>Shrinking on</td><td>1,548</td><td><strong>928</strong></td><td><strong>970</strong></td></tr>
+        <tr><td>Saved</td><td>0</td><td>182 tokens (16%)</td><td>182 tokens (16%)</td></tr>
+      </table>
+      </div>
+      <p>The Fake model copies the whole tool result into its own answer, and that answer stays in the history too. A real AI writes short answers, so the share saved should be bigger. The switch <code>Agent:ShrinkOldToolResults</code> (on by default) lets you measure it both ways.</p>
+    </section>
+
+    <section id="grounded">
+      <h2>Made-up numbers check (groundedness)</h2>
+      <p>The worst thing a shop assistant can do is quote a wrong price. An AI can write "$19.99" just because it sounds right. So after every answer, plain code (no AI, free, always the same verdict) does three things:</p>
+      <ol class="flow">
+        <li><strong>Find the facts in the answer</strong><span class="desc">Prices like <code>$12.99</code>, <code>$1,200</code>, <code>40 USD</code>, and stock numbers like <code>3 left</code>, <code>in stock: 12</code>.</span></li>
+        <li><strong>Collect the evidence</strong><span class="desc">Every number in this answer's tool results, plus the earlier conversation: the user's own words ("under $50") and earlier answers.</span></li>
+        <li><strong>Compare as numbers</strong><span class="desc"><code>$12</code> matches <code>12.00</code>. A fact whose number is nowhere in the evidence is counted as <strong>made up</strong>.</span></li>
+      </ol>
+      <p>Where you see it:</p>
+      <ul>
+        <li><strong>Chat and run detail:</strong> a green note "All 4 price/stock numbers came from shop data", or an amber one that lists the made-up values.</li>
+        <li><strong>Evals:</strong> each answer that has a price gets the check "prices and stock numbers come from data", and the summary shows the <strong>made-up rate</strong> (target from the BRD: 2% or less).</li>
+        <li><strong>Database:</strong> new columns <code>GroundedFactCount</code> and <code>MadeUpFacts</code> on <code>AgentRuns</code>, plus <code>FactsChecked</code>, <code>MadeUpFacts</code> and <code>MadeUpRate</code> on <code>EvalRuns</code>.</li>
+      </ul>
+      <div class="callout"><p><strong>Its limit:</strong> it checks that the number exists in the data, not that it belongs to the right product. If the AI swaps two prices that both exist, this check won't notice. The optional AI judge can catch that kind of mistake.</p></div>
+    </section>
+
+    <section id="multiturn">
+      <h2>Multi-turn tests</h2>
+      <p>A test case can now be a short conversation. Each message is sent like a real request, in the same chat, and the checks look at the <strong>last</strong> answer:</p>
+<pre><code>{ "id": "MM-001", "signedInAs": "bob@test.com",
+  "turns": [ "Where's my last order?", "When will it arrive?" ],
+  "mustContain": [ "2-5" ] }</code></pre>
+      <p>The second question only makes sense if the agent remembers the first, so this tests memory. To give it real data, Bob now has <strong>one local test order</strong> (a board and a hat, UPS2 "2-5 Days"), made by <code>docs/agentic/dev/seed-test-order.sql</code>. That script is for your laptop only, never for the cloud database.</p>
+      <h3>The 5 new test questions</h3>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Id</th><th>Question</th><th>What it checks</th></tr>
+        <tr><td><code>OR-004</code></td><td>What's in my last order? (as Bob)</td><td>Uses the order tool and names the board</td></tr>
+        <tr><td><code>MM-001</code></td><td>Where's my last order? → When will it arrive?</td><td>Remembers the order and gives "2-5 days"</td></tr>
+        <tr><td><code>MM-002</code></td><td>Red gloves under $50 → Which of those is the cheapest?</td><td>Answers from memory without asking "which gloves?"</td></tr>
+        <tr><td><code>LC-001</code></td><td>Show me hats from the brand Acmeco</td><td>The tool returns an error (unknown brand), and the agent recovers and says politely that we don't sell it</td></tr>
+        <tr><td><code>LC-002</code></td><td>Check the delivery options twice to be sure…</td><td>The delivery tool really runs only once (new <code>maxToolCalls</code> check)</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="ui">
+      <h2>What changed in the website</h2>
+      <ul>
+        <li><strong>Answer panel:</strong> repeated tool calls are amber with the tag "repeated, not run again". Error steps stay red. A green or amber groundedness note sits under the totals. There is a new stop message: "too many tool calls in one answer".</li>
+        <li><strong>Evals page:</strong> a new summary card, "made-up prices/stock (x of y)": green at 2% or less, amber above.</li>
+      </ul>
+      <p>Both pages build without errors. I could not show them with real answers today, because the AI quota was used up. See the next sections.</p>
+    </section>
+
+    <section id="tested">
+      <h2>What I tested</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Check</th><th>Result</th></tr>
+        <tr><td><code>dotnet build eCom.sln</code></td><td><span class="chip good">0 errors</span> (the same 5 old warnings in API code)</td></tr>
+        <tr><td><code>dotnet test Agent.Tests</code></td><td><span class="chip good">57 / 57 pass</span> (14 new)</td></tr>
+        <tr><td><code>ng build</code></td><td><span class="chip good">0 errors</span></td></tr>
+        <tr><td>New columns in the local database (migration <code>AgentGroundedness</code>)</td><td><span class="chip good">applied</span>; runs save the new fields</td></tr>
+        <tr><td>Chat API with the free Fake model</td><td><span class="chip good">OK</span>: <code>groundedFactCount</code>, <code>madeUpFacts</code> and <code>isRepeat</code> come back</td></tr>
+        <tr><td>Token saving, shrinking on vs off</td><td><span class="chip good">−182 tokens</span> per later message</td></tr>
+        <tr><td>The 5 new test questions on Gemini</td><td><span class="chip bad">not run</span>: HTTP 429, free daily quota used up. The agent replied politely and saved the error</td></tr>
+      </table>
+      </div>
+      <p>One old test was changed: it called the <em>same</em> tool 10 times to test the 6-round limit. Repeats are now refused, so it uses different arguments each time. It still checks the round limit.</p>
+    </section>
+
+    <section id="notrun">
+      <h2>What was not run, and why</h2>
+      <div class="callout warn">
+        <p><strong>Gemini's free tier allows only 20 AI calls per day</strong> for this model. One test question needs 2–3 calls, so free Gemini covers about 7–10 questions a day. The official baseline is 56 questions × 5 runs ≈ 700 calls, which free Gemini can't do.</p>
+        <p>You chose not to pay for OpenAI runs for now (≈ $0.75 for ×5, ≈ $0.15 for ×1). So these Phase 5 steps are <strong>ready but not run</strong>:</p>
+      </div>
+      <ul>
+        <li><strong>5.2 / 5.11:</strong> the full test run (with and without the AI judge), the success metrics S1–S9, and saving the first baseline (<code>--save-baseline</code>).</li>
+        <li><strong>5.3 / 5.4:</strong> the comparison with the old AI-Lab chat. You skipped it, because it needs paid OpenAI and the live Azure index. The old chat stays as it is; no decision on retiring it yet.</li>
+      </ul>
+      <p><a href="../07-results.md">07-results.md</a> lists exactly which numbers are still empty and the one command that fills them in.</p>
+      <p><strong>My recommendation:</strong> run the baseline once on OpenAI (about $0.75) before Phase 6 goes live. It is the "before" picture you compare against after any later change.</p>
+    </section>
+
+    <section id="check">
+      <h2>How to try it yourself</h2>
+<pre><code>dotnet test Agent.Tests                # 57 pass, free, no AI needed
+cd API; dotnet run                     # https://localhost:5001
+cd client; ng serve                    # https://localhost:4200/agent
+
+# Bob's local test order (once, laptop only):
+docker exec -i ecom-ai-m-db-1 psql -U appuser -d skinet &lt; docs/agentic/dev/seed-test-order.sql
+
+# When you are ready to measure (OpenAI, ≈ $0.75):
+cd API; dotnet run -- --evals --repeat 5 --save-baseline</code></pre>
+      <p>To watch the new features in the chat: sign in as Bob and ask "Where's my last order?", then "When will it arrive?". Open the answer panel and look for the groundedness note.</p>
+    </section>
+
+    <section id="changes">
+      <h2>Files changed</h2>
+      <details open><summary>Engine (Agent project, C# 7.3)</summary><div><ul>
+        <li><code>Agent/AgentOptions.cs</code>: <code>MaxToolCallsPerRun</code>, <code>ToolTimeoutSeconds</code>, <code>ShrinkOldToolResults</code></li>
+        <li><code>Agent/AgentRunner.cs</code>: repeat detection, tool-call cap, groundedness, shrinking (with a small <code>TurnState</code>)</li>
+        <li><code>Agent/AgentResult.cs</code>: <code>IsRepeat</code>, <code>max-tool-calls</code>, <code>GroundedFactCount</code>, <code>MadeUpFacts</code></li>
+        <li><code>Agent/Tools/ToolResultSummariser.cs</code> (new): stubs + <code>ISummarisingTool</code></li>
+        <li><code>Agent/Tools/ToolRegistry.cs</code>: <code>Find</code>, <code>Timeout</code></li>
+        <li><code>Agent/ServiceCollectionExtensions.cs</code>: timeout from config, safe minimums</li>
+        <li><code>Agent/Evals/Groundedness.cs</code> (new); <code>Graders.cs</code>, <code>EvalCase.cs</code>, <code>EvalCaseLoader.cs</code>, <code>EvalRunner.cs</code>, <code>EvalRecords.cs</code>, <code>EvalCommandLine.cs</code>: turns, maxToolCalls, made-up rate</li>
+        <li><code>Agent/Runs/AgentRunRecord.cs</code>: saves the groundedness fields</li>
+      </ul></div></details>
+      <details><summary>Shop (Infrastructure / API)</summary><div><ul>
+        <li><code>Infrastructure/Data/Config/AgentRunConfiguration.cs</code>: <code>MadeUpFacts</code> as JSON</li>
+        <li><code>Infrastructure/Data/Migrations/…_AgentGroundedness.cs</code> (new) + snapshot. <strong>Needs to run on the cloud database in Phase 6.</strong></li>
+        <li><code>API/Agent/evals/cases.json</code>: 5 new cases</li>
+      </ul></div></details>
+      <details><summary>Website (Angular)</summary><div><ul>
+        <li><code>client/src/app/agent/agent.models.ts</code>: new fields</li>
+        <li><code>agent-timeline/</code> (html, ts, scss): amber repeats, groundedness note, new stop reason</li>
+        <li><code>agent-evals/agent-evals.component.html</code>: made-up-rate card</li>
+      </ul></div></details>
+      <details><summary>Tests and docs</summary><div><ul>
+        <li><code>Agent.Tests/LoopControlAndMemoryTests.cs</code> (new, 14 tests); <code>TestHost.cs</code> can add extra test tools; <code>AgentRunnerTests.cs</code>: one test adjusted</li>
+        <li><code>docs/agentic/07-results.md</code> (new), <code>docs/agentic/dev/seed-test-order.sql</code> (new), this report, the tracker and the handoff</li>
+      </ul></div></details>
+    </section>
+
+    <section id="plan">
+      <h2>Changes from the plan</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Plan said</th><th>What happened</th><th>Why</th></tr>
+        <tr><td>Final eval ×5 + baseline (5.11)</td><td>Not run</td><td>Free Gemini allows 20 calls a day; you declined paid runs for now</td></tr>
+        <tr><td>Old-chat comparison (5.3, 5.4)</td><td>Skipped</td><td>Your choice: needs paid OpenAI + the live Azure index</td></tr>
+        <tr><td>Each tool gets <code>Summarise</code></td><td>One shared default stub, plus an optional <code>ISummarisingTool</code></td><td>The default (count + ids) already fits all 7 tools; C# 7.3 has no default interface methods</td></tr>
+        <tr><td>Groundedness as a report only</td><td>Also an eval check, but only when the answer has a price or stock number</td><td>A made-up price is a real failure, but an answer with no numbers shouldn't pass or fail because of it</td></tr>
+        <tr><td>A repeated-call eval case</td><td>New <code>maxToolCalls</code> check + case <code>LC-002</code>; also unit-tested with a scripted model</td><td>A real AI can't be forced to repeat itself, so the unit test is the reliable proof</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>What's next: Phase 6, going live on Azure</h2>
+      <p>Phase 6 puts all of this on the live site. Every step touches Azure or the live database, so <strong>each one runs only when you say so</strong>, in this order:</p>
+      <ol class="flow">
+        <li><strong>6.1 Back up the cloud database</strong><span class="desc">A point-in-time restore time plus a <code>pg_dump</code> to a permanent folder, and a count of the rows.</span></li>
+        <li><strong>6.2 Merge to main</strong><span class="desc">You merge <code>feature/agentic-ai</code> into <code>main</code>; the GitHub workflow builds and deploys the new image to the Container App.</span></li>
+        <li><strong>6.3 Update the cloud database once</strong><span class="desc"><code>RUN_MIGRATIONS=true</code> with 1 replica, then back to false. This adds the Phase 2 product columns, the agent tables, today's groundedness columns and the ~1,000 products. Then check the counts.</span></li>
+        <li><strong>6.4 Update the search index schema</strong><span class="desc"><code>INIT_SEARCH_INDEX=true</code> once.</span></li>
+        <li><strong>6.5 Refill the live indexes from the cloud database</strong><span class="desc">The sync switches, once each, then back to false.</span></li>
+        <li><strong>6.6 Smoke test</strong><span class="desc">The shop, and the Assistant (chat, runs, evals). The results go in <code>07-results.md</code>.</span></li>
+        <li><strong>6.7 Traces in Application Insights</strong> (optional)<span class="desc">Each chat shows as a trace: request → AI calls → tool calls. Only metadata is sent, never the chat text.</span></li>
+      </ol>
+      <div class="callout warn">
+        <p><strong>Decide before Phase 6:</strong> production needs a real AI. Free Gemini (20 calls a day, and Google may use the data) is not enough for a live shop. I recommend <strong>OpenAI</strong> (<code>Agent__Llm__Provider=OpenAI</code> + the key as a Container App secret) or a paid Gemini key. Also add your email to <code>Agent:AdminEmails</code>, so you can open the Runs and Evals pages in production.</p>
+      </div>
+      <footer>Phase 5 report · written 2026-11-22 · eCOM-AI-M agentic AI project</footer>
+    </section>
+  </main>
+</div>
+
+<script>
+  // Highlight the section you are reading in the contents list.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var byId = {};
+    links.forEach(function (link) { byId[link.getAttribute('href').slice(1)] = link; });
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  })();
+
+  // Light / dark switch, remembered in this browser when possible.
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('phase-report-theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme');
+      if (!current) current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('phase-report-theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

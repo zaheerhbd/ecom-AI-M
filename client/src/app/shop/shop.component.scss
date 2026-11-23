@@ -1,20 +1,45 @@
+// The left-hand filter panel: one light card holding Sort, Brands and Types.
+.filter-panel {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+// Small orange section labels ("SORT", "BRANDS", "TYPES").
+.filter-title {
+    color: #e95620;
+    font-size: 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 6px 8px;
+}
+
+// With ~20 brands the list is taller than the products, so it gets
+// its own scroll box instead of stretching the whole page.
+.brand-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
 .list-group-item {
     cursor: pointer;
     border: none;
-    padding: 10px 20px;
-    font-size: 1.1em;
+    background-color: transparent;
+    padding: 4px 10px;
+    font-size: 0.95em;
+    border-radius: 6px;
 
     &:focus {
         outline: none;
     }
 
     &.active {
-        border-radius: 10px;
+        border-radius: 6px;
     }
 
     &:not(.active):hover {
         color: #fff;
         background-color: rgba(233, 86, 32, 0.705);
-        border-radius: 10px;
     }
 }

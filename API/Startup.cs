@@ -58,6 +58,7 @@ namespace API
             });
             services.AddApplicationServices();
             services.AddIdentityServices(_config);
+            services.AddShopAgent(_config); // Phase 3: AI agent, its tools, rate limit and admin rule
             services.AddSwaggerDocumentation();
             services.AddHttpClient();
             services.AddCors(opt =>
@@ -93,6 +94,7 @@ namespace API
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseRateLimiter(); // Phase 3: after authentication, so the limit can be per user
 
             app.UseEndpoints(endpoints =>
             {

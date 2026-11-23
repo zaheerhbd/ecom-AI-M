@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2 Report</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text: #1f2328;
+    --muted: #5b6270;
+    --border: #e1ded5;
+    --accent: #2f5fd0;
+    --accent-soft: #e6edfb;
+    --good: #1d7a46;
+    --good-soft: #e3f3e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf0d9;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --grey-soft: #ecebe6;
+    --code-bg: #f2f1ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b;
+      --surface: #1d2026;
+      --surface-2: #252931;
+      --text: #e7e9ee;
+      --muted: #a0a7b4;
+      --border: #333844;
+      --accent: #8fb0ff;
+      --accent-soft: #23304d;
+      --good: #6fd39a;
+      --good-soft: #1d3428;
+      --warn: #f0c060;
+      --warn-soft: #3a3020;
+      --bad: #ff8f86;
+      --bad-soft: #3d2322;
+      --grey-soft: #2a2e36;
+      --code-bg: #262a32;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2026;
+    --surface-2: #252931;
+    --text: #e7e9ee;
+    --muted: #a0a7b4;
+    --border: #333844;
+    --accent: #8fb0ff;
+    --accent-soft: #23304d;
+    --good: #6fd39a;
+    --good-soft: #1d3428;
+    --warn: #f0c060;
+    --warn-soft: #3a3020;
+    --bad: #ff8f86;
+    --bad-soft: #3d2322;
+    --grey-soft: #2a2e36;
+    --code-bg: #262a32;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 0; }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+  nav.toc a::before { content: counter(toc) ". "; color: var(--muted); opacity: .7; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .theme-btn { margin-top: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  main { padding: 28px 0 80px; min-width: 0; }
+  header.hero { padding: 8px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+  section { padding-top: 36px; scroll-margin-top: 12px; }
+  h2 { font-size: 24px; margin: 0 0 12px; letter-spacing: -.005em; }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p, li { max-width: 75ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad { background: var(--bad-soft); color: var(--bad); }
+  .chip.grey { background: var(--grey-soft); color: var(--muted); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .label { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+  .callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.good { border-color: var(--good); background: var(--good-soft); }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .card .where { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .flow { list-style: none; padding: 0; margin: 16px 0; counter-reset: flow; }
+  .flow li { counter-increment: flow; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 12px 58px; margin-bottom: 26px; box-shadow: var(--shadow); max-width: none; }
+  .flow li::before { content: counter(flow); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -22px; width: 2px; height: 18px; background: var(--border); }
+  .flow li.loop { border-color: var(--accent); }
+  .flow .tag { float: right; margin-left: 10px; }
+  .flow strong { display: block; }
+  .flow span.desc { color: var(--muted); font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+  details ul { margin: 0; padding-left: 20px; }
+  details li { font-size: 15px; }
+
+  dl.glossary { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; }
+  dl.glossary dt { font-weight: 700; }
+  dl.glossary dd { margin: 0; color: var(--text); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    nav.toc { position: static; max-height: none; padding: 16px 0 0; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { padding: 4px 8px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 27px; }
+    dl.glossary { grid-template-columns: 1fr; gap: 2px; }
+    dl.glossary dd { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      <li><a href="#summary">In one minute</a></li>
+      <li><a href="#backup">Backup first</a></li>
+      <li><a href="#columns">New product columns</a></li>
+      <li><a href="#tables">New tables for runs and evals</a></li>
+      <li><a href="#generator">The product generator</a></li>
+      <li><a href="#policies">Policy documents</a></li>
+      <li><a href="#seed">Seeding that is safe to repeat</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#check">Check it yourself</a></li>
+      <li><a href="#changes">Changes from the plan</a></li>
+      <li><a href="#open">Needs your decision</a></li>
+      <li><a href="#files">Files for review</a></li>
+      <li><a href="#next">What's next</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ol>
+    <button class="theme-btn" type="button" id="themeBtn">Switch light / dark</button>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">eCOM-AI-M · Agentic AI · Phase 2 of 6</p>
+      <h1>Phase 2: more data, and a place to keep agent history</h1>
+      <p class="lede">The shop went from 18 products to 1,018, gained 14 brands and 6 policy documents, and the database got the tables where the agent's runs and test results will be saved. All of it ran on your laptop only.</p>
+      <div class="chips">
+        <span class="chip warn">Waiting for your code review</span>
+        <span class="chip good">Local DB migrated + seeded</span>
+        <span class="chip good">Seed safe to run twice</span>
+        <span class="chip good">38 of 38 tests pass</span>
+        <span class="chip grey">Phase 2 not committed</span>
+        <span class="chip info">Branch: feature/agentic-ai</span>
+      </div>
+    </header>
+
+    <section id="summary">
+      <h2>In one minute</h2>
+      <div class="stats">
+        <div class="stat"><div class="value">1,018</div><div class="label">products (18 original + 1,000 new)</div></div>
+        <div class="stat"><div class="value">20</div><div class="label">brands (6 original + 14 new)</div></div>
+        <div class="stat"><div class="value">29</div><div class="label">policy documents for the AI (25 policy sections + 4 delivery options)</div></div>
+        <div class="stat"><div class="value">$0</div><div class="label">spent: no AI calls, no cloud</div></div>
+      </div>
+      <p>Why this matters: with 18 products, every question had an easy answer. With about 1,000, the agent really has to <strong>search and filter</strong>, which is what the tools in Phase 3 will do. The new columns (colour, material, stock, rating) let it answer questions like <em>"red Gore-Tex gloves under $50 that are in stock"</em>. The policy files let it answer <em>"can I pay with Bitcoin?"</em> with a real "no" instead of a guess.</p>
+      <div class="callout good"><p><strong>Nothing outside your laptop was touched:</strong> no cloud database, no Azure Search sync, no GitHub push, no paid API calls.</p></div>
+    </section>
+
+    <section id="backup">
+      <h2>Backup first</h2>
+      <p>Before changing anything, both local databases were backed up into a <strong>permanent</strong> folder (the old backup sat in a temporary folder that can be wiped):</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Size</th><th>What</th></tr></thead>
+        <tbody>
+          <tr><td><code>C:\Backups\skinet-before-phase2.sql</code></td><td>14 KB</td><td>The store database (products, orders...)</td></tr>
+          <tr><td><code>C:\Backups\identity-before-phase2.sql</code></td><td>13 KB</td><td>The users database (not changed in this phase, backed up anyway)</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Counts before: 18 products, 6 brands, 4 types, 4 delivery methods, 0 orders. To restore: <code>Get-Content C:\Backups\skinet-before-phase2.sql | docker exec -i ecom-ai-m-db-1 psql -U appuser -d skinet</code> into an empty <code>skinet</code> database.</p>
+    </section>
+
+    <section id="columns">
+      <h2>New product columns</h2>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Example</th><th>The 18 old products got</th></tr></thead>
+        <tbody>
+          <tr><td><code>Color</code></td><td>text, up to 30, optional</td><td>Navy</td><td>empty</td></tr>
+          <tr><td><code>Material</code></td><td>text, up to 40, optional</td><td>Gore-Tex</td><td>empty</td></tr>
+          <tr><td><code>StockQuantity</code></td><td>whole number</td><td>0 = out of stock</td><td>25</td></tr>
+          <tr><td><code>Rating</code></td><td>number like 4.5</td><td>0.0 to 5.0</td><td>4.0</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>The shop API now returns these four fields too (<code>ProductToReturnDto</code>), so the shop pages can show them later. The Angular pages don't use them yet.</p>
+      <div class="callout"><p><strong>A small trap we avoided:</strong> there is no "default value" for stock in the C# model. If there were, EF would treat a real <code>0</code> ("out of stock") as "not set" and quietly save the default instead. The migration sets 25 on old rows with a plain SQL <code>UPDATE</code>.</p></div>
+    </section>
+
+    <section id="tables">
+      <h2>New tables for runs and evals</h2>
+      <p>Phase 1 kept runs and eval results in memory, so they vanish when the app restarts. These tables are where they will be saved from Phase 3 on. EF maps the engine's own record classes directly, so the engine still knows nothing about databases.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Table</th><th>One row is</th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td><code>AgentRuns</code></td><td>One question and answer, with every step, guardrail check, tool and source, plus tokens, cost and time</td><td>The Runs page and its timeline (Phase 4)</td></tr>
+          <tr><td><code>EvalRuns</code></td><td>One test run of the AI: progress, pass rate, flaky count, latency, cost</td><td>The Evals page</td></tr>
+          <tr><td><code>EvalCaseResults</code></td><td>One test case inside an eval run ("TC-004 passed 3/3")</td><td>The Evals page detail. Deleted with its eval run</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Lists (steps, checks, sources, tools) are stored as <strong>JSON</strong> in <code>jsonb</code> columns, so a whole run comes back from one row. That logic is in one small helper, <code>Infrastructure/Data/Config/JsonColumn.cs</code>.</p>
+    </section>
+
+    <section id="generator">
+      <h2>The product generator</h2>
+      <p>A small Node script makes the catalogue: <code>node tools/seed-gen/generate.js</code>. It needs no internet and no AI.</p>
+      <ul>
+        <li><strong>Same output every time.</strong> It uses a fixed random seed, so running it again gives a byte-for-byte identical file (checked).</li>
+        <li><strong>The original 18 products and 6 brands are copied unchanged</strong> from <code>tools/seed-gen/original-products.json</code> and <code>original-brands.json</code>.</li>
+        <li><strong>1,000 new products</strong>, 250 per type. Names like <em>"Frostline Storm Trail Glove"</em>; 14 invented brand names (not real companies).</li>
+        <li>Prices by type (boards $120–650, boots $60–320, gloves $12–110, hats $9–60), 12 colours, materials per type, ratings 2.5–5.0 (mostly high), and <strong>96 products out of stock</strong> so "in stock" filters matter.</li>
+        <li><strong>Pictures:</strong> each product reuses one of the 18 existing images of its type (decision D8). The choice is in one function, <code>pictureFor</code>, so switching to one picture per colour later is a one-line change.</li>
+        <li><strong>Descriptions come from templates</strong> (free), for example: <em>"A white bamboo snowboard, with a rocker profile that floats in deep powder and a twin shape, so it rides the same both ways. Great for beginners finding their feet."</em></li>
+      </ul>
+    </section>
+
+    <section id="policies">
+      <h2>Policy documents</h2>
+      <p>Six short markdown files in <code>Infrastructure/Data/SeedData/policies/</code>. Each is split into one searchable document per section, so an answer can point at the exact part, for example "Payment methods – Payment methods we don't accept".</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Answers questions like</th><th>Eval case</th></tr></thead>
+        <tbody>
+          <tr><td><code>international-shipping.md</code></td><td>Do you ship abroad? Next-day delivery? Duties?</td><td>TC-012, TC-013</td></tr>
+          <tr><td><code>payments.md</code></td><td>Cash on delivery? Bitcoin?</td><td>TC-014, TC-019</td></tr>
+          <tr><td><code>returns.md</code></td><td>Return after 30 days? Damaged imports?</td><td>TC-015, TC-017</td></tr>
+          <tr><td><code>discounts.md</code></td><td>Discounts on hats? Student discount?</td><td>TC-016, TC-020</td></tr>
+          <tr><td><code>support.md</code></td><td>Do you have a store in New York?</td><td>TC-018</td></tr>
+          <tr><td><code>warranty.md</code></td><td>Warranty on laptops? (We don't sell them.)</td><td>TC-021</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>The old chat's document builder (<code>AiDocumentService</code>) now includes them. The new <code>PolicyDocumentLoader</code> will be reused by the agent's <code>search_knowledge</code> tool in Phase 3.</p>
+      <div class="callout warn"><p><strong>These policies are invented example text</strong>, written to match the shop's real delivery options (fastest is 1–2 days, so no next-day). Please read them: if anything should say something different (countries, warranty lengths, support email), tell me and I'll change it. The support email <code>support@skinet-shop.example</code> is a placeholder.</p></div>
+    </section>
+
+    <section id="seed">
+      <h2>Seeding that is safe to repeat</h2>
+      <p>Before, the seed only filled <em>empty</em> tables, so it could never add the new products to a database that already had 18. Now it is <strong>idempotent</strong>: you can run it any number of times.</p>
+      <ol class="flow">
+        <li><strong>Brands and types</strong><span class="desc">Add each one whose name isn't in the table yet. Old ids stay; new ones get the next free number.</span></li>
+        <li><strong>Products</strong><span class="desc">Load all existing names once, then add every product whose name is new. Brand and type are found <em>by name</em>, so the file doesn't depend on database ids. Saved in batches of 200.</span></li>
+        <li><strong>Delivery methods</strong><span class="desc">Unchanged: only when the table is empty.</span></li>
+        <li><strong>Never</strong><span class="desc">Updates or deletes an existing row. Your original products and any orders are left exactly as they are.</span></li>
+      </ol>
+      <p>This is also what makes the production rollout in Phase 6 safe: the cloud database already has products and real orders, and the seed only adds what's missing.</p>
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <div class="callout good">
+        <p><strong>First run of <code>dotnet run --migrate</code>:</strong> migration <code>AgentAndProductAttributes</code> applied; "Seed finished: added 14 brands, 0 types, 1000 products."</p>
+        <p><strong>Second run:</strong> "No migrations were applied"; "added 0 brands, 0 types, 0 products". Still 1,018 products.</p>
+      </div>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Check</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>The original 18 products are unchanged</td><td><span class="chip good">Pass</span> A fingerprint (MD5) of their id, name, description, price, picture, type and brand is identical before and after: <code>5b7961dc…</code></td></tr>
+          <tr><td>Old products got stock 25 and rating 4.0</td><td><span class="chip good">Pass</span></td></tr>
+          <tr><td>Brands 1–6 kept their ids; new brands are 7–20</td><td><span class="chip good">Pass</span></td></tr>
+          <tr><td>Running the seed twice adds nothing</td><td><span class="chip good">Pass</span></td></tr>
+          <tr><td>The API starts and <code>/api/products</code> returns the new fields</td><td><span class="chip good">Pass</span> count = 1018; e.g. "Alpine Forge Swift Rocket Board", $646.99, Black, Bamboo, stock 10, rating 5.0</td></tr>
+          <tr><td><code>/api/ai/documents</code> includes the policies</td><td><span class="chip good">Pass</span> 1,018 product documents + 29 policy documents</td></tr>
+          <tr><td>Build and tests</td><td><span class="chip good">Pass</span> 0 errors (5 old warnings in API code); 38/38 tests</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>This also closes the Phase 1 loose end: the API was never started after Phase 1. It now starts fine.</p>
+    </section>
+
+    <section id="check">
+      <h2>Check it yourself</h2>
+      <p>With Docker Desktop running, from <code>C:\eCOM-AI-M\eCOM-AI-M</code>:</p>
+      <pre><code>dotnet build eCom.sln
+dotnet test Agent.Tests                                   # 38 passed
+node tools/seed-gen/generate.js                           # same files again, no git changes
+cd API; dotnet run -- --migrate                           # "added 0 ... 0 products" (already seeded)
+# in another window:
+curl.exe -sk "https://localhost:5001/api/products?pageSize=3&amp;sort=priceDesc"</code></pre>
+      <p>Or open Adminer at <a href="http://localhost:8080">localhost:8080</a> (server <code>ecom-ai-m-db-1</code>, database <code>skinet</code>) and look at <code>Products</code>, <code>AgentRuns</code>, <code>EvalRuns</code>.</p>
+    </section>
+
+    <section id="changes">
+      <h2>Changes from the plan</h2>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>What</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td><code>Infrastructure</code> now references the <code>Agent</code> project</td><td>Needed so EF can map the engine's record classes (the plan's step 2.3). The rule still holds: Agent references nothing.</td></tr>
+          <tr><td>The seed sets ids for <em>new</em> brands and types itself (max + 1)</td><td>The original rows were inserted with fixed ids, which leaves the database's own id counter at 1. Letting the database number new rows would crash on "id 1 already exists".</td></tr>
+          <tr><td>Extra indexes: <code>AgentRuns.EvalRunId</code>, <code>EvalRuns.StartedAt</code></td><td>"Show this eval's runs" and "newest evals first" are both page queries in Phase 4.</td></tr>
+          <tr><td>The generator keeps copies of the original 18 products and 6 brands next to it</td><td>So re-running it can never lose or change the originals, even though it overwrites <code>products.json</code>.</td></tr>
+          <tr><td>New class <code>PolicyDocumentLoader</code>, one document per section</td><td>Smaller documents give more precise search results, and Phase 3's <code>search_knowledge</code> reuses it.</td></tr>
+          <tr><td>The seed logs the full error, not just the message</td><td>Easier to find the cause if seeding ever fails.</td></tr>
+          <tr><td>D1 recorded as "templates for Phase 2"</td><td>The plan's free default. The AI-written option stays open.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="open">
+      <h2>Needs your decision</h2>
+      <div class="callout warn">
+        <p><strong>The <code>Dockerfile</code> must include the engine now.</strong> Because Infrastructure references <code>Agent/</code>, a Docker build will fail until the Dockerfile copies it. It needs two lines, next to the existing ones for Core and Infrastructure:</p>
+      </div>
+      <pre><code>COPY Agent/Agent.csproj Agent/        # next to the other .csproj lines, before "dotnet restore"
+COPY Agent/. Agent/                   # next to "COPY Infrastructure/. Infrastructure/"</code></pre>
+      <p>Your <code>Dockerfile</code> has uncommitted changes of yours, so I haven't touched it. Nothing is broken yet: the deploy only runs on a push to <code>main</code>. <strong>Should I add these two lines?</strong></p>
+      <ul>
+        <li><strong>Read the policy text</strong> (above) and tell me anything to change.</li>
+        <li><strong>D2</strong> (rate limit per user or IP) and <strong>D3</strong> (how long to keep runs; I suggest 30 days) are needed in Phase 3.</li>
+        <li><strong>Phase 2 is not committed.</strong> Phase 1 is committed as <code>4ab0817</code>.</li>
+      </ul>
+    </section>
+
+    <section id="files">
+      <h2>Files for review</h2>
+      <details open>
+        <summary>Changed (7 files)</summary>
+        <div><ul>
+          <li><code>Core/Entities/Product.cs</code>: 4 new properties</li>
+          <li><code>Infrastructure/Data/Config/ProductConfiguration.cs</code>: lengths and precision for them</li>
+          <li><code>API/Dtos/ProductToReturnDto.cs</code>: the 4 fields in the API response</li>
+          <li><code>Infrastructure/Infrastructure.csproj</code>: reference to <code>Agent</code></li>
+          <li><code>Infrastructure/Data/StoreContext.cs</code>: 3 new tables</li>
+          <li><code>Infrastructure/Data/StoreContextSeed.cs</code>: rewritten to add only what's missing</li>
+          <li><code>Infrastructure/Services/AiDocumentService.cs</code>: includes the policy documents</li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>New code (6 files)</summary>
+        <div><ul>
+          <li><code>Infrastructure/Data/Config/JsonColumn.cs</code>: list ↔ JSON column helper</li>
+          <li><code>Infrastructure/Data/Config/AgentRunConfiguration.cs</code></li>
+          <li><code>Infrastructure/Data/Config/EvalRunConfiguration.cs</code> (EvalRuns + EvalCaseResults)</li>
+          <li><code>Infrastructure/Data/Migrations/20261120044648_AgentAndProductAttributes.cs</code> (+ Designer, updated snapshot)</li>
+          <li><code>Infrastructure/Services/PolicyDocumentLoader.cs</code></li>
+          <li><code>tools/seed-gen/generate.js</code> (+ <code>original-products.json</code>, <code>original-brands.json</code>)</li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>Data (generated or new)</summary>
+        <div><ul>
+          <li><code>Infrastructure/Data/SeedData/products.json</code> (1,018 products), <code>brands.json</code> (20 brands): written by the generator</li>
+          <li><code>Infrastructure/Data/SeedData/policies/</code>: 6 markdown files</li>
+        </ul></div>
+      </details>
+      <details>
+        <summary>Docs</summary>
+        <div><ul>
+          <li><code>docs/agentic/06-phase-tracker.md</code>, <code>docs/agentic/HANDOFF.md</code>, this report</li>
+        </ul></div>
+      </details>
+    </section>
+
+    <section id="next">
+      <h2>What's next</h2>
+      <ol>
+        <li><strong>You review Phase 2</strong> and answer the Dockerfile question.</li>
+        <li><strong>Phase 3: tools and API</strong>, when you say so. The agent gets its 7 read-only tools (search products, product details, policies, delivery options, my orders...), the <code>api/agent/*</code> endpoints, a database-backed run store using the new tables, the system prompt file and about 45 eval cases. After Phase 3 you can chat with the agent through Swagger.</li>
+      </ol>
+    </section>
+
+    <section id="glossary">
+      <h2>Glossary</h2>
+      <dl class="glossary">
+        <dt>Migration</dt><dd>A script EF writes that changes the database structure (new columns, new tables), applied once and remembered.</dd>
+        <dt>Seed</dt><dd>Starting data loaded into the database from the JSON files.</dd>
+        <dt>Idempotent</dt><dd>Safe to run again: the second run changes nothing.</dd>
+        <dt>Fixed random seed</dt><dd>A starting number for the random generator, so "random" data comes out the same every time.</dd>
+        <dt>jsonb</dt><dd>A Postgres column type that stores JSON, so a list can live inside one row.</dd>
+        <dt>Fingerprint (MD5)</dt><dd>A short code calculated from data. If any character changes, the code changes.</dd>
+        <dt>Policy document</dt><dd>A short piece of shop rules the AI can search and quote, instead of guessing.</dd>
+      </dl>
+    </section>
+
+    <footer>
+      Phase 2 report · written 2026-11-19 · eCOM-AI-M agentic AI project · previous: <a href="phase-1-report.html">phase-1-report.html</a> · next report: phase-3-report.html
+    </footer>
+  </main>
+</div>
+
+<script>
+  // Highlight the section you are reading in the contents list.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var byId = {};
+    links.forEach(function (link) { byId[link.getAttribute('href').slice(1)] = link; });
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  })();
+
+  // Light / dark switch, remembered in this browser when possible.
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('phase-report-theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme');
+      if (!current) current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('phase-report-theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

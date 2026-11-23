@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Agent.Evals;
 using API.Extensions;
+using Microsoft.Extensions.Configuration;
 using Core.Entities.Identity;
 using Infrastructure.Data;
 using Infrastructure.Identity;
@@ -24,6 +27,14 @@ namespace API
             try 
             {
                 var host = CreateHostBuilder(args).Build();
+
+                // "dotnet run --evals": run the agent's eval cases, print a report and exit
+                // (exit code 1 = failure or regression). The web server is not started.
+                if (EvalCommandLine.IsEvalCommand(args))
+                {
+                    Environment.ExitCode = await EvalCommandLine.RunAsync(host.Services, args, Console.Out, CancellationToken.None);
+                    return;
+                }
 
                 var shouldRunMigrations = args.Any(arg => string.Equals(arg, "--migrate", StringComparison.OrdinalIgnoreCase))
                     || string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", StringComparison.OrdinalIgnoreCase);
@@ -95,6 +106,11 @@ namespace API
             var identityContext = services.GetRequiredService<AppIdentityDbContext>();
             await identityContext.Database.MigrateAsync();
             await AppIdentityDbContextSeed.SeedUsersAsync(userManager);
+
+            // Phase 3 (D4): the Admin role, given to the emails in Agent:AdminEmails.
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var adminEmails = services.GetRequiredService<IConfiguration>().GetSection("Agent:AdminEmails").Get<string[]>();
+            await AppIdentityDbContextSeed.SeedAdminRoleAsync(roleManager, userManager, adminEmails);
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

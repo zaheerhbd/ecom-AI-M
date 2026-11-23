@@ -1,0 +1,180 @@
+<div *ngIf="errorMessage" class="alert alert-warning"><i class="fa fa-lock mr-1"></i>{{errorMessage}}</div>
+
+<div class="row" *ngIf="!errorMessage">
+  <!-- Left: start a run + history -->
+  <div class="col-lg-4 mb-3">
+    <div class="card mb-3">
+      <div class="card-header"><strong>Run a test</strong></div>
+      <div class="card-body">
+        <p class="small text-muted">Each case sends a real question to the assistant and checks what it did:
+          the right tool, the right filters, the key facts, blocked when it should be.</p>
+
+        <div class="form-group mb-2">
+          <div class="custom-control custom-radio">
+            <input type="radio" id="m-quick" name="mode" class="custom-control-input" value="quick" [(ngModel)]="mode">
+            <label class="custom-control-label" for="m-quick">Quick check <span class="text-muted">({{quickCases.join(', ')}})</span></label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="m-cat" name="mode" class="custom-control-input" value="category" [(ngModel)]="mode">
+            <label class="custom-control-label" for="m-cat">One category</label>
+          </div>
+          <select *ngIf="mode === 'category'" class="form-control form-control-sm mt-1 mb-1" name="category" [(ngModel)]="category">
+            <option *ngFor="let c of categories" [value]="c">{{c}}</option>
+          </select>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="m-cases" name="mode" class="custom-control-input" value="cases" [(ngModel)]="mode">
+            <label class="custom-control-label" for="m-cases">Chosen cases</label>
+          </div>
+          <input *ngIf="mode === 'cases'" type="text" class="form-control form-control-sm mt-1 mb-1" name="caseIds"
+                 [(ngModel)]="caseIdsText" placeholder="e.g. TC-001, MT-002, SF-003">
+          <div class="custom-control custom-radio">
+            <input type="radio" id="m-all" name="mode" class="custom-control-input" value="all" [(ngModel)]="mode">
+            <label class="custom-control-label" for="m-all">All {{totalCaseCount}} cases</label>
+          </div>
+          <div *ngIf="mode === 'all'" class="alert alert-warning small py-2 mt-1 mb-1">
+            {{totalCaseCount * repeat}} AI conversations. On Gemini's free tier this can hit the daily limit;
+            on OpenAI it costs about ${{0.13 * repeat | number:'1.2-2'}}.
+            <div class="custom-control custom-checkbox mt-1">
+              <input type="checkbox" id="confirm-all" name="confirmAll" class="custom-control-input" [(ngModel)]="confirmAll">
+              <label class="custom-control-label" for="confirm-all">I understand, run them all</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row align-items-center mb-2">
+          <div class="col-auto"><label for="repeat" class="mb-0 small">Repeat each case</label></div>
+          <div class="col-auto">
+            <select id="repeat" class="form-control form-control-sm" name="repeat" [(ngModel)]="repeat">
+              <option [ngValue]="1">1×</option>
+              <option [ngValue]="2">2×</option>
+              <option [ngValue]="3">3×</option>
+            </select>
+          </div>
+        </div>
+        <div class="custom-control custom-checkbox mb-3">
+          <input type="checkbox" id="judge" name="useJudge" class="custom-control-input" [(ngModel)]="useJudge">
+          <label class="custom-control-label small" for="judge">Also let an AI judge score each answer 1–5 (one extra AI call per case)</label>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" (click)="start()" [disabled]="starting || isRunning">
+          <i class="fa fa-play mr-1"></i>{{isRunning ? 'A run is in progress…' : 'Start test run'}}
+        </button>
+        <small class="d-block text-muted mt-1" *ngIf="plannedConversations !== null">
+          {{plannedConversations}} AI conversation{{plannedConversations === 1 ? '' : 's'}}
+        </small>
+        <div *ngIf="formMessage" class="alert alert-danger small py-2 mt-2 mb-0">{{formMessage}}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><strong>Earlier runs</strong></div>
+      <div class="list-group list-group-flush">
+        <button *ngFor="let r of history" type="button" class="list-group-item list-group-item-action history-item"
+                [class.active-run]="current && r.id === current.id" (click)="show(r)">
+          <div class="d-flex justify-content-between">
+            <span>{{r.startedAt | date:'d MMM, HH:mm'}}</span>
+            <span *ngIf="r.status === 'Running'" class="badge badge-info">running</span>
+            <span *ngIf="r.status === 'Failed'" class="badge badge-danger">failed</span>
+            <span *ngIf="r.status === 'Completed'" class="badge"
+                  [ngClass]="r.passRate === 1 ? 'badge-success' : 'badge-warning'">{{r.passRate | percent:'1.0-0'}}</span>
+          </div>
+          <small class="text-muted">{{r.totalCases}} cases × {{r.repeat}} · {{r.model}}</small>
+        </button>
+        <div *ngIf="history.length === 0" class="list-group-item text-muted small">No test runs yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: the selected run -->
+  <div class="col-lg-8 mb-3">
+    <div class="card" *ngIf="current; else noRun">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Test run {{current.startedAt | date:'d MMM y, HH:mm'}}</strong>
+        <span class="text-muted small">{{current.model}}{{current.useJudge ? ' · with AI judge' : ''}}</span>
+      </div>
+      <div class="card-body">
+        <div *ngIf="isRunning" class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span><i class="fa fa-spinner fa-spin mr-1"></i>Running… {{current.completedCases}} of {{current.totalCases}} cases done</span>
+            <span>{{progress}}%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" role="progressbar" [style.width.%]="progress"></div></div>
+        </div>
+        <div *ngIf="current.status === 'Failed'" class="alert alert-danger py-2">The run failed: {{current.error}}</div>
+
+        <div class="summary" *ngIf="current.completedCases > 0">
+          <div class="stat">
+            <div class="value" [class.text-success]="current.passRate === 1">{{current.passRate | percent:'1.0-0'}}</div>
+            <div class="label">{{current.passedCases}} of {{current.completedCases}} cases passed</div>
+          </div>
+          <div class="stat" *ngIf="current.madeUpRate !== null && current.madeUpRate !== undefined"
+               title="Prices and stock numbers in the answers that no tool result backs up. Target: 2% or less.">
+            <div class="value" [class.text-success]="current.madeUpRate <= 0.02" [class.text-warning]="current.madeUpRate > 0.02">
+              {{current.madeUpRate | percent:'1.0-1'}}</div>
+            <div class="label">made-up prices/stock ({{current.madeUpFacts}} of {{current.factsChecked}})</div>
+          </div>
+          <div class="stat">
+            <div class="value">{{current.correctToolRate | percent:'1.0-0'}}</div>
+            <div class="label">picked the right tool</div>
+          </div>
+          <div class="stat">
+            <div class="value" [class.text-warning]="current.flakyCases > 0">{{current.flakyCases}}</div>
+            <div class="label">flaky (pass sometimes)</div>
+          </div>
+          <div class="stat">
+            <div class="value">{{current.medianLatencyMs / 1000 | number:'1.1-1'}} s</div>
+            <div class="label">median time (p95 {{current.p95LatencyMs / 1000 | number:'1.1-1'}} s)</div>
+          </div>
+          <div class="stat">
+            <div class="value">${{current.totalCostUsd | number:'1.2-4'}}</div>
+            <div class="label">estimated cost</div>
+          </div>
+        </div>
+
+        <div class="table-responsive" *ngIf="results.length > 0">
+          <table class="table table-sm results">
+            <thead class="thead-light">
+              <tr><th>Case</th><th>Question</th><th>Checks</th><th class="text-right">Passed</th><th></th></tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let r of results">
+                <tr (click)="toggleCase(r)" class="clickable" [class.table-danger]="!r.passed">
+                  <td class="nowrap"><strong>{{r.caseId}}</strong><br><small class="text-muted">{{r.category}}</small></td>
+                  <td>{{r.input}}</td>
+                  <td>
+                    <span *ngFor="let c of r.checks" class="check" [class.check-ok]="c.passed" [class.check-bad]="!c.passed"
+                          [title]="c.detail || c.name">
+                      <i class="fa" [ngClass]="c.passed ? 'fa-check' : 'fa-times'"></i> {{c.name}}
+                    </span>
+                  </td>
+                  <td class="text-right nowrap">
+                    {{r.passCount}}/{{r.repeatCount}}
+                    <span *ngIf="r.flaky" class="badge badge-warning ml-1">flaky</span>
+                    <span *ngIf="r.judgeScore !== null" class="badge badge-info ml-1" title="AI judge score">{{r.judgeScore}}/5</span>
+                  </td>
+                  <td><i class="fa" [ngClass]="openCase.has(r.id) ? 'fa-chevron-up' : 'fa-chevron-down'"></i></td>
+                </tr>
+                <tr *ngIf="openCase.has(r.id)" class="detail-row">
+                  <td colspan="5">
+                    <div class="io-label">Answer</div>
+                    <div class="answer" [innerHTML]="r.answer | agentMarkdown"></div>
+                    <div *ngFor="let c of r.checks">
+                      <small *ngIf="c.detail" [class.text-danger]="!c.passed"><strong>{{c.name}}:</strong> {{c.detail}}</small>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                      {{r.durationMs / 1000 | number:'1.1-1'}} s · {{r.tokens | number}} tokens
+                      <a *ngIf="r.agentRunId" class="ml-2" [routerLink]="['/agent/runs', r.agentRunId]">See every step of this answer →</a>
+                    </small>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <ng-template #noRun>
+      <div class="card"><div class="card-body text-muted">Start a test run on the left. Results appear here as each case finishes.</div></div>
+    </ng-template>
+  </div>
+</div>

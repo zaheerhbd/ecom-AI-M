@@ -1,0 +1,35 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 10px 14px;
+
+  .value { font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
+  .label { font-size: .8rem; color: #6c757d; }
+}
+
+.top-tools { font-size: .9rem; }
+
+.runs-table {
+  font-size: .9rem;
+  background: #fff;
+
+  .clickable { cursor: pointer; }
+  .question { max-width: 420px; }
+  .nowrap { white-space: nowrap; }
+}
+
+@media (max-width: 1199px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
