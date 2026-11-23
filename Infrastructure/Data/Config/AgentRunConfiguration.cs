@@ -28,6 +28,7 @@ namespace Infrastructure.Data.Config
             builder.Property(r => r.Steps).HasJsonColumn();
             builder.Property(r => r.GuardrailChecks).HasJsonColumn();
             builder.Property(r => r.Sources).HasJsonColumn();
+            builder.Property(r => r.MadeUpFacts).HasJsonColumn(); // Phase 5 groundedness
 
             builder.HasIndex(r => r.CreatedAt); // the runs list is newest first
             builder.HasIndex(r => r.EvalRunId); // "show the runs of this eval"

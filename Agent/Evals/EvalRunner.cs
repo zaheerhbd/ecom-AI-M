@@ -162,25 +162,34 @@ namespace Agent.Evals
             await SaveRunAsync(run);
         }
 
-        /// <summary>Runs one case once, in its own DI scope, and grades it.</summary>
+        /// <summary>
+        /// Runs one case once and grades it. Every message gets its own DI scope, exactly like one
+        /// HTTP request each. A multi-turn case sends its turns in ONE session, so the agent's memory
+        /// is tested; the checks apply to the last answer.
+        /// </summary>
         private async Task<EvalAttempt> RunAttemptAsync(EvalRunRecord run, EvalCase evalCase, CancellationToken cancellationToken)
         {
+            // A fresh session for every attempt, so attempts don't influence each other.
+            string sessionId = "eval-" + Guid.NewGuid().ToString("N").Substring(0, 12);
+            List<string> messages = evalCase.Messages();
+            AgentResult result = null;
+            decimal cost = 0;
+            List<int> inputTokensPerTurn = new List<int>();
+
+            foreach (string message in messages)
+            {
+                result = await RunOneMessageAsync(run, evalCase, sessionId, message, cancellationToken);
+                cost += result.EstimatedCostUsd;
+                inputTokensPerTurn.Add(result.InputTokens);
+            }
+
+            if (evalCase.IsMultiTurn)
+                _logger.LogInformation("Eval case {CaseId}: input tokens per turn {Tokens}", evalCase.Id, string.Join(", ", inputTokensPerTurn));
+
             using (IServiceScope scope = _scopes.CreateScope())
             {
-                // Set up the request exactly like a chat request, but marked as an eval.
-                AgentRequestContext context = scope.ServiceProvider.GetRequiredService<AgentRequestContext>();
-                context.UserEmail = evalCase.SignedInAs;
-                context.Channel = AgentRequestContext.EvalChannel;
-                context.EvalRunId = run.Id;
-
-                // A fresh session for every attempt, so attempts don't influence each other.
-                AgentRunner agent = scope.ServiceProvider.GetRequiredService<AgentRunner>();
-                string sessionId = "eval-" + Guid.NewGuid().ToString("N").Substring(0, 12);
-                AgentResult result = await agent.RunAsync(sessionId, evalCase.Input, cancellationToken);
-
                 // Code-based checks first, then the optional judge.
                 List<EvalCheck> checks = Graders.Grade(evalCase, result);
-                decimal cost = result.EstimatedCostUsd;
                 int? judgeScore = null;
 
                 ILlmClient llm = scope.ServiceProvider.GetRequiredService<ILlmClient>();
@@ -197,6 +206,23 @@ namespace Agent.Evals
                 }
 
                 return new EvalAttempt(result, checks, judgeScore, cost, evalCase.ExpectedTools != null);
+            }
+        }
+
+        /// <summary>Sends one message as the case's user, in its own scope, marked as an eval.</summary>
+        private async Task<AgentResult> RunOneMessageAsync(EvalRunRecord run, EvalCase evalCase, string sessionId, string message,
+            CancellationToken cancellationToken)
+        {
+            using (IServiceScope scope = _scopes.CreateScope())
+            {
+                // Set up the request exactly like a chat request, but marked as an eval.
+                AgentRequestContext context = scope.ServiceProvider.GetRequiredService<AgentRequestContext>();
+                context.UserEmail = evalCase.SignedInAs;
+                context.Channel = AgentRequestContext.EvalChannel;
+                context.EvalRunId = run.Id;
+
+                AgentRunner agent = scope.ServiceProvider.GetRequiredService<AgentRunner>();
+                return await agent.RunAsync(sessionId, message, cancellationToken);
             }
         }
 
@@ -267,11 +293,19 @@ namespace Agent.Evals
             List<double> tokens = new List<double>();
             int toolAttempts = 0;
             int correctToolAttempts = 0;
+            int factsChecked = 0;
+            int madeUp = 0;
 
             foreach (EvalAttempt attempt in attempts)
             {
                 durations.Add(attempt.Result.DurationMs);
                 tokens.Add(attempt.Result.InputTokens + attempt.Result.OutputTokens);
+
+                if (!attempt.Result.Blocked)
+                {
+                    factsChecked += attempt.Result.GroundedFactCount + attempt.Result.MadeUpFacts.Count;
+                    madeUp += attempt.Result.MadeUpFacts.Count;
+                }
 
                 if (attempt.ChecksTools)
                 {
@@ -285,6 +319,9 @@ namespace Agent.Evals
             run.P95LatencyMs = Math.Round(EvalStatistics.Percentile(durations, 95), 1);
             run.MedianTokens = EvalStatistics.Median(tokens);
             run.CorrectToolRate = toolAttempts == 0 ? (double?)null : Math.Round((double)correctToolAttempts / toolAttempts, 4);
+            run.FactsChecked = factsChecked;
+            run.MadeUpFacts = madeUp;
+            run.MadeUpRate = factsChecked == 0 ? (double?)null : Math.Round((double)madeUp / factsChecked, 4);
         }
 
         /// <summary>Creates the record for a new run (status Running).</summary>

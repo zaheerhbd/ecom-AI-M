@@ -32,6 +32,19 @@
     <i class="fa fa-hand-paper-o mr-1"></i> {{stopReasonText(trace.stopReason)}}
   </div>
 
+  <!-- Groundedness: are the prices and stock numbers backed by data? -->
+  <div *ngIf="factCount > 0" class="grounded" [class.grounded-bad]="madeUp.length > 0">
+    <ng-container *ngIf="madeUp.length === 0">
+      <i class="fa fa-check-circle mr-1"></i>
+      All {{factCount}} price/stock number{{factCount === 1 ? '' : 's'}} in the answer came from shop data.
+    </ng-container>
+    <ng-container *ngIf="madeUp.length > 0">
+      <i class="fa fa-exclamation-circle mr-1"></i>
+      {{madeUp.length}} of {{factCount}} price/stock numbers were <strong>not</strong> found in any tool result:
+      {{madeUp.join(', ')}}
+    </ng-container>
+  </div>
+
   <!-- Guardrails -->
   <h6 class="section-title">Safety checks</h6>
   <div class="checks">
@@ -50,13 +63,13 @@
   <!-- Steps -->
   <h6 class="section-title">Steps <small class="text-muted">(click a step to see what went in and out)</small></h6>
   <ol class="steps">
-    <li *ngFor="let step of trace.steps" class="step" [ngClass]="'step-' + step.type" [class.step-error]="step.isError">
+    <li *ngFor="let step of trace.steps" class="step" [ngClass]="'step-' + step.type" [class.step-error]="step.isError" [class.step-repeat]="step.isRepeat">
       <button type="button" class="step-head" (click)="toggle(step)" [disabled]="!canOpen(step)"
               [attr.aria-expanded]="open.has(step.index)">
         <span class="step-icon"><i class="fa" [ngClass]="stepIcon(step)"></i></span>
         <span class="step-main">
           <span class="step-kind">{{stepLabel(step)}}</span>
-          <span class="step-name">{{step.name}}</span>
+          <span class="step-name">{{step.name}}<span *ngIf="step.isRepeat" class="repeat-tag">repeated, not run again</span></span>
           <span *ngIf="step.type === 'llm' && step.output" class="step-preview">{{step.output}}</span>
           <span *ngIf="step.type === 'guardrail'" class="step-preview">{{step.output}}</span>
         </span>

@@ -70,7 +70,7 @@ namespace Agent.Tests
         {
             FakeLlmClient fake = new FakeLlmClient();
             for (int i = 0; i < 10; i++)
-                fake.EnqueueToolCall("echo", "{\"text\":\"again\"}");
+                fake.EnqueueToolCall("echo", "{\"text\":\"again " + i + "\"}"); // different each time: identical calls are refused as repeats
             ServiceProvider services = TestHost.Build(fake, new Dictionary<string, string> { { "Agent:MaxSteps", "3" } });
 
             AgentResult result = await TestHost.AskAsync(services, "s1", "loop forever");

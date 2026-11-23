@@ -1,8 +1,8 @@
 # HANDOFF: AI agent for eCOM-AI-M
 
-> **Last updated:** 2026-11-22 04:00 EST
-> **Status:** Phases 1–3 committed + pushed (Phase 3 = `c5ca42f`). **Phase 4 (Angular "Assistant" pages: chat + step timeline, runs, evals, how it works) is built and browser-tested, NOT committed, waiting for the owner's code review.** The agent uses **Gemini (free tier) by default**, OpenAI by one setting. Deploy pipeline fixed (PR #1 on `main`).
-> **Next action:** ask the owner about the open questions in **§2a** (review/commit Phase 4, which also carries 3 small doc changes from earlier). Then wait for "start Phase 5" and follow **§2b (Phase 5 brief)**. Do **not** merge `feature/agentic-ai` into `main` before Phase 6.
+> **Last updated:** 2026-11-22 23:45 EST
+> **Status:** Phases 1–4 committed + pushed (Phase 4 = `47cb92a`). **Phase 5 code (loop control, tool-result shrinking, groundedness, multi-turn evals) is built and unit-tested (57/57), NOT committed, waiting for the owner's code review.** The measured eval runs (×5 baseline, S1–S9) were **not run**: Gemini's free tier is only 20 requests/day and the owner declined paid OpenAI runs for now. The old-chat comparison was skipped by the owner.
+> **Next action:** ask the owner the open questions in **§2a** (review/commit Phase 5; LLM for production; run the baseline before going live?). Then wait for "start Phase 6" and follow **§2b (Phase 6 brief)**: every step is outward-facing, one at a time with the owner's OK. Do **not** merge `feature/agentic-ai` into `main` before Phase 6 step 6.1 (backup) is done.
 
 This is the **single entry point** for any new session, whether Claude Code, Codex or another assistant. Read it fully before doing anything, then read the docs it points to. **Update it at the end of every session**: the "Last updated" line, Status, Next action and the session log at the bottom.
 
@@ -36,9 +36,34 @@ This is the **single entry point** for any new session, whether Claude Code, Cod
 
 ## 2a. Resume here (state at the end of the last session)
 
-**Committed and pushed** on `feature/agentic-ai`: Phase 1 (`4ab0817`), Phase 2 (`a9679aa`), shop layout tidy (`eafe5c9`). `main` has only the deploy fix (PR #1). **Never merge `feature/agentic-ai` into `main` before Phase 6** (the cloud DB lacks the Phase 2 columns).
+**Committed and pushed** on `feature/agentic-ai`: Phase 1 (`4ab0817`), Phase 2 (`a9679aa`), shop layout tidy (`eafe5c9`), Phase 3 (`c5ca42f`), Phase 4 + architecture report (`47cb92a`). `main` has only the deploy fix (PR #1). **Never merge `feature/agentic-ai` into `main` before Phase 6** (the cloud DB lacks the Phase 2 and Phase 5 columns).
 
-**Phase 4 is built and tested but NOT committed** (2026-11-22, waiting for the owner's code review). Files:
+**Phase 5 is built and unit-tested but NOT committed** (2026-11-22, waiting for the owner's code review). Results and what is still unmeasured: [07-results.md](07-results.md). Report: [reports/phase-5-report.html](reports/phase-5-report.html). Files:
+
+| Path | What |
+|---|---|
+| `Agent/AgentOptions.cs` | `MaxToolCallsPerRun` (10), `ToolTimeoutSeconds` (10), `ShrinkOldToolResults` (true) |
+| `Agent/AgentRunner.cs` | Per-answer `TurnState`: identical calls (`ToolCallKey` = name + sorted, lower-cased args) are not run again (`IsRepeat` step, model told to reuse the result); cap → stop reason `max-tool-calls` (refused calls still get a tool result so history stays valid); `CheckGroundedness` (evidence = history minus system prompt and the answer itself); `ShrinkToolResults` before saving memory |
+| `Agent/AgentResult.cs`, `Agent/Runs/AgentRunRecord.cs` | `AgentStep.IsRepeat`, `AgentStopReasons.MaxToolCalls`, `GroundedFactCount`, `MadeUpFacts` |
+| `Agent/Tools/ToolResultSummariser.cs` (new), `ToolRegistry.cs` | Default stub `[tool: N items, ids …]` or first 200 chars; optional `ISummarisingTool`; registry `Find` + `Timeout`; timeout from config (`ServiceCollectionExtensions`) |
+| `Agent/Evals/Groundedness.cs` (new), `Graders.cs`, `EvalCase.cs`, `EvalCaseLoader.cs`, `EvalRunner.cs`, `EvalRecords.cs`, `EvalCommandLine.cs` | Regex groundedness; `turns` (multi-turn, one scope per message, last answer graded, input tokens per turn logged) and `maxToolCalls`; eval run `FactsChecked` / `MadeUpFacts` / `MadeUpRate` |
+| `Infrastructure/Data/Config/AgentRunConfiguration.cs`, migration `20261122220351_AgentGroundedness` + snapshot | New columns (jsonb default fixed to `[]`). **Applied to the local DB only**; the cloud DB gets it in Phase 6.3 |
+| `API/Agent/evals/cases.json` | 51 → 56 cases: `OR-004`, `MM-001`, `MM-002`, `LC-001`, `LC-002` |
+| `client/src/app/agent/` (models, timeline html/ts/scss, evals html) | Amber repeats, groundedness note, "too many tool calls" text, made-up-rate card |
+| `Agent.Tests/LoopControlAndMemoryTests.cs` (new, 14 tests), `TestHost.cs` (extra test tools), `AgentRunnerTests.cs` (MaxSteps test uses different args) | 57/57 |
+| `docs/agentic/07-results.md` (new), `docs/agentic/dev/seed-test-order.sql` (new), `reports/phase-5-report.html` (new), tracker, this file | Docs + local-only test order for bob |
+
+**Phase 5 tests (2026-11-22):** `dotnet build eCom.sln` 0 errors (5 old warnings); `dotnet test Agent.Tests` 57/57; `ng build` 0 errors. Fake-model API check: new JSON fields come back and are saved. Shrinking on vs off (Fake model, 3-message chat): input tokens 1,548 / 928 / 970 vs 1,548 / 1,110 / 1,152 (−182 per later message). Live Gemini run of the 5 new cases: **HTTP 429**, free daily quota (20 requests/day per model, `GenerateRequestsPerDayPerProjectPerModel-FreeTier`) used up; agent answered politely and saved `LlmException`. Timeline/evals UI changes not seen with live answers.
+
+**Local data change:** bob@test.com now has order 1 (Angular Speedster Board 2000 + Green React Woolen Hat, UPS2 "2-5 Days", subtotal $208) from `docs/agentic/dev/seed-test-order.sql` (idempotent, **local only**).
+
+**Open questions for the owner (ask next session):**
+1. Code review of Phase 5 → "commit phase 5"? Push?
+2. Run the official baseline before going live? Recommended: OpenAI ×5 ≈ $0.75 (`dotnet run -- --evals --repeat 5 --save-baseline` with `Agent:Llm:Provider = OpenAI`). Free Gemini can't do it (20 requests/day).
+3. Which LLM in production? Free Gemini isn't enough for a live shop (20 requests/day; Google may use the data). Recommended: OpenAI (`Agent__Llm__Provider=OpenAI` + key as a Container App secret) or a paid Gemini key.
+4. The owner's email for `Agent:AdminEmails` in production (so Runs/Evals pages open there).
+
+**Phase 4 (committed `47cb92a`)** files, for reference:
 
 | Path | What |
 |---|---|
@@ -84,20 +109,18 @@ dotnet run -- --evals --repeat 1 --cases <small file>   # CLI eval; free on Gemi
 
 **Test results (2026-11-21):** product search (right filters), policy answer (local search), anonymous vs bob orders, foreign order → "not found", injection blocked ($0), 11th msg/min → 429, runs/stats saved, Production mode → runs 401 anonymous / 403 non-admin, eval via API (2 cases) and CLI (3 cases, 3/3 pass), prompt + cases included in `dotnet publish`. Two prompt problems found by testing and fixed (see Phase 3 report).
 
-**Open questions for the owner (ask next session):**
-1. Code review of Phase 4 → "commit phase 4"? (Include `reports/agent-architecture.html` and the doc notes in the same commit.) Push?
-2. Run the eval on Gemini (51 × 1, free; ×3 may hit the free daily cap) for a first look? Can now be started from the Evals tab. (Official baseline is Phase 5, step 5.11.)
-3. Create a test order for `bob@test.com` locally (seeding data) so order tools return real data? Phase 5.9 needs one anyway.
-
 **Loose ends:**
+- **Gemini free tier = 20 requests/day per model** (found 2026-11-22). One question = 2–3 requests, so ~7–10 questions a day. Fine for trying the chat; not for evals or production.
+- Phase 5 measured runs still to do: S1–S9, made-up rate on real answers, baseline file, real-model token saving (`MM-002` with `ShrinkOldToolResults` on/off). See 07-results.md §4.
+- Old-chat comparison (5.3/5.4) skipped by the owner; `AiChatService` stays, no retire decision.
 - `support@skinet-shop.example` in the policies is still a placeholder.
 - Rate limit is per IP for anonymous users; behind Azure Container Apps that is the proxy IP until forwarded headers are configured (Phase 6).
 - `Agent:AdminEmails` is empty: the owner adds their email in production (Phase 6), then runs with `--migrate`/`RUN_MIGRATIONS`.
 - Production needs `Agent__Llm__Provider` (`Gemini` + `Gemini__ApiKey`, or `OpenAI`), else the engine's free Fake model answers. See `appsettings.Production.json.example`.
 - Gemini's `usage.completion_tokens` leaves out thinking tokens, so token counts look low; cost is $0 on the free tier anyway.
-- No unit tests for the shop tools yet (Agent.Tests covers the engine only). Candidate for Phase 5.
+- No unit tests for the shop tools yet (Agent.Tests covers the engine only).
 - Gemini free tier is slow at times: 2–60 s per answer on 2026-11-22 (one LLM call took 32 s). The UI copes ("thinking…"); OpenAI is faster for demos.
-- An eval answer from 2026-11-21 (OR-001, OpenAI) had its text repeated twice. Not seen since; check in Phase 5.
+- An eval answer from 2026-11-21 (OR-001, OpenAI) had its text repeated twice. Not seen since; not re-checked in Phase 5 (no live runs).
 - Runs totals include eval runs (marked "test" in the table). A channel filter could come later.
 - Two dev servers on 4200: if `ng serve` asks "Port 4200 is already in use", an earlier one is still running and already serves the new code (live reload).
 - `appsettings.json` is gitignored: config examples live in `appsettings.Production.json.example` and the docs.
@@ -125,28 +148,31 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 
 **Next session, first ask the owner:** (a) did they fix and rotate `AZURE_CREDENTIALS`? (b) run `docker build .` locally now? (c) commit Phase 2 together with the Dockerfile?
 
-## 2b. Phase 5 brief: end to end, comparison, loop control (next phase, only when the owner says "start Phase 5")
+## 2b. Phase 6 brief: production rollout (next phase, only when the owner says "start Phase 6")
 
-**Goal:** measure the new assistant against the old AI-Lab chat, add the loop-control and memory improvements, and save the first official eval baseline. Full steps in [02 Phase 5](02-implementation-plan.md#phase-5--end-to-end-and-comparison).
+**Goal:** put Phases 1–5 on the live site. Load the new data into the **cloud database first**, then fill the **live index from the cloud database**. Full runbook with checks and rollback: [04 §7](04-database-and-seed.md#7-production-rollout-cloud-database-then-index); steps in [02 Phase 6](02-implementation-plan.md#phase-6--production-rollout).
 
-**Before writing code:** Phase 4 should be committed first (ask). Which LLM for the measured runs? Gemini is free but slow and has a daily cap; OpenAI costs ≈ $0.13 per 51-case pass. **Ask the owner** before any OpenAI run, and say the cost.
+**Every step is outward-facing (Azure, GitHub, the live DB).** Do one step at a time, say exactly what it will do, and wait for the owner's OK each time. Live app: `https://ecom-ai-ca-zahee01.grayflower-719cfccf.eastus.azurecontainerapps.io` (resource group `eCom`, ACR `ecomaiacrzahee01`, Container App `ecom-ai-ca-zahee01`, Postgres `ecom-ai-pg-zahee01`).
+
+**Before step 6.1, settle with the owner:**
+1. Phase 5 committed + pushed (open question 1).
+2. Production LLM (open question 3): `Agent__Llm__Provider` + its key as a **Container App secret** (never in git). Without it, production answers with the free Fake model.
+3. `Agent__AdminEmails__0` = the owner's email (open question 4), so `--migrate` gives them the Admin role.
+4. Optional: the baseline (open question 2) as the "before" picture.
 
 | Step | Work | Notes for this repo |
 |---|---|---|
-| 5.1 | Full stack running | Docker DB, API (`cd API; dotnet run`), website on **https://localhost:4200** (not 4201; see the Node 16 command in §2a) |
-| 5.2 | Evals with and without the judge, results saved | Use the Evals tab or `dotnet run -- --evals`. On Gemini, run ×1 first (daily cap) |
-| 5.3 | Same 21 questions through the old `/api/ai/chat` → comparison table | The old chat needs Azure Search + OpenAI keys (it reads the **live** `rag-index`: read-only is fine, **never sync**). Cost check with the owner first |
-| 5.4 | `docs/agentic/07-results.md`; owner decides on retiring `AiChatService` | |
-| 5.5 | Loop control (R11): `MaxToolCallsPerRun` (10), `ToolTimeoutSeconds` (10) in `AgentOptions`; repeat-call detection | `AgentStep.IsError` from `ToolExecutionResult.Success` is **already done** (Phase 1). `ToolRegistry` already takes a timeout (fixed 10 s today) |
-| 5.6 | UI: error steps red (already), repeated calls amber | In `agent-timeline` (`.step-error` exists; add a `.step-repeat`) |
-| 5.7 | Eval cases: tool-error recovery, repeated call not run twice | `cases.json` |
-| 5.8 | Shrink old tool results in saved history (R12) | `AgentRunner` saves history at the end of the turn; `ITool` gets an optional `Summarise` (C# 7.3: no default interface methods, so use a second interface, e.g. `ISummarisingTool`) |
-| 5.9 | Multi-turn eval format (`turns`) + "Where's my last order?" → "When will it arrive?" | Needs a seeded order for bob (open question 3) |
-| 5.10 | Groundedness grader (prices / stock numbers must appear in tool outputs) | `Graders.cs`, no LLM call |
-| 5.11 | Final eval ×5, metrics S1–S9 in `07-results.md`, `--save-baseline`, **review checkpoint** + `reports/phase-5-report.html` | ×5 × 51 = 255 conversations: likely too many for Gemini's free daily cap; agree the provider with the owner |
+| 6.1 | Back up the cloud `skinet` DB: note a point-in-time restore time + `pg_dump` to `C:\Backups\` (permanent). Record row counts (Products, ProductBrands, Orders, DeliveryMethods) | Needs the owner's firewall/credentials for `ecom-ai-pg-zahee01`. Read-only |
+| 6.2 | Owner merges `feature/agentic-ai` → `main` (PR). The workflow deploys the image | The workflow's `actions/checkout@v4` / `azure/login@v2` Node-20 warning is harmless; bump later |
+| 6.3 | Migrate + seed once: `RUN_MIGRATIONS=true`, **1 replica**, then back to `false`. Applies `AgentAndProductAttributes` **and `AgentGroundedness`**, seeds ~1,000 products, policies, the Admin role. Verify counts | Seed is idempotent. **Never** run `docs/agentic/dev/seed-test-order.sql` there |
+| 6.4 | `INIT_SEARCH_INDEX=true` once (index schema for the new product fields), then `false` | |
+| 6.5 | `SYNC_PRODUCTS_TO_AZURE_SEARCH` / `SYNC_RAG_TO_AZURE_SEARCH` once each from the **cloud** DB, then `false` | Uses OpenAI embeddings: ~1,000 products ≈ a few cents. Say the cost first |
+| 6.6 | Smoke test: shop pages, `/agent` chat (product, policy, signed-in orders), Runs/Evals as admin, 401/403 for others. Record in `07-results.md` | Rate limit is per proxy IP until forwarded headers are set (loose end) |
+| 6.7 | Optional: App Insights. The API project adds OpenTelemetry + Azure Monitor exporter for the agent's `ActivitySource`/`Meter`; connection string as a secret; metadata only, no prompt text | Owner approves creating the resource |
 
-**Done when:** comparison table and `07-results.md` written, R11/R12 in, groundedness reported, baseline saved, build + tests pass.
+**Rollback:** redeploy the previous image tag; restore the DB from the 6.1 point in time.
 
+**Done when:** live site serves the Assistant, counts match, indexes refilled, smoke test recorded, report `reports/phase-6-report.html`.
 **Practical tips:**
 - Run the API in the background, wait for "Application started", stop it with `Stop-Process` on `API.exe` (exit code 255 afterwards is expected). Stop it before `dotnet build` (the running exe locks the DLLs).
 - Windows PowerShell doesn't trust the dev certificate: use `curl.exe -sk` (or Git Bash `curl -sk`). For JSON bodies use `--data-binary @file.json` (PowerShell mangles inline quotes).
@@ -165,7 +191,7 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 | 04 | [04-database-and-seed.md](04-database-and-seed.md) | Product columns, new tables, seed rules, Azure Search rules, **production rollout runbook (§7)** |
 | 05 | [05-agent-guide.md](05-agent-guide.md) | How the agent works: loop, tools, guardrails, memory, evals, observability, cost, security |
 | 06 | [06-phase-tracker.md](06-phase-tracker.md) | Phase status, all decisions D1–D9, phase log. **Keep it updated** |
-| 07 | *(reserved)* `07-results.md` | Written in Phase 5 |
+| 07 | [07-results.md](07-results.md) | Phase 5 results: measured vs still to run |
 | 08 | [08-adr-why-build.md](08-adr-why-build.md) | ADR: why our own engine instead of Semantic Kernel / Agent Framework / Microsoft.Extensions.AI |
 | 09 | [09-write-actions-design.md](09-write-actions-design.md) | Design only: "add to basket" with human approval |
 | – | [reports/](reports/) | One HTML report per finished phase (`phase-N-report.html`) |
@@ -184,8 +210,8 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 | 1 | Agent engine project (`Agent/`, generic, scoped, typed tools, guardrail checks, run store, eval runner with repeats + baseline gate, `gen_ai.*` telemetry names) | ✅ Approved, committed `4ab0817` (2026-11-19) |
 | 2 | Schema + seed (4 new Product columns, AgentRuns/EvalRuns/EvalCaseResults tables, ~1,000 products, policy files, idempotent seed) | ✅ Approved, committed + pushed (2026-11-21) |
 | 3 | Tools + API (7 read-only tools, `api/agent/*`, rate limit, system prompt file, 51 eval cases, Admin role) | ✅ Committed + pushed 2026-11-22 (`c5ca42f`). Gemini default, OpenAI switch |
-| 4 | Angular 11 UI (lazy `agent` module: chat + panel, runs, evals, how it works) | 🟨 Built + browser-tested 2026-11-22; waiting for code review (not committed) |
-| 5 | End to end + comparison with the old chat, then improvements: loop control (R11), shrinking tool results + multi-turn eval (R12), groundedness check, first baseline | ⬜ |
+| 4 | Angular 11 UI (lazy `agent` module: chat + panel, runs, evals, how it works) | ✅ Committed + pushed 2026-11-22 (`47cb92a`) |
+| 5 | End to end + comparison with the old chat, then improvements: loop control (R11), shrinking tool results + multi-turn eval (R12), groundedness check, first baseline | 🟨 Code built + tested 2026-11-22 (57/57), not committed; measured runs + baseline not run (owner), old-chat comparison skipped (owner) |
 | 6 | Production rollout: cloud DB first, then the live index from the cloud DB, then App Insights traces | ⬜ |
 
 Details for every step are in [02-implementation-plan.md](02-implementation-plan.md).
@@ -243,7 +269,7 @@ None. All decisions D1–D9 are made.
   - `OpenAiLlmClient` uses **Chat Completions**.
   - Everything is singleton there; we need scoped.
 - **Data (local):**
-  - Docker Postgres `ecom-ai-m-db-1` (port 5432, user `appuser`). Since Phase 2: 1,018 products, 20 brands, 4 types, 4 delivery methods, 0 orders; migrations `PostGres initial` + `AgentAndProductAttributes`. Other Postgres containers (`ecom-ai-db-1`, `skinet-v6-main-db-1`) start with Docker but aren't on port 5432; ignore them.
+  - Docker Postgres `ecom-ai-m-db-1` (port 5432, user `appuser`). Since Phase 2: 1,018 products, 20 brands, 4 types, 4 delivery methods, 1 test order for bob (Phase 5, `docs/agentic/dev/seed-test-order.sql`); migrations `PostGres initial` + `AgentAndProductAttributes` + `AgentGroundedness`. Other Postgres containers (`ecom-ai-db-1`, `skinet-v6-main-db-1`) start with Docker but aren't on port 5432; ignore them.
   - Seed files: `Infrastructure/Data/SeedData/{products,brands,types,delivery}.json` + `policies/*.md`. `products.json`/`brands.json` are generated by `tools/seed-gen/generate.js`.
   - `StoreContextSeed` is idempotent (adds missing rows by name).
   - Images: `API/Content/images/products/*.png` (18 files; prefixes `sb-`, `hat-`, `boot-`, `glove-`).
@@ -285,3 +311,4 @@ None. All decisions D1–D9 are made.
 | 2026-11-21 01:15 EST | Claude Code | **Deploy fixed** with the owner: new service principal + GitHub secrets, old leaked principal and run log deleted, `global.json` rollForward, PR #1 (Dockerfile + global.json) merged to `main`, first green deploy. Shop UI tidied (pager max 5 pages, compact filter panel with scrolling brand list, 72px header, full-width layout, 4 per row, 12 per page). Phase 2 + UI committed and pushed on `feature/agentic-ai`. Note: local Angular dev server ran on **https://localhost:4200** (not 4201). |
 | 2026-11-21 02:00 EST | Claude Code | **Phase 3 built**: 7 tools (`Infrastructure/AgentTools`), `ProductSearchSpecification`, EF run/eval stores, 30-day cleanup service, `AgentController` (8 endpoints), per-user rate limit (10/min), Admin role + policy (D4), system prompt, 51 eval cases, `--evals` in Program.cs. Smoke-tested every endpoint with small real OpenAI calls (total spend ≈ $0.03); two prompt issues found and fixed. Full eval NOT run (needs OK, ≈ $0.40). Report `reports/phase-3-report.html`. Not committed. |
 | 2026-11-22 04:00 EST | Claude Code | Gemini added as the default LLM (free tier), OpenAI kept as a one-setting switch; fixes found by testing: retired model name → `gemini-3.5-flash`, Gemini thought signature sent back on tool calls. Owner said "commit phase 3" → `c5ca42f`, pushed. Wrote `reports/agent-architecture.html` (solution design, owner asked). Owner said "work on phase 4": **Phase 4 built** (`client/src/app/agent/`: chat + timeline, runs + detail, evals, how it works; nav link; no spinner for `/agent/`). `ng build` + `--prod` clean; headless-Chrome test anonymous + bob, quick eval 3/3 from the UI, no console errors. `reports/phase-4-report.html`. **Not committed**, waiting for review. |
+| 2026-11-22 23:45 EST | Claude Code | Owner said "commit push and complete phase 5": Phase 4 + architecture report committed as `47cb92a` and pushed. **Phase 5 built**: loop control (repeat detection, `MaxToolCallsPerRun`, configurable tool timeout), tool-result shrinking (stubs with ids), groundedness check (runs + evals + UI), multi-turn eval `turns` + `maxToolCalls`, 5 new cases (56), migration `AgentGroundedness` (local only), local test order for bob. Tests 57/57, builds clean. Owner skipped the old-chat comparison; Gemini free quota (20 req/day) ran out, owner declined paid runs → baseline/S1–S9 not run. Wrote `07-results.md` + `reports/phase-5-report.html`, added the Phase 6 brief. **Not committed**, waiting for review. |

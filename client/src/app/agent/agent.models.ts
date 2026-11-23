@@ -12,6 +12,8 @@ export interface IAgentStep {
   outputTokens: number;
   durationMs: number;
   isError: boolean;
+  /** The same tool + arguments was asked for again in this answer, so it was not run again. */
+  isRepeat: boolean;
 }
 
 /** GuardrailOutcome in C# is an enum sent as a number. */
@@ -53,6 +55,10 @@ export interface IAgentTrace {
   steps: IAgentStep[];
   guardrailChecks: IGuardrailCheck[];
   sources: IAgentSource[];
+  /** Groundedness: prices / stock numbers in the answer backed by tool data. */
+  groundedFactCount: number;
+  /** Prices / stock numbers no tool result backs up, e.g. "$19.99". */
+  madeUpFacts: string[];
 }
 
 /** POST api/agent/chat */
@@ -137,6 +143,10 @@ export interface IEvalRun {
   passedAttempts: number;
   passRate: number;
   correctToolRate: number;
+  factsChecked: number;
+  madeUpFacts: number;
+  /** 0..1, null when no answer had a price or stock number. */
+  madeUpRate: number | null;
   medianLatencyMs: number;
   p95LatencyMs: number;
   medianTokens: number;

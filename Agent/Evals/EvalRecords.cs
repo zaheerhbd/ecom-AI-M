@@ -84,6 +84,15 @@ namespace Agent.Evals
 
         /// <summary>Estimated cost of the whole run (agent + judge), in US dollars.</summary>
         public decimal TotalCostUsd { get; set; }
+
+        /// <summary>GROUNDEDNESS: prices and stock numbers checked across all answers.</summary>
+        public int FactsChecked { get; set; }
+
+        /// <summary>Of those, how many no tool result backed up ("made up").</summary>
+        public int MadeUpFacts { get; set; }
+
+        /// <summary>MadeUpFacts / FactsChecked, from 0 to 1 (target: 0.02 or less). Null when no answer had a price or stock number.</summary>
+        public double? MadeUpRate { get; set; }
     }
 
     /// <summary>

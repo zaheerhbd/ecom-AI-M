@@ -70,10 +70,21 @@ export class AgentTimelineComponent implements OnChanges {
     }
   }
 
+  /** Prices / stock numbers no tool result backs up (older runs may not have the field). */
+  get madeUp(): string[] {
+    return (this.trace && this.trace.madeUpFacts) || [];
+  }
+
+  /** All prices / stock numbers that were checked. */
+  get factCount(): number {
+    return ((this.trace && this.trace.groundedFactCount) || 0) + this.madeUp.length;
+  }
+
   stopReasonText(reason: string): string {
     switch (reason) {
       case 'max-steps': return 'Stopped: too many steps';
       case 'token-budget': return 'Stopped: token budget used up';
+      case 'max-tool-calls': return 'Stopped: too many tool calls in one answer';
       default: return 'Stopped: ' + reason;
     }
   }

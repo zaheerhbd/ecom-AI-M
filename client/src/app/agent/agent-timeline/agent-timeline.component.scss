@@ -162,3 +162,27 @@
 @media (max-width: 576px) {
   .totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Phase 5: a repeated tool call the agent refused to run again (amber). */
+.step-repeat .step-icon { background: #b7791f; }
+.step-repeat .step-head { border-color: #f3d19c; background: #fffaf0; }
+.repeat-tag {
+  margin-left: .5rem;
+  padding: 0 .4rem;
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #7a4d00;
+  background: #fdecc8;
+}
+
+/* Phase 5: groundedness note under the totals. */
+.grounded {
+  margin-bottom: .5rem;
+  padding: .4rem .6rem;
+  border-radius: 6px;
+  font-size: .85rem;
+  color: #1e6b3a;
+  background: #e8f5ec;
+}
+.grounded-bad { color: #7a4d00; background: #fdf3dc; }

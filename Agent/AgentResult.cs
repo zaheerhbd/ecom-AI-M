@@ -25,6 +25,9 @@ namespace Agent
 
         /// <summary>The run used more tokens than MaxTokensPerMessage.</summary>
         public const string TokenBudget = "token-budget";
+
+        /// <summary>The model asked for more tools than MaxToolCallsPerRun allows.</summary>
+        public const string MaxToolCalls = "max-tool-calls";
     }
 
     /// <summary>
@@ -65,6 +68,12 @@ namespace Agent
 
         /// <summary>True when a tool returned an error.</summary>
         public bool IsError { get; set; }
+
+        /// <summary>
+        /// True when the model asked for a tool it had ALREADY called with the same arguments in this
+        /// answer. The tool is not run again; the model is told to use the earlier result.
+        /// </summary>
+        public bool IsRepeat { get; set; }
     }
 
     /// <summary>Everything about one answer: the text, plus how we got there and what it cost.</summary>
@@ -83,6 +92,7 @@ namespace Agent
             Steps = new List<AgentStep>();
             GuardrailChecks = new List<GuardrailCheck>();
             Sources = new List<AgentSource>();
+            MadeUpFacts = new List<string>();
         }
 
         /// <summary>The id of this run. The run record is saved under this id.</summary>
@@ -120,6 +130,15 @@ namespace Agent
 
         /// <summary>The products, policies or orders the answer is based on.</summary>
         public List<AgentSource> Sources { get; }
+
+        /// <summary>
+        /// GROUNDEDNESS: how many prices and stock numbers in the answer were found in the tool results
+        /// (or earlier in the conversation). See Groundedness.Check.
+        /// </summary>
+        public int GroundedFactCount { get; set; }
+
+        /// <summary>Prices or stock numbers in the answer that NO tool result backs up, e.g. "$19.99". Empty is good.</summary>
+        public List<string> MadeUpFacts { get; }
 
         /// <summary>Tokens sent TO the model, across all LLM calls. Tokens are how LLM providers charge.</summary>
         public int InputTokens { get; set; }

@@ -101,11 +101,20 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("FactsChecked")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("FinishedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("FlakyCases")
                         .HasColumnType("integer");
+
+                    b.Property<int>("MadeUpFacts")
+                        .HasColumnType("integer");
+
+                    b.Property<double?>("MadeUpRate")
+                        .HasColumnType("double precision");
 
                     b.Property<double>("MedianLatencyMs")
                         .HasColumnType("double precision");
@@ -197,12 +206,19 @@ namespace Infrastructure.Data.Migrations
                     b.Property<Guid?>("EvalRunId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("GroundedFactCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("GuardrailChecks")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<int>("InputTokens")
                         .HasColumnType("integer");
+
+                    b.Property<string>("MadeUpFacts")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("Model")
                         .IsRequired()

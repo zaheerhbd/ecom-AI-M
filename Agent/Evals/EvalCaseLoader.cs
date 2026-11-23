@@ -46,8 +46,21 @@ namespace Agent.Evals
                 if (!ids.Add(evalCase.Id))
                     throw new InvalidDataException("Two eval cases have the id '" + evalCase.Id + "'.");
 
-                if (string.IsNullOrWhiteSpace(evalCase.Input))
+                // A multi-turn case uses "turns" instead of "input". Input then shows the whole chat.
+                if (evalCase.IsMultiTurn)
+                {
+                    foreach (string turn in evalCase.Turns)
+                    {
+                        if (string.IsNullOrWhiteSpace(turn))
+                            throw new InvalidDataException("Eval case '" + evalCase.Id + "' has an empty turn.");
+                    }
+                    if (string.IsNullOrWhiteSpace(evalCase.Input))
+                        evalCase.Input = string.Join(" -> ", evalCase.Turns);
+                }
+                else if (string.IsNullOrWhiteSpace(evalCase.Input))
+                {
                     throw new InvalidDataException("Eval case '" + evalCase.Id + "' has no input.");
+                }
 
                 // JSON "null" for a list becomes null in C#; treat it as an empty list.
                 if (evalCase.MustContain == null)

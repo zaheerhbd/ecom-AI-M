@@ -63,6 +63,27 @@ namespace Agent.Evals
 
         /// <summary>How many times to run this case. Null = use the run's setting.</summary>
         public int? Repeat { get; set; }
+
+        /// <summary>
+        /// MULTI-TURN: messages sent one after another in ONE conversation, instead of Input.
+        /// The checks apply to the LAST answer. Tests memory, e.g. "Where's my last order?" -> "When will it arrive?".
+        /// </summary>
+        public List<string> Turns { get; set; }
+
+        /// <summary>The answer may run at most this many tools (repeats that were not run don't count). Null = no check.</summary>
+        public int? MaxToolCalls { get; set; }
+
+        /// <summary>True when the case has more than one message.</summary>
+        public bool IsMultiTurn
+        {
+            get { return Turns != null && Turns.Count > 0; }
+        }
+
+        /// <summary>The messages to send, in order: Turns, or just Input.</summary>
+        public List<string> Messages()
+        {
+            return IsMultiTurn ? new List<string>(Turns) : new List<string> { Input };
+        }
     }
 
     /// <summary>A tool the agent must call, and arguments the call must include.</summary>

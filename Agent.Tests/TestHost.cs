@@ -25,7 +25,7 @@ namespace Agent.Tests
         public const string Fallback = "FALLBACK ANSWER";
 
         /// <summary>Builds the services. Extra settings override the defaults.</summary>
-        public static ServiceProvider Build(FakeLlmClient fake, Dictionary<string, string> extraSettings = null)
+        public static ServiceProvider Build(FakeLlmClient fake, Dictionary<string, string> extraSettings = null, Action<AgentBuilder> extraTools = null)
         {
             Dictionary<string, string> settings = new Dictionary<string, string>
             {
@@ -51,9 +51,11 @@ namespace Agent.Tests
             // Registered BEFORE AddAgent: the engine uses TryAdd, so it keeps this scripted fake.
             services.AddSingleton<ILlmClient>(fake);
 
-            services.AddAgent(config)
+            AgentBuilder builder = services.AddAgent(config)
                     .AddTool<EchoTool>()
                     .AddTool<MyOrdersTool>();
+            if (extraTools != null)
+                extraTools(builder);
 
             return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         }

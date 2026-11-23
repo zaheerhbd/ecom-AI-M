@@ -3,7 +3,9 @@
 //            or:  POST api/agent/evals { "caseIds": ["TC-001"], "repeat": 1 }   (start small)
 //
 // Fields: id, category, input, expectedTools [{ name, args }], mustContain, mustNotContain,
-// shouldBlock, shouldClarify, shouldDecline, signedInAs, repeat. See Agent/Evals/EvalCase.cs.
+// shouldBlock, shouldClarify, shouldDecline, signedInAs, repeat, turns (multi-turn, instead of input),
+// maxToolCalls. Every answer with a price or stock number is also checked for groundedness.
+// See Agent/Evals/EvalCase.cs.
 // expectedTools left out = tools are not checked; [] = no tool may be called.
 [
   // ---------------------------------------------------------------- Ported from docs/ai-retrieval-test-cases.csv
@@ -111,5 +113,20 @@
   { "id": "OR-002", "category": "Orders", "input": "Show me my orders", "signedInAs": "bob@test.com",
     "expectedTools": [ { "name": "get_my_orders" } ] },
   { "id": "OR-003", "category": "Orders", "input": "What's in order 999999?", "signedInAs": "bob@test.com",
-    "expectedTools": [ { "name": "get_order", "args": { "orderId": 999999 } } ] }
+    "expectedTools": [ { "name": "get_order", "args": { "orderId": 999999 } } ] },
+  // OR-004 / OR-005 need bob's local test order: docs/agentic/dev/seed-test-order.sql
+  { "id": "OR-004", "category": "Orders", "input": "What's in my last order?", "signedInAs": "bob@test.com",
+    "expectedTools": [ { "name": "get_my_orders" } ], "mustContain": [ "Angular Speedster" ] },
+
+  // ---------------------------------------------------------------- Multi-turn (Phase 5): checks apply to the LAST answer
+  { "id": "MM-001", "category": "Multi-turn", "signedInAs": "bob@test.com",
+    "turns": [ "Where's my last order?", "When will it arrive?" ], "mustContain": [ "2-5" ] },
+  { "id": "MM-002", "category": "Multi-turn",
+    "turns": [ "Show me red gloves under $50", "Which of those is the cheapest?" ], "mustNotContain": [ "which gloves" ] },
+
+  // ---------------------------------------------------------------- Loop control (Phase 5)
+  { "id": "LC-001", "category": "Loop control", "input": "Show me hats from the brand Acmeco",
+    "shouldDecline": true, "mustNotContain": [ "Acmeco hat" ] },
+  { "id": "LC-002", "category": "Loop control", "input": "Check the delivery options twice to be sure, then tell me the cheapest one.",
+    "expectedTools": [ { "name": "get_delivery_options" } ], "maxToolCalls": 1, "mustContain": [ "free" ] }
 ]

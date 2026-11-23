@@ -83,6 +83,19 @@ namespace Agent.Tools
             return definitions;
         }
 
+        /// <summary>The tool with this name, or null if there is none.</summary>
+        public ITool Find(string name)
+        {
+            ITool tool;
+            return name != null && _tools.TryGetValue(name, out tool) ? tool : null;
+        }
+
+        /// <summary>How long a tool may run before it is cancelled.</summary>
+        public TimeSpan Timeout
+        {
+            get { return _timeout; }
+        }
+
         /// <summary>Runs the tool the model asked for. Never throws for tool problems; returns error text instead.</summary>
         public async Task<ToolExecutionResult> ExecuteAsync(ToolCall call, AgentRequestContext context, CancellationToken cancellationToken)
         {

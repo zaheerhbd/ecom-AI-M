@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Agent.Evals;
 using Agent.Guardrails;
 using Agent.Llm;
 using Agent.Memory;
@@ -161,16 +164,26 @@ namespace Agent
             history.Add(ChatMessage.UserMessage(input.Text)); // the CLEANED text (PII masked)
 
             // ---- STEP 3: THE AGENT LOOP (think -> act -> observe) ----------------------
-            string finalAnswer = await RunAgentLoopAsync(history, result, cancellationToken);
+            TurnState turn = new TurnState();
+            string finalAnswer = await RunAgentLoopAsync(history, result, turn, cancellationToken);
 
             // ---- STEP 4: OUTPUT GUARDRAILS ----------------------------------------------
             GuardrailPipelineResult output = RunGuardrails(_guardrails.Output, finalAnswer, result);
             if (output.Allowed)
+            {
                 result.Answer = output.Text;
+                CheckGroundedness(history, result);
+            }
             else
+            {
                 Block(result, output.BlockedBy, output.Reason, GuardrailStages.Output);
+            }
 
             // ---- STEP 5: SAVE MEMORY ----------------------------------------------------
+            // Old tool results are replaced by short stubs first (they are re-sent with every later question).
+            if (_options.ShrinkOldToolResults)
+                ShrinkToolResults(history, turn);
+
             // Store what the USER actually saw, so a blocked answer never re-enters the conversation.
             ChatMessage lastMessage = history[history.Count - 1];
             if (lastMessage.Role == ChatRole.Assistant && lastMessage.ToolCalls == null)
@@ -185,7 +198,7 @@ namespace Agent
         /// Asks the model what to do, runs any tools it asks for, and repeats until the model
         /// gives a final answer or we hit a safety limit. Returns the final answer text.
         /// </summary>
-        private async Task<string> RunAgentLoopAsync(List<ChatMessage> history, AgentResult result, CancellationToken cancellationToken)
+        private async Task<string> RunAgentLoopAsync(List<ChatMessage> history, AgentResult result, TurnState turn, CancellationToken cancellationToken)
         {
             // Work out once which tools this user may see. Sign-in tools are hidden from anonymous users.
             IReadOnlyList<ToolDefinition> tools = _tools.GetDefinitions(_context);
@@ -210,7 +223,15 @@ namespace Agent
 
                 // ACT + OBSERVE: run each requested tool and give the results back to the model.
                 // Tools run ONE AFTER ANOTHER, never in parallel: they share one database context.
-                await RunRequestedToolsAsync(reply.ToolCalls, history, result, cancellationToken);
+                await RunRequestedToolsAsync(reply.ToolCalls, history, result, turn, cancellationToken);
+
+                // Too many tool calls in one answer: stop safely (every call still got a result above).
+                if (turn.HitToolCallLimit)
+                {
+                    _logger.LogWarning("Max tool calls ({MaxToolCalls}) reached for session {SessionId}", _options.MaxToolCallsPerRun, result.SessionId);
+                    result.StopReason = AgentStopReasons.MaxToolCalls;
+                    return "Sorry, that needed more lookups than I'm allowed to do in one answer. Could you ask about fewer things at once?";
+                }
                 // ...then loop: the model reads the tool results and decides what's next.
             }
 
@@ -271,22 +292,156 @@ namespace Agent
             return response.Message;
         }
 
-        /// <summary>Runs every tool the model asked for, one after another, and adds each result to the history.</summary>
-        private async Task RunRequestedToolsAsync(IReadOnlyList<ToolCall> toolCalls, List<ChatMessage> history, AgentResult result, CancellationToken cancellationToken)
+        /// <summary>
+        /// Runs every tool the model asked for, one after another, and adds each result to the history.
+        /// LOOP CONTROL (BRD R11):
+        ///  - a call identical to an earlier one in this answer (same tool, same arguments) is NOT run
+        ///    again: the model is told to use the earlier result, and the step is marked IsRepeat;
+        ///  - after MaxToolCallsPerRun calls, the rest are not run and the loop stops.
+        /// Every call still gets a tool result in the history, because the API rejects a tool
+        /// request without an answer.
+        /// </summary>
+        private async Task RunRequestedToolsAsync(IReadOnlyList<ToolCall> toolCalls, List<ChatMessage> history, AgentResult result,
+            TurnState turn, CancellationToken cancellationToken)
         {
             foreach (ToolCall call in toolCalls)
             {
+                AgentStep toolStep;
+
+                // ---- Limit reached: answer the call without running it ----
+                if (turn.ToolCallCount >= _options.MaxToolCallsPerRun)
+                {
+                    turn.HitToolCallLimit = true;
+                    history.Add(ChatMessage.ToolResult(call.Id, "Not run: the limit of " + _options.MaxToolCallsPerRun + " tool calls per answer was reached."));
+                    toolStep = NewStep(result, AgentStepTypes.Tool, call.Name);
+                    toolStep.Input = MaskForRecord(call.ArgumentsJson);
+                    toolStep.Output = "Not run: tool call limit (" + _options.MaxToolCallsPerRun + ") reached.";
+                    toolStep.IsError = true;
+                    continue;
+                }
+
+                turn.ToolCallCount++;
+
+                // ---- Repeat: same tool, same arguments, in this same answer ----
+                string key = ToolCallKey(call);
+                if (turn.SeenCalls.Contains(key))
+                {
+                    history.Add(ChatMessage.ToolResult(call.Id,
+                        "You already called " + call.Name + " with these arguments in this answer. Use the earlier result instead of calling it again."));
+                    toolStep = NewStep(result, AgentStepTypes.Tool, call.Name);
+                    toolStep.Input = MaskForRecord(call.ArgumentsJson);
+                    toolStep.Output = "Repeated call: not run again, the model was told to use the earlier result.";
+                    toolStep.IsRepeat = true;
+                    continue;
+                }
+
+                turn.SeenCalls.Add(key);
                 ToolExecutionResult toolResult = await _tools.ExecuteAsync(call, _context, cancellationToken);
 
                 // The model gets the FULL result; the saved step gets a masked, shortened copy.
+                turn.ToolResultSlots.Add(new ToolResultSlot(history.Count, call.Id, call.Name));
                 history.Add(ChatMessage.ToolResult(call.Id, toolResult.Output));
                 result.ToolsUsed.Add(call.Name);
 
-                AgentStep toolStep = NewStep(result, AgentStepTypes.Tool, call.Name);
+                toolStep = NewStep(result, AgentStepTypes.Tool, call.Name);
                 toolStep.Input = MaskForRecord(call.ArgumentsJson);
                 toolStep.Output = MaskForRecord(toolResult.Output);
                 toolStep.DurationMs = Math.Round(toolResult.DurationMs, 1);
                 toolStep.IsError = !toolResult.Success;
+            }
+        }
+
+        /// <summary>
+        /// GROUNDEDNESS: are the prices and stock numbers in the answer backed by data? The evidence is
+        /// this answer's full tool results plus the earlier conversation (not the system prompt, and not
+        /// the answer itself). See Evals/Groundedness.cs.
+        /// </summary>
+        private static void CheckGroundedness(List<ChatMessage> history, AgentResult result)
+        {
+            List<string> evidence = new List<string>();
+            int last = history.Count - 1;
+            bool lastIsAnswer = last >= 0 && history[last].Role == ChatRole.Assistant && history[last].ToolCalls == null;
+            for (int i = 1; i < history.Count; i++) // history[0] is the system prompt
+            {
+                if (i == last && lastIsAnswer)
+                    continue;
+                evidence.Add(history[i].Content);
+            }
+
+            GroundednessResult check = Groundedness.Check(result.Answer, evidence);
+            result.GroundedFactCount = check.GroundedCount;
+            result.MadeUpFacts.AddRange(check.MadeUp);
+        }
+
+        /// <summary>Replaces this answer's tool results in the history with short stubs that keep the ids.</summary>
+        private void ShrinkToolResults(List<ChatMessage> history, TurnState turn)
+        {
+            foreach (ToolResultSlot slot in turn.ToolResultSlots)
+            {
+                ChatMessage original = history[slot.HistoryIndex];
+                string stub = ToolResultSummariser.Summarise(_tools.Find(slot.ToolName), slot.ToolName, original.Content);
+                history[slot.HistoryIndex] = ChatMessage.ToolResult(slot.ToolCallId, stub);
+            }
+        }
+
+        /// <summary>"tool name + arguments with the keys sorted", so {"a":1,"b":2} and {"b":2,"a":1} count as the same call.</summary>
+        internal static string ToolCallKey(ToolCall call)
+        {
+            string name = (call.Name ?? "").ToLowerInvariant();
+            string json = string.IsNullOrWhiteSpace(call.ArgumentsJson) ? "{}" : call.ArgumentsJson;
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(json))
+                {
+                    StringBuilder builder = new StringBuilder();
+                    WriteSorted(document.RootElement, builder);
+                    return name + " " + builder;
+                }
+            }
+            catch (JsonException)
+            {
+                return name + " " + json.Trim();
+            }
+        }
+
+        /// <summary>Writes JSON with object keys in alphabetical order (lower-cased), and text values lower-cased.</summary>
+        private static void WriteSorted(JsonElement element, StringBuilder builder)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    List<JsonProperty> properties = new List<JsonProperty>(element.EnumerateObject());
+                    properties.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+                    builder.Append('{');
+                    for (int i = 0; i < properties.Count; i++)
+                    {
+                        if (i > 0)
+                            builder.Append(',');
+                        builder.Append(properties[i].Name.ToLowerInvariant()).Append(':');
+                        WriteSorted(properties[i].Value, builder);
+                    }
+                    builder.Append('}');
+                    break;
+
+                case JsonValueKind.Array:
+                    builder.Append('[');
+                    int index = 0;
+                    foreach (JsonElement item in element.EnumerateArray())
+                    {
+                        if (index++ > 0)
+                            builder.Append(',');
+                        WriteSorted(item, builder);
+                    }
+                    builder.Append(']');
+                    break;
+
+                case JsonValueKind.String:
+                    builder.Append('"').Append(element.GetString().Trim().ToLowerInvariant()).Append('"');
+                    break;
+
+                default:
+                    builder.Append(element.GetRawText());
+                    break;
             }
         }
 
@@ -462,6 +617,43 @@ namespace Agent
                 trimmed.Add(history[i]);
 
             return trimmed;
+        }
+
+        /// <summary>What the loop keeps track of while answering ONE message.</summary>
+        private sealed class TurnState
+        {
+            public TurnState()
+            {
+                SeenCalls = new HashSet<string>(StringComparer.Ordinal);
+                ToolResultSlots = new List<ToolResultSlot>();
+            }
+
+            /// <summary>Tool calls asked for so far in this answer (repeats included).</summary>
+            public int ToolCallCount { get; set; }
+
+            /// <summary>True once a call was refused because of MaxToolCallsPerRun.</summary>
+            public bool HitToolCallLimit { get; set; }
+
+            /// <summary>ToolCallKey of every call that really ran.</summary>
+            public HashSet<string> SeenCalls { get; }
+
+            /// <summary>Where this answer's tool results sit in the history, so they can be shrunk later.</summary>
+            public List<ToolResultSlot> ToolResultSlots { get; }
+        }
+
+        /// <summary>One tool result in the history: its position, call id and tool name.</summary>
+        private sealed class ToolResultSlot
+        {
+            public ToolResultSlot(int historyIndex, string toolCallId, string toolName)
+            {
+                HistoryIndex = historyIndex;
+                ToolCallId = toolCallId;
+                ToolName = toolName;
+            }
+
+            public int HistoryIndex { get; }
+            public string ToolCallId { get; }
+            public string ToolName { get; }
         }
     }
 }

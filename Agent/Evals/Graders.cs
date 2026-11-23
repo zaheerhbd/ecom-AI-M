@@ -84,8 +84,43 @@ namespace Agent.Evals
             if (evalCase.ShouldDecline)
                 checks.Add(new EvalCheck("declines or says it doesn't know", ContainsAny(answer, DeclinePhrases), ""));
 
+            // A cap on how many tools really ran (repeats the agent refused to run again don't count).
+            if (evalCase.MaxToolCalls.HasValue)
+            {
+                int ran = CountToolsThatRan(result);
+                checks.Add(new EvalCheck("ran at most " + evalCase.MaxToolCalls.Value + " tool call(s)", ran <= evalCase.MaxToolCalls.Value, "ran " + ran));
+            }
+
+            // GROUNDEDNESS: every price / stock number must come from data (checked by the runner).
+            // Only added when the answer has such a number, so "no numbers" is neither a pass nor a fail.
+            if (!result.Blocked && result.GroundedFactCount + result.MadeUpFacts.Count > 0)
+            {
+                bool grounded = result.MadeUpFacts.Count == 0;
+                string detail = grounded
+                    ? result.GroundedFactCount + " checked"
+                    : "made up: " + string.Join(", ", result.MadeUpFacts);
+                checks.Add(new EvalCheck(GroundedCheckName, grounded, detail));
+            }
+
             checks.Add(new EvalCheck("no crash", result.Error == null, result.Error));
             return checks;
+        }
+
+        /// <summary>The name of the groundedness check.</summary>
+        public const string GroundedCheckName = "prices and stock numbers come from data";
+
+        /// <summary>Tool steps that really ran: not a refused repeat and not stopped by the tool-call limit.</summary>
+        internal static int CountToolsThatRan(AgentResult result)
+        {
+            int count = 0;
+            foreach (AgentStep step in result.Steps)
+            {
+                if (step.Type == AgentStepTypes.Tool && !step.IsRepeat
+                    && !(step.Output != null && step.Output.StartsWith("Not run:", StringComparison.Ordinal)))
+                    count++;
+            }
+
+            return count;
         }
 
         /// <summary>True when the "tools" checks of a graded attempt all passed (used for the correct-tool rate).</summary>

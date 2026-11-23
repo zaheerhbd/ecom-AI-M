@@ -62,7 +62,8 @@ namespace Agent
 
             // ---- Scoped: one per request ----
             services.TryAddScoped<AgentRequestContext>();
-            services.TryAddScoped(provider => new ToolRegistry(provider.GetServices<ITool>()));
+            services.TryAddScoped(provider => new ToolRegistry(provider.GetServices<ITool>(),
+                TimeSpan.FromSeconds(provider.GetRequiredService<IOptions<AgentOptions>>().Value.ToolTimeoutSeconds)));
             services.TryAddScoped<AgentRunner>();
 
             return new AgentBuilder(services);
@@ -86,6 +87,10 @@ namespace Agent
                 options.MaxSteps = 1;
             if (options.MaxHistoryMessages < 2)
                 options.MaxHistoryMessages = 2;
+            if (options.MaxToolCallsPerRun < 1)
+                options.MaxToolCallsPerRun = 1;
+            if (options.ToolTimeoutSeconds < 1)
+                options.ToolTimeoutSeconds = 1;
         }
 
         /// <summary>LLM: fake or real, chosen by Agent:Llm:Provider. Fails at startup if the settings can't work.</summary>

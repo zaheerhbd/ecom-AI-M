@@ -18,6 +18,9 @@ namespace Agent
             MaxHistoryMessages = 20;
             MaxInputChars = 2000;
             Temperature = null;
+            MaxToolCallsPerRun = 10;
+            ToolTimeoutSeconds = 10;
+            ShrinkOldToolResults = true;
             Pricing = new AgentPricing();
             Evals = new AgentEvalOptions();
         }
@@ -52,6 +55,23 @@ namespace Agent
 
         /// <summary>Longest user message we accept, in characters.</summary>
         public int MaxInputChars { get; set; }
+
+        /// <summary>
+        /// Max tool calls in one answer, across all steps. MaxSteps limits the ROUNDS, but one round can
+        /// ask for many tools at once, so this is a second cap on work (and database load).
+        /// </summary>
+        public int MaxToolCallsPerRun { get; set; }
+
+        /// <summary>How long one tool may run before it is cancelled, in seconds.</summary>
+        public int ToolTimeoutSeconds { get; set; }
+
+        /// <summary>
+        /// True (the default) = when an answer is finished, its tool results are replaced in the saved
+        /// conversation by short stubs that keep the ids, e.g. "[search_products: 10 items, ids 12, 45]".
+        /// The answer the user saw already holds the facts, so later questions don't pay for the full
+        /// results again. False = keep everything (only useful to measure the difference).
+        /// </summary>
+        public bool ShrinkOldToolResults { get; set; }
 
         /// <summary>
         /// 0 = predictable, 1 = creative. Null (the default) means "don't send it at all",

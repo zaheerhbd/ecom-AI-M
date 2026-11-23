@@ -20,6 +20,7 @@ namespace Agent.Runs
             Steps = new List<AgentStep>();
             GuardrailChecks = new List<GuardrailCheck>();
             Sources = new List<AgentSource>();
+            MadeUpFacts = new List<string>();
         }
 
         /// <summary>The run id (the same as AgentResult.RunId).</summary>
@@ -85,6 +86,12 @@ namespace Agent.Runs
         /// <summary>Set when the run was part of an eval.</summary>
         public Guid? EvalRunId { get; set; }
 
+        /// <summary>Prices / stock numbers in the answer that the tool results back up.</summary>
+        public int GroundedFactCount { get; set; }
+
+        /// <summary>Prices / stock numbers in the answer that NO tool result backs up.</summary>
+        public List<string> MadeUpFacts { get; set; }
+
         /// <summary>Builds a record from a finished run and the request it belonged to.</summary>
         public static AgentRunRecord FromResult(AgentResult result, AgentRequestContext context)
         {
@@ -110,6 +117,8 @@ namespace Agent.Runs
             record.GuardrailChecks = new List<GuardrailCheck>(result.GuardrailChecks);
             record.Sources = new List<AgentSource>(result.Sources);
             record.EvalRunId = context.EvalRunId;
+            record.GroundedFactCount = result.GroundedFactCount;
+            record.MadeUpFacts = new List<string>(result.MadeUpFacts);
             return record;
         }
     }

@@ -107,6 +107,12 @@
             <div class="value" [class.text-success]="current.passRate === 1">{{current.passRate | percent:'1.0-0'}}</div>
             <div class="label">{{current.passedCases}} of {{current.completedCases}} cases passed</div>
           </div>
+          <div class="stat" *ngIf="current.madeUpRate !== null && current.madeUpRate !== undefined"
+               title="Prices and stock numbers in the answers that no tool result backs up. Target: 2% or less.">
+            <div class="value" [class.text-success]="current.madeUpRate <= 0.02" [class.text-warning]="current.madeUpRate > 0.02">
+              {{current.madeUpRate | percent:'1.0-1'}}</div>
+            <div class="label">made-up prices/stock ({{current.madeUpFacts}} of {{current.factsChecked}})</div>
+          </div>
           <div class="stat">
             <div class="value">{{current.correctToolRate | percent:'1.0-0'}}</div>
             <div class="label">picked the right tool</div>

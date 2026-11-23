@@ -158,6 +158,8 @@ namespace Agent.Evals
             output.WriteLine("Cases passed every time: " + run.PassedCases + "/" + run.TotalCases + ", flaky: " + run.FlakyCases);
             if (run.CorrectToolRate.HasValue)
                 output.WriteLine("Correct-tool rate: " + Percent(run.CorrectToolRate.Value));
+            if (run.MadeUpRate.HasValue)
+                output.WriteLine("Made-up prices/stock numbers: " + run.MadeUpFacts + " of " + run.FactsChecked + " (" + Percent(run.MadeUpRate.Value) + ")");
             output.WriteLine("Latency: median " + run.MedianLatencyMs.ToString("F0", CultureInfo.InvariantCulture) + " ms, p95 "
                 + run.P95LatencyMs.ToString("F0", CultureInfo.InvariantCulture) + " ms. Median tokens: " + run.MedianTokens.ToString("F0", CultureInfo.InvariantCulture));
             output.WriteLine("Estimated cost: $" + run.TotalCostUsd.ToString("F4", CultureInfo.InvariantCulture));

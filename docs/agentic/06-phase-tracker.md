@@ -10,8 +10,8 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 | 1 | Agent engine project | ✅ | 2026-11-16 | 2026-11-16 | 2026-11-19 | Built and tested (38/38). Approved and committed when the owner said "commit phase 1". Report: [phase-1-report.html](reports/phase-1-report.html) |
 | 2 | Schema and seed | ✅ | 2026-11-19 | 2026-11-19 | 2026-11-21 | Local DB migrated + seeded (1,018 products), seed idempotent. Committed and pushed with the owner's OK. Report: [phase-2-report.html](reports/phase-2-report.html) |
 | 3 | Tools and API | ✅ | 2026-11-21 | 2026-11-22 | 2026-11-22 | 7 tools, 8 endpoints, rate limit, Admin role, 51 eval cases, Gemini provider (default) + OpenAI switch. Smoke-tested; full eval not run. Committed when the owner said "commit phase 3". Report: [phase-3-report.html](reports/phase-3-report.html) |
-| 4 | Angular 11 UI | 🟨 | 2026-11-22 | 2026-11-22 | – | Lazy `/agent` module: chat + step timeline, runs + detail, evals (start + progress + results), how it works; "Assistant" nav link. Builds clean; tested in headless Chrome (anonymous + signed in, quick eval 3/3). Waiting for code review. Report: [phase-4-report.html](reports/phase-4-report.html) |
-| 5 | End to end, comparison, loop-control improvements | ⬜ | | | | Owner decides on retiring `AiChatService`; then R11 loop control (steps 5.5–5.7) and R12 tool-result shrinking + two-turn eval (5.8–5.9), groundedness check + first baseline (5.10–5.11) |
+| 4 | Angular 11 UI | ✅ | 2026-11-22 | 2026-11-22 | 2026-11-22 | Lazy `/agent` module: chat + step timeline, runs + detail, evals, how it works; "Assistant" nav link. Tested in headless Chrome. Committed as `47cb92a` and pushed when the owner said "commit push". Report: [phase-4-report.html](reports/phase-4-report.html) |
+| 5 | End to end, comparison, loop-control improvements | 🟨 | 2026-11-22 | 2026-11-22 | – | R11 loop control, R12 shrinking, groundedness (S8), multi-turn evals, 56 cases, tests 57/57. **Measured runs not done** (Gemini free = 20 calls/day; owner declined paid runs); old-chat comparison skipped by the owner. Waiting for code review. Results: [07-results.md](07-results.md). Report: [phase-5-report.html](reports/phase-5-report.html) |
 | 6 | Production rollout | ⬜ | | | | Cloud DB first, then live index from the cloud DB ([04 §7](04-database-and-seed.md#7-production-rollout-cloud-database-then-index)). Each step only when the owner says so. Then App Insights traces (6.7) |
 
 ## Documents
@@ -28,7 +28,7 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 | 08 | [08-adr-why-build.md](08-adr-why-build.md) | ADR: why build our own engine instead of Semantic Kernel / Agent Framework / Microsoft.Extensions.AI |
 | 09 | [09-write-actions-design.md](09-write-actions-design.md) | Design only: "add to basket" with human approval, undo and audit |
 
-(07 is reserved for `07-results.md`, written in Phase 5.)
+| 07 | [07-results.md](07-results.md) | Phase 5 results: what is measured, what is still to run |
 
 ## Decisions waiting for the owner
 
@@ -101,3 +101,15 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 - Not tested in the browser: 429 notice, production admin-only messages (API side tested in Phase 3). No Angular unit tests added.
 - No API, database or settings changes.
 - Report: [reports/phase-4-report.html](reports/phase-4-report.html). Also new on 2026-11-22: [reports/agent-architecture.html](reports/agent-architecture.html) (solution design). Not committed.
+- 2026-11-22: owner said "commit push". Committed as `47cb92a` (with `agent-architecture.html`) and pushed.
+
+### Phase 5 – Loop control, memory, groundedness (2026-11-22)
+- Owner decisions: skip the old-chat comparison (5.3/5.4); baseline on free Gemini. Gemini's free tier turned out to be **20 requests/day per model**, used up today, so the owner chose **not to run** paid OpenAI evals: 5.2/5.11 (scores, S1–S9, baseline) are ready but not run.
+- 5.5 `MaxToolCallsPerRun` (10), `ToolTimeoutSeconds` (10, now from config), identical calls (tool + sorted args) not run again (`AgentStep.IsRepeat`), stop reason `max-tool-calls`; every refused call still gets a tool result so the chat stays valid.
+- 5.6 Timeline: repeats amber, groundedness note, new stop reason; Evals page: made-up-rate card.
+- 5.7 Cases `LC-001` (unknown brand → recovers), `LC-002` (`maxToolCalls` 1).
+- 5.8 `ToolResultSummariser` + optional `ISummarisingTool`; `ShrinkOldToolResults` (default on). Fake-model measure: −182 input tokens (−16%) per later message.
+- 5.9 `turns` in eval cases (one session, last answer graded); `OR-004`, `MM-001`, `MM-002`; local test order for bob via `docs/agentic/dev/seed-test-order.sql`.
+- 5.10 `Groundedness` (regex, no LLM): `GroundedFactCount` / `MadeUpFacts` on runs, `FactsChecked` / `MadeUpFacts` / `MadeUpRate` on eval runs; eval check only when an answer has a price/stock number. Migration `AgentGroundedness` (local DB applied; cloud in Phase 6).
+- Results: build 0 errors, `Agent.Tests` 57/57 (14 new; one old test adjusted for repeat detection), `ng build` 0 errors. Live Gemini check of the new cases: HTTP 429 (quota). Not committed.
+- Report: [reports/phase-5-report.html](reports/phase-5-report.html). Results: [07-results.md](07-results.md).
