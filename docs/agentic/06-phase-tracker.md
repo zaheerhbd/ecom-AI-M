@@ -111,5 +111,11 @@ Update this file at the end of every phase. Status values: ⬜ Not started · �
 - 5.8 `ToolResultSummariser` + optional `ISummarisingTool`; `ShrinkOldToolResults` (default on). Fake-model measure: −182 input tokens (−16%) per later message.
 - 5.9 `turns` in eval cases (one session, last answer graded); `OR-004`, `MM-001`, `MM-002`; local test order for bob via `docs/agentic/dev/seed-test-order.sql`.
 - 5.10 `Groundedness` (regex, no LLM): `GroundedFactCount` / `MadeUpFacts` on runs, `FactsChecked` / `MadeUpFacts` / `MadeUpRate` on eval runs; eval check only when an answer has a price/stock number. Migration `AgentGroundedness` (local DB applied; cloud in Phase 6).
-- Results: build 0 errors, `Agent.Tests` 57/57 (14 new; one old test adjusted for repeat detection), `ng build` 0 errors. Live Gemini check of the new cases: HTTP 429 (quota). Not committed.
+- Results: build 0 errors, `Agent.Tests` 57/57 (14 new; one old test adjusted for repeat detection), `ng build` 0 errors. Live Gemini check of the new cases: HTTP 429 (quota). Committed + pushed as `7693cb0` (2026-11-22).
 - Report: [reports/phase-5-report.html](reports/phase-5-report.html). Results: [07-results.md](07-results.md).
+
+### Phase 6 – Production rollout (started 2026-11-23)
+- Before 6.1, Container App settings (owner, via portal): `Gemini__ApiKey` → secret `gemini-api-key`; `Agent__Llm__Provider` = Gemini; `Gemini__Model` = gemini-3.5-flash; `Agent__AdminEmails__0` = owner's email. Revision `--0000021` healthy. No effect until the new image is deployed (6.2).
+- Found: all other Container App settings (connection strings, `Token__Key`, `OpenAI__ApiKey`, `AzureSearch__ApiKey`) are plain values, not secrets. Works; move to secrets later (loose end).
+- **6.1 backup (2026-11-23):** Azure point-in-time restore point **2026-11-23T05:23:23Z** (automatic backups, 7 days kept). `pg_dump` (v18, via the local Docker container, `sslmode=require`) → `C:\Backups\skinet-before-phase6.sql` (13,940 bytes) and `C:\Backups\identity-before-phase6.sql` (13,186 bytes), both complete. Temporary firewall rule for the laptop IP added and removed again.
+- Cloud state before rollout — `skinet`: Products 18, ProductBrands 6, ProductTypes 4, DeliveryMethods 4, Orders 0, OrderItems 0; last migration `20210226053111_PostGres initial` (the Phase 2 and Phase 5 migrations are not there yet). `identity`: Users 4, Roles 0; last migration `20210226053226_PostGres identity initial`.

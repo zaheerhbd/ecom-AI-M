@@ -1,8 +1,8 @@
 # HANDOFF: AI agent for eCOM-AI-M
 
-> **Last updated:** 2026-11-22 23:45 EST
-> **Status:** Phases 1–4 committed + pushed (Phase 4 = `47cb92a`). **Phase 5 code (loop control, tool-result shrinking, groundedness, multi-turn evals) is built and unit-tested (57/57), NOT committed, waiting for the owner's code review.** The measured eval runs (×5 baseline, S1–S9) were **not run**: Gemini's free tier is only 20 requests/day and the owner declined paid OpenAI runs for now. The old-chat comparison was skipped by the owner.
-> **Next action:** ask the owner the open questions in **§2a** (review/commit Phase 5; LLM for production; run the baseline before going live?). Then wait for "start Phase 6" and follow **§2b (Phase 6 brief)**: every step is outward-facing, one at a time with the owner's OK. Do **not** merge `feature/agentic-ai` into `main` before Phase 6 step 6.1 (backup) is done.
+> **Last updated:** 2026-11-22 23:50 EST
+> **Status:** Phases 1–4 committed + pushed. **Phase 5 committed + pushed** (`7693cb0`). Gemini set as production LLM; the owner's admin email is set as `Agent__AdminEmails__0` in the Container App (not in git). The measured eval runs (×5 baseline, S1–S9) were **not run**: Gemini's free tier is only 20 requests/day and the owner declined paid OpenAI runs for now. The old-chat comparison was skipped by the owner.
+> **Next action:** wait for "start Phase 6" and follow **§2b (Phase 6 brief)**: every step is outward-facing, one at a time with the owner's OK. Do **not** merge `feature/agentic-ai` into `main` before Phase 6 step 6.1 (backup) is done.
 
 This is the **single entry point** for any new session, whether Claude Code, Codex or another assistant. Read it fully before doing anything, then read the docs it points to. **Update it at the end of every session**: the "Last updated" line, Status, Next action and the session log at the bottom.
 
