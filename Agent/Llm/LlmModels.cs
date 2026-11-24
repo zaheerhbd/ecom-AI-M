@@ -179,12 +179,46 @@ namespace Agent.Llm
         public int OutputTokens { get; }
     }
 
+    /// <summary>
+    /// How an LLM call failed, so the UI can tell the user WHY the assistant could not answer
+    /// (quota used up, subscription/key problem, provider down) instead of a generic error.
+    /// </summary>
+    public enum LlmFailureKind
+    {
+        /// <summary>Anything we could not place in a more specific bucket.</summary>
+        Other = 0,
+
+        /// <summary>HTTP 429 or an "exhausted/quota" message: a free-tier or rate limit was hit.</summary>
+        QuotaExceeded,
+
+        /// <summary>HTTP 401/402/403: the API key is missing, invalid, expired, or has no active subscription.</summary>
+        Authentication,
+
+        /// <summary>HTTP 5xx or a network failure: the provider is down or unreachable right now.</summary>
+        ServiceUnavailable
+    }
+
     /// <summary>Thrown when the LLM provider fails in a way retrying won't fix.</summary>
     public sealed class LlmException : Exception
     {
-        /// <summary>Creates the exception with a helpful message.</summary>
-        public LlmException(string message) : base(message)
+        /// <summary>Creates the exception with a helpful message (kind defaults to Other).</summary>
+        public LlmException(string message) : this(message, LlmFailureKind.Other, null)
         {
         }
+
+        /// <summary>Creates the exception with a technical message, a kind, and a message safe to show the user.</summary>
+        public LlmException(string message, LlmFailureKind kind, string userMessage) : base(message)
+        {
+            Kind = kind;
+            UserMessage = string.IsNullOrWhiteSpace(userMessage)
+                ? "The AI service is currently unavailable. Please try again in a moment."
+                : userMessage;
+        }
+
+        /// <summary>Why the call failed, for the UI to react to.</summary>
+        public LlmFailureKind Kind { get; }
+
+        /// <summary>A short, safe sentence to show the user (never contains keys or stack traces).</summary>
+        public string UserMessage { get; }
     }
 }
