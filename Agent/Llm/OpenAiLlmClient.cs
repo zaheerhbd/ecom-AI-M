@@ -70,7 +70,29 @@ namespace Agent.Llm
                     httpRequest.Content = new StringContent(body, Encoding.UTF8, "application/json");
                     AddAuthHeader(httpRequest);
 
-                    using (HttpResponseMessage response = await _http.SendAsync(httpRequest, cancellationToken))
+                    HttpResponseMessage response;
+                    try
+                    {
+                        response = await _http.SendAsync(httpRequest, cancellationToken);
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        // Could not reach the provider at all (DNS, connection refused, TLS...).
+                        // Retry a few times, then report it as "service unavailable".
+                        if (attempt <= _options.MaxRetries)
+                        {
+                            TimeSpan delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+                            _logger.LogWarning(ex, "Could not reach the LLM provider. Retry {Attempt}/{Max} in {Delay}s",
+                                attempt, _options.MaxRetries, delay.TotalSeconds);
+                            await Task.Delay(delay, cancellationToken);
+                            continue;
+                        }
+
+                        throw new LlmException("Could not reach the LLM provider: " + ex.Message,
+                            LlmFailureKind.ServiceUnavailable, UserMessageFor(LlmFailureKind.ServiceUnavailable));
+                    }
+
+                    using (response)
                     {
                         string responseText = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -88,10 +110,49 @@ namespace Agent.Llm
                             continue;
                         }
 
-                        // Not worth retrying (bad API key, bad request...). Fail loudly with a useful message.
-                        throw new LlmException("LLM call failed with HTTP " + statusCode + ": " + Truncate(responseText, 300));
+                        // Not worth retrying (or retries are used up). Fail with a message the UI can
+                        // turn into a clear reason: quota used up, key/subscription problem, or provider down.
+                        LlmFailureKind kind = ClassifyFailure(response.StatusCode);
+                        throw new LlmException(
+                            "LLM call failed with HTTP " + statusCode + ": " + Truncate(responseText, 300),
+                            kind,
+                            UserMessageFor(kind));
                     }
                 }
+            }
+        }
+
+        /// <summary>Buckets an HTTP failure so the assistant can explain WHY it could not answer.</summary>
+        private static LlmFailureKind ClassifyFailure(HttpStatusCode status)
+        {
+            int code = (int)status;
+
+            if (status == HttpStatusCode.TooManyRequests) // 429: rate limit or free-tier quota
+                return LlmFailureKind.QuotaExceeded;
+
+            // 401 Unauthorized, 402 Payment Required, 403 Forbidden: missing/invalid/expired key or no subscription.
+            if (status == HttpStatusCode.Unauthorized || code == 402 || status == HttpStatusCode.Forbidden)
+                return LlmFailureKind.Authentication;
+
+            if (code >= 500) // provider is down or overloaded
+                return LlmFailureKind.ServiceUnavailable;
+
+            return LlmFailureKind.Other;
+        }
+
+        /// <summary>A short, safe sentence for the user. Never includes the key or the raw provider response.</summary>
+        private static string UserMessageFor(LlmFailureKind kind)
+        {
+            switch (kind)
+            {
+                case LlmFailureKind.QuotaExceeded:
+                    return "The AI assistant has hit its usage limit for now (the free-tier quota may be used up). Please try again later.";
+                case LlmFailureKind.Authentication:
+                    return "The AI assistant is not configured correctly — its access key may be missing, expired, or without an active subscription. Please contact the site owner.";
+                case LlmFailureKind.ServiceUnavailable:
+                    return "The AI provider is temporarily unavailable. Please try again in a few minutes.";
+                default:
+                    return "The AI assistant could not complete your request right now. Please try again in a moment.";
             }
         }
 

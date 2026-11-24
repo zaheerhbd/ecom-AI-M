@@ -111,6 +111,17 @@ namespace Agent
                 {
                     throw; // The caller gave up (e.g. browser closed). Nothing to report or save.
                 }
+                catch (LlmException ex)
+                {
+                    // The LLM provider itself failed (quota used up, key/subscription problem, provider down).
+                    // Show the user WHY, using the safe message the client built; keep the detail in the log only.
+                    _logger.LogError(ex, "LLM call failed ({Kind}) for session {SessionId}", ex.Kind, result.SessionId);
+                    AgentTelemetry.Errors.Add(1);
+                    if (activity != null)
+                        activity.SetStatus(ActivityStatusCode.Error, ex.Kind.ToString());
+                    result.Answer = ex.UserMessage;
+                    result.Error = "LlmException:" + ex.Kind;
+                }
                 catch (Exception ex)
                 {
                     // Never show raw exception details to users. Log them, return something polite.
