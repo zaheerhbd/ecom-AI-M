@@ -8,12 +8,13 @@ import { IAiChatResponse } from 'src/app/shared/models/aiChat';
   styleUrls: ['./ai-playground.component.scss']
 })
 export class AiPlaygroundComponent {
-  question = 'show me nike products';
+  draft = '';
+  askedQuestion: string | null = null;
   loading = false;
   result: IAiChatResponse | null = null;
   error: string | null = null;
 
-  samplePrompts = [
+  suggestions = [
     'show me boots',
     'find affordable products under 100',
     'what delivery options do you have?'
@@ -21,29 +22,35 @@ export class AiPlaygroundComponent {
 
   constructor(private aiService: AiService) { }
 
-  askQuestion() {
-    if (!this.question.trim()) {
+  ask(text?: string) {
+    const question = (text ?? this.draft).trim();
+    if (!question) {
       this.error = 'Please enter a question.';
       return;
     }
 
+    this.draft = '';
+    this.askedQuestion = question;
+    this.result = null;
     this.loading = true;
     this.error = null;
 
-    this.aiService.askQuestion(this.question).subscribe({
+    this.aiService.askQuestion(question).subscribe({
       next: (response) => {
         this.result = response;
         this.loading = false;
       },
       error: () => {
-        this.error = 'The AI-Lab endpoint could not be reached. Make sure the API is running.';
+        this.error = 'The Knowledge Chat endpoint could not be reached. Make sure the API is running.';
         this.loading = false;
       }
     });
   }
 
-  usePrompt(prompt: string) {
-    this.question = prompt;
-    this.askQuestion();
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.ask();
+    }
   }
 }

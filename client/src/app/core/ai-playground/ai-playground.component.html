@@ -1,84 +1,79 @@
-<div class="container ai-lab">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      <div class="hero-card shadow-sm">
-        <p class="eyebrow mb-2">AI-Lab</p>
-        <h1 class="mb-3">Test the AI-Lab shopping assistant</h1>
-        <p class="text-muted mb-4">
-          This page calls our new <code>/api/ai/chat</code> endpoint so we can test the AI-Lab assistant flow before building the full chat experience.
-        </p>
+<div class="row justify-content-center knowledge-chat">
+  <div class="col-lg-9 mb-3">
+    <div class="card chat-card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div>
+          <strong>Knowledge Chat <span class="text-muted">(RAG)</span></strong>
+          <small class="text-muted ml-2">searches products &amp; policies</small>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="askedQuestion = null; result = null; error = null"
+                [disabled]="loading || (!askedQuestion && !result)">
+          <i class="fa fa-plus mr-1"></i>New question
+        </button>
+      </div>
 
-        <div class="form-group mb-3">
-          <label for="ai-question" class="font-weight-bold">Ask a question</label>
-          <textarea
-            id="ai-question"
-            class="form-control question-box"
-            rows="4"
-            [(ngModel)]="question"
-            placeholder="Try: show me boots"></textarea>
+      <div class="messages">
+        <!-- Empty state -->
+        <div *ngIf="!askedQuestion" class="empty">
+          <p class="mb-2"><i class="fa fa-book fa-2x text-muted"></i></p>
+          <p class="mb-3">Ask about products, prices, delivery or returns.<br>
+            Answers are built from matching documents (retrieval-augmented generation).</p>
+          <div class="suggestions">
+            <button *ngFor="let s of suggestions" type="button" class="btn btn-sm btn-outline-primary" (click)="ask(s)">{{s}}</button>
+          </div>
         </div>
 
-        <div class="d-flex flex-wrap align-items-center gap-row mb-4">
-          <button class="btn btn-primary mr-3 mb-2" (click)="askQuestion()" [disabled]="loading">
-            {{ loading ? 'Asking...' : 'Ask AI-Lab' }}
-          </button>
-          <button
-            *ngFor="let prompt of samplePrompts"
-            class="btn btn-outline-secondary mr-2 mb-2"
-            (click)="usePrompt(prompt)"
-            [disabled]="loading">
-            {{ prompt }}
-          </button>
+        <!-- The question -->
+        <div *ngIf="askedQuestion" class="msg msg-user">
+          <div class="bubble">{{askedQuestion}}</div>
         </div>
 
-        <div *ngIf="error" class="alert alert-danger mb-0">
-          {{ error }}
+        <!-- Thinking -->
+        <div *ngIf="loading" class="msg msg-assistant">
+          <div class="bubble typing"><span></span><span></span><span></span> searching…</div>
+        </div>
+
+        <!-- The answer -->
+        <div *ngIf="result" class="msg msg-assistant">
+          <div class="bubble">
+            <span class="answer">{{result.answer}}</span>
+
+            <div *ngIf="result.followUpSuggestions?.length" class="follow-ups">
+              <button *ngFor="let s of result.followUpSuggestions" type="button"
+                      class="btn btn-sm btn-outline-primary" (click)="ask(s)">{{s}}</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error" class="msg msg-notice">
+          <i class="fa fa-exclamation-circle mr-1"></i>{{error}}
+        </div>
+
+        <!-- Sources -->
+        <div *ngIf="result?.sources?.length" class="sources">
+          <p class="sources-label"><i class="fa fa-file-text-o mr-1"></i>Sources matched for this answer</p>
+          <div class="source-item" *ngFor="let source of result.sources">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+              <strong class="mb-1">{{source.title}}</strong>
+              <span class="badge badge-pill badge-light border text-uppercase">{{source.sourceType}}</span>
+            </div>
+            <p class="source-text mb-2">{{source.text}}</p>
+            <div class="metadata-row" *ngIf="source.metadata">
+              <span class="metadata-pill" *ngFor="let item of source.metadata | keyvalue">{{item.key}}: {{item.value}}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div *ngIf="result" class="result-grid mt-4">
-        <div class="answer-card shadow-sm">
-          <p class="section-label">Answer</p>
-          <p class="answer-copy mb-0">{{ result.answer }}</p>
-        </div>
-
-        <div class="answer-card shadow-sm">
-          <p class="section-label">Follow-ups</p>
-          <div *ngIf="result.followUpSuggestions?.length; else noFollowUps">
-            <button
-              *ngFor="let suggestion of result.followUpSuggestions"
-              class="btn btn-sm btn-light border mr-2 mb-2"
-              (click)="usePrompt(suggestion)">
-              {{ suggestion }}
-            </button>
-          </div>
-          <ng-template #noFollowUps>
-            <p class="text-muted mb-0">No follow-up suggestions yet.</p>
-          </ng-template>
-        </div>
-      </div>
-
-      <div *ngIf="result?.sources?.length" class="sources-card shadow-sm mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <p class="section-label mb-1">Sources</p>
-            <p class="text-muted mb-0">These are the documents the backend matched for the answer.</p>
-          </div>
-        </div>
-
-        <div class="source-item" *ngFor="let source of result.sources">
-          <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
-            <h5 class="mb-1">{{ source.title }}</h5>
-            <span class="badge badge-pill badge-info text-uppercase">{{ source.sourceType }}</span>
-          </div>
-          <p class="mb-2">{{ source.text }}</p>
-          <div class="metadata-row" *ngIf="source.metadata">
-            <span class="metadata-pill" *ngFor="let item of source.metadata | keyvalue">
-              {{ item.key }}: {{ item.value }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <form class="composer" (ngSubmit)="ask()">
+        <textarea class="form-control" rows="2" name="draft" [(ngModel)]="draft" (keydown)="onKeydown($event)"
+                  placeholder="Ask a question… (Enter to send, Shift+Enter for a new line)"
+                  [disabled]="loading" aria-label="Question"></textarea>
+        <button type="submit" class="btn btn-primary ml-2" [disabled]="loading || !draft.trim()">
+          <i class="fa fa-paper-plane mr-1"></i>Ask
+        </button>
+      </form>
     </div>
   </div>
 </div>
