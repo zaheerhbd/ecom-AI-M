@@ -1,27 +1,86 @@
+$brand: #E95420;
+
 .cart-no {
     position: absolute;
-    min-height: 25px;
-    min-width: 25px;
-    border-radius: 50%;
-    font-size: 1em;
-    background: blue;
+    min-height: 20px;
+    min-width: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 20px;
+    background: $brand;
     color: white;
     text-align: center;
-    top: -12px;
-    right: 32px;
+    top: -8px;
+    right: 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+
+// Top navigation links
+.main-nav {
+    font-size: .95rem;
+    letter-spacing: .04em;
+
+    a {
+        position: relative;
+        padding: 6px 14px;
+        font-weight: 600;
+        color: #3a3f44;
+        transition: color .15s ease;
+
+        // Animated underline for hover + active
+        &::after {
+            content: "";
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 2px;
+            height: 2px;
+            background: $brand;
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform .18s ease;
+        }
+
+        &:hover {
+            color: $brand;
+            &::after { transform: scaleX(1); }
+        }
+
+        &.active {
+            color: $brand;
+            &::after { transform: scaleX(1); }
+        }
+    }
 }
 
 a {
     text-decoration: none;
     color: #343a40;
+}
 
-    &.active {
-        color: orange
+// Login / Sign up buttons in brand colours
+.btn-outline-secondary {
+    border-color: $brand;
+    color: $brand;
+    font-weight: 600;
+
+    &:hover {
+        background: $brand;
+        border-color: $brand;
+        color: #fff;
     }
 }
 
+.dropdown-toggle strong { color: #3a3f44; }
+
+.dropdown-item {
+    &:active { background: $brand; }
+    i { color: $brand; width: 18px; }
+}
+
 // Keep the logo small so the fixed header stays slim (about 72px tall).
-// The pages below start 72px down; see section-header and home.
 .logo {
     height: 64px;
     width: auto;

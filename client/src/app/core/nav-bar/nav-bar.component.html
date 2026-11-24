@@ -1,12 +1,12 @@
 <header class="d-flex flex-column flex-md-row align-items-center justify-content-between
      py-1 px-4 bg-white border-bottom shadow-sm fixed-top">
   <img src="/assets/images/logo.png" alt="logo" class="logo" routerLink="/">
-  <nav class="my-2 my-md-0 me-md-3 text-uppercase" style="font-size: larger;">
-    <a class="p-2" [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
-    <a class="p-2" routerLink="/shop" routerLinkActive="active">Shop</a>
-    <a class="p-2" routerLink="/agent" routerLinkActive="active">Assistant</a>
-    <a class="p-2" routerLink="/ai-lab" routerLinkActive="active">AI-Lab</a>
-    <a class="p-2" routerLink="/test-error" routerLinkActive="active">Errors</a>
+  <nav class="main-nav my-2 my-md-0 me-md-3 text-uppercase">
+    <a [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+    <a routerLink="/shop" routerLinkActive="active">Shop</a>
+    <a routerLink="/agent" routerLinkActive="active">Assistant</a>
+    <a routerLink="/ai-lab" routerLinkActive="active">Knowledge Chat</a>
+    <a routerLink="/test-error" routerLinkActive="active">Errors</a>
   </nav>
   <div class="d-flex align-items-center">
     <a routerLink='/basket' class="position-relative">

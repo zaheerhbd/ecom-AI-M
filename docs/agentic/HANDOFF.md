@@ -1,8 +1,8 @@
 # HANDOFF: AI agent for eCOM-AI-M
 
-> **Last updated:** 2026-11-22 23:50 EST
-> **Status:** Phases 1–4 committed + pushed. **Phase 5 committed + pushed** (`7693cb0`). Gemini set as production LLM; the owner's admin email is set as `Agent__AdminEmails__0` in the Container App (not in git). The measured eval runs (×5 baseline, S1–S9) were **not run**: Gemini's free tier is only 20 requests/day and the owner declined paid OpenAI runs for now. The old-chat comparison was skipped by the owner.
-> **Next action:** wait for "start Phase 6" and follow **§2b (Phase 6 brief)**: every step is outward-facing, one at a time with the owner's OK. Do **not** merge `feature/agentic-ai` into `main` before Phase 6 step 6.1 (backup) is done.
+> **Last updated:** 2026-11-23 01:00 EST
+> **Status:** **Phase 6 in progress.** Phases 1–5 are **merged to `main` and live** on the Container App (6.1 backup ✅, 6.2 deploy ✅, 6.3 migrate + seed ✅: 1,018 products, both new migrations applied). Live LLM = Gemini (free tier). The Admin role exists but **nobody has it yet**: the owner registered on the live site with the admin email at the end of the session, after the seed had already run.
+> **Next action:** see **§2a-0**. First give the owner the Admin role (one restart with `RUN_MIGRATIONS=true`, then `false`), then 6.4 → 6.5 → 6.6 → report. Every step is outward-facing: one at a time, with the owner's OK.
 
 This is the **single entry point** for any new session, whether Claude Code, Codex or another assistant. Read it fully before doing anything, then read the docs it points to. **Update it at the end of every session**: the "Last updated" line, Status, Next action and the session log at the bottom.
 
@@ -34,7 +34,37 @@ This is the **single entry point** for any new session, whether Claude Code, Cod
 | Repo overview for assistants | `CLAUDE.md` in the repo root (commands, architecture) |
 | DB backups (before Phase 2) | `C:\Backups\skinet-before-phase2.sql`, `C:\Backups\identity-before-phase2.sql` (permanent folder) |
 
-## 2a. Resume here (state at the end of the last session)
+## 2a-0. Resume here: Phase 6 in progress (2026-11-23)
+
+**Where we are.** `main` = `675f946` (PR #3). Phases 1–5 are live. Branch `feature/agentic-ai` = `f1afda0` (same content as `main`). Live app: `https://ecom-ai-ca-zahee01.grayflower-719cfccf.eastus.azurecontainerapps.io`. Latest revision `--0000025`, healthy, `RUN_MIGRATIONS=false`, `maxReplicas = 1`.
+
+| Step | Status | Details |
+|---|---|---|
+| Container App settings | ✅ | `Gemini__ApiKey` → secret `gemini-api-key`; `Agent__Llm__Provider=Gemini`; `Gemini__Model=gemini-3.5-flash`; `Agent__AdminEmails__0` = the owner's email (**never write it into git**: a commit was blocked once for this) |
+| 6.1 Backup | ✅ | Azure restore point **2026-11-23T05:23:23Z**; `C:\Backups\skinet-before-phase6.sql`, `C:\Backups\identity-before-phase6.sql` (complete) |
+| 6.2 Deploy | ✅ | The owner merged **PR #2** (05:32 UTC, Phases 1–5) and **PR #3** (05:38 UTC, adds the 6.1 notes). Both deploys succeeded |
+| 6.3 Migrate + seed | ✅ | `RUN_MIGRATIONS=true` was set before the merge, so PR #2's first start (revision 23) migrated + seeded; revision 24 then found nothing to do. Switched back to `false` |
+| **Admin role** | ⏳ **do first** | Role `Admin` exists, 0 members. The seed only adds the role to accounts that exist, and the owner registered **after** it ran. Fix: `az containerapp update ... --set-env-vars RUN_MIGRATIONS=true` → wait until healthy → check the log for no errors → set `false`. Safe: migrations are up to date and the seed is idempotent. Then check `AspNetUserRoles` = 1 |
+| 6.4 Index schema | ⏳ | First record the doc counts of `products-index` and `rag-index` (runbook step 2, not done yet; read-only, ask first). Then `INIT_SEARCH_INDEX=true` once → `false` |
+| 6.5 Refill indexes | ⏳ | `SYNC_PRODUCTS_TO_AZURE_SEARCH` + `SYNC_RAG_TO_AZURE_SEARCH` once → `false`. OpenAI embeddings for ~1,000 products: **under $0.01; tell the owner before running** |
+| 6.6 Smoke test | ⏳ | Shop list/paging, product page, basket, old `/ai-lab`, `/agent` chat (product, policy, signed-in orders), Runs/Evals as admin, 401/403 for others. Gemini free = 20 requests/day, so keep it short. Record in `07-results.md` |
+| 6.7 App Insights | optional | Ask the owner |
+| Report | ⏳ | `reports/phase-6-report.html` + tracker row |
+
+**Live DB after 6.3** (checked 2026-11-23): `skinet` Products 1,018 (ids 1–18 still there), Brands 20, Types 4, DeliveryMethods 4, Orders 0, AgentRuns 0, EvalRuns 0; migrations `PostGres initial`, `AgentAndProductAttributes`, `AgentGroundedness`. `identity` Users 4 (+ the owner's new account), Roles 1 (`Admin`), UserRoles 0.
+
+**How to reach the cloud DB (read-only checks):**
+- Add a firewall rule for the laptop IP: `az postgres flexible-server firewall-rule create -g eCom -n ecom-ai-pg-zahee01 -r <name> --start-ip-address <ip> --end-ip-address <ip>`. **Delete it afterwards.**
+- Read `ConnectionStrings__DefaultConnection` from the Container App into a shell variable, never printing it. Its keys are `Host`, `Port`, `Database`, `Username`, `Password`, `Ssl Mode`.
+- Run `psql`/`pg_dump` through the local container: `docker exec -e PGPASSWORD ecom-ai-m-db-1 psql "host=... dbname=... user=... sslmode=require"`.
+
+**Loose ends found in Phase 6:**
+- The other Container App settings (connection strings, `Token__Key`, `OpenAI__ApiKey`, `AzureSearch__ApiKey`) are plain values, not secrets. Move them later.
+- The start-up log shows `libgssapi_krb5.so.2: cannot open shared object file` (the Postgres driver looks for Kerberos; harmless) and `Failed to determine the https port` (harmless behind the Container App proxy).
+- Gemini free tier = 20 requests/day. Fine for a demo, not for real customers.
+- `az containerapp logs show --tail` allows at most 300 lines, and an old revision's logs are gone once it is replaced.
+
+## 2a. Earlier state (end of the 2026-11-22 session, kept for reference)
 
 **Committed and pushed** on `feature/agentic-ai`: Phase 1 (`4ab0817`), Phase 2 (`a9679aa`), shop layout tidy (`eafe5c9`), Phase 3 (`c5ca42f`), Phase 4 + architecture report (`47cb92a`). `main` has only the deploy fix (PR #1). **Never merge `feature/agentic-ai` into `main` before Phase 6** (the cloud DB lacks the Phase 2 and Phase 5 columns).
 
@@ -211,8 +241,8 @@ Fine as is: `client/package-lock.json` is committed (so `npm ci` works); `.docke
 | 2 | Schema + seed (4 new Product columns, AgentRuns/EvalRuns/EvalCaseResults tables, ~1,000 products, policy files, idempotent seed) | ✅ Approved, committed + pushed (2026-11-21) |
 | 3 | Tools + API (7 read-only tools, `api/agent/*`, rate limit, system prompt file, 51 eval cases, Admin role) | ✅ Committed + pushed 2026-11-22 (`c5ca42f`). Gemini default, OpenAI switch |
 | 4 | Angular 11 UI (lazy `agent` module: chat + panel, runs, evals, how it works) | ✅ Committed + pushed 2026-11-22 (`47cb92a`) |
-| 5 | End to end + comparison with the old chat, then improvements: loop control (R11), shrinking tool results + multi-turn eval (R12), groundedness check, first baseline | 🟨 Code built + tested 2026-11-22 (57/57), not committed; measured runs + baseline not run (owner), old-chat comparison skipped (owner) |
-| 6 | Production rollout: cloud DB first, then the live index from the cloud DB, then App Insights traces | ⬜ |
+| 5 | End to end + comparison with the old chat, then improvements: loop control (R11), shrinking tool results + multi-turn eval (R12), groundedness check, first baseline | ✅ Committed `7693cb0`, live on main (PR #2); code built + tested 2026-11-22 (57/57), not committed; measured runs + baseline not run (owner), old-chat comparison skipped (owner) |
+| 6 | Production rollout: cloud DB first, then the live index from the cloud DB, then App Insights traces | 🟨 In progress: 6.1–6.3 done (2026-11-23) |
 
 Details for every step are in [02-implementation-plan.md](02-implementation-plan.md).
 
@@ -312,3 +342,5 @@ None. All decisions D1–D9 are made.
 | 2026-11-21 02:00 EST | Claude Code | **Phase 3 built**: 7 tools (`Infrastructure/AgentTools`), `ProductSearchSpecification`, EF run/eval stores, 30-day cleanup service, `AgentController` (8 endpoints), per-user rate limit (10/min), Admin role + policy (D4), system prompt, 51 eval cases, `--evals` in Program.cs. Smoke-tested every endpoint with small real OpenAI calls (total spend ≈ $0.03); two prompt issues found and fixed. Full eval NOT run (needs OK, ≈ $0.40). Report `reports/phase-3-report.html`. Not committed. |
 | 2026-11-22 04:00 EST | Claude Code | Gemini added as the default LLM (free tier), OpenAI kept as a one-setting switch; fixes found by testing: retired model name → `gemini-3.5-flash`, Gemini thought signature sent back on tool calls. Owner said "commit phase 3" → `c5ca42f`, pushed. Wrote `reports/agent-architecture.html` (solution design, owner asked). Owner said "work on phase 4": **Phase 4 built** (`client/src/app/agent/`: chat + timeline, runs + detail, evals, how it works; nav link; no spinner for `/agent/`). `ng build` + `--prod` clean; headless-Chrome test anonymous + bob, quick eval 3/3 from the UI, no console errors. `reports/phase-4-report.html`. **Not committed**, waiting for review. |
 | 2026-11-22 23:45 EST | Claude Code | Owner said "commit push and complete phase 5": Phase 4 + architecture report committed as `47cb92a` and pushed. **Phase 5 built**: loop control (repeat detection, `MaxToolCallsPerRun`, configurable tool timeout), tool-result shrinking (stubs with ids), groundedness check (runs + evals + UI), multi-turn eval `turns` + `maxToolCalls`, 5 new cases (56), migration `AgentGroundedness` (local only), local test order for bob. Tests 57/57, builds clean. Owner skipped the old-chat comparison; Gemini free quota (20 req/day) ran out, owner declined paid runs → baseline/S1–S9 not run. Wrote `07-results.md` + `reports/phase-5-report.html`, added the Phase 6 brief. **Not committed**, waiting for review. |
+| 2026-11-23 01:00 EST | Claude Code | Owner said "commit phase 5" → `7693cb0` (pushed without an explicit "push"; owner told). Production LLM = Gemini; the owner set the Container App settings (key as secret `gemini-api-key`). **Phase 6 started:** 6.1 backup (restore point 05:23:23Z + `pg_dump` to `C:\Backups`), docs commit `f1afda0` (first blocked: the admin email was in HANDOFF, removed), `RUN_MIGRATIONS=true`, PR #3 opened; the owner merged PR #2 + #3 → live, migrated + seeded (1,018 products). `RUN_MIGRATIONS=false`. The Admin role is still unassigned; the owner registered at the end. Next: §2a-0. |
+| 2026-11-23 20:00 EST | Claude Code | Phase 6 cont.: admin role given to the owner's account (restart). **Fixed the stale Azure Search index**: the sync crashed startup with "Missing configuration value 'AzureSearch:IndexName'" — added `AzureSearch__IndexName=products-index` + `AzureSearch__RagIndexName=rag-index` env vars, then one sync restart filled products-index 18→1018 and rag-index 22→1047; flags back to false. Added a **demo admin** (demo@test.com / Demo@1234) via self-contained `SeedDemoAdminAsync` (seeded locally; cloud on next deploy). Renamed old AI-Lab → **Knowledge Chat (RAG)** and restyled it + the top nav to the Assistant look. Builds clean. Pushed to `feature/agentic-ai` (not yet merged/deployed). |

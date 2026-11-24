@@ -12,7 +12,7 @@ import { HomeComponent } from './home/home.component';
 const routes: Routes = [
   // When the URL is exactly "/", show the home page component.
   { path: '', component: HomeComponent, data: { breadcrumb: 'Home' } },
-  { path: 'ai-lab', component: AiPlaygroundComponent, data: { breadcrumb: 'AI-Lab' } },
+  { path: 'ai-lab', component: AiPlaygroundComponent, data: { breadcrumb: 'Knowledge Chat' } },
   { path: 'test-error', component: TestErrorComponent, data: { breadcrumb: 'Test Errors' } },
   { path: 'server-error', component: ServerErrorComponent, data: { breadcrumb: 'Server Error' } },
   { path: 'not-found', component: NotFoundComponent, data: { breadcrumb: 'Not found' } },

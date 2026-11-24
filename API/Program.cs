@@ -111,6 +111,9 @@ namespace API
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var adminEmails = services.GetRequiredService<IConfiguration>().GetSection("Agent:AdminEmails").Get<string[]>();
             await AppIdentityDbContextSeed.SeedAdminRoleAsync(roleManager, userManager, adminEmails);
+
+            // Shareable demo admin (demo@test.com / Demo@1234) for showing the admin screens.
+            await AppIdentityDbContextSeed.SeedDemoAdminAsync(roleManager, userManager);
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
