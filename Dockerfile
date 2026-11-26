@@ -17,12 +17,14 @@ COPY API/API.csproj API/
 COPY Core/Core.csproj Core/
 COPY Infrastructure/Infrastructure.csproj Infrastructure/
 COPY Agent/Agent.csproj Agent/
+COPY Agent.Framework/Agent.Framework.csproj Agent.Framework/
 RUN dotnet restore API/API.csproj
 
 COPY API/. API/
 COPY Core/. Core/
 COPY Infrastructure/. Infrastructure/
 COPY Agent/. Agent/
+COPY Agent.Framework/. Agent.Framework/
 COPY --from=client-build /src/API/wwwroot ./API/wwwroot
 
 RUN dotnet publish API/API.csproj -c Release -o /app/publish

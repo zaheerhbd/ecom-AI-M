@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Threading.RateLimiting;
 using Agent;
+using Agent.Framework;
 using Infrastructure.AgentTools;
 using Infrastructure.Data;
 using Infrastructure.Identity;
@@ -60,6 +61,11 @@ namespace API.Extensions
                 .AddTool<GetOrderTool>()      // sign-in only (IRequiresSignIn)
                 .UseRunStore<EfAgentRunStore>()
                 .UseEvalRunStore<EfEvalRunStore>();
+
+            // ---- Phase 7: the second engine, Microsoft Agent Framework ----
+            // Always registered; it is used only when Agent:Engine = "AgentFramework" (default "Custom").
+            // Same tools, model, guardrails, memory and run records, so the API answers look the same.
+            services.AddAgentFrameworkEngine();
 
             // ---- Delete runs older than 30 days (D3) ----
             services.AddHostedService<AgentRunCleanupService>();

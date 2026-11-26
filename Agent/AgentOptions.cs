@@ -12,6 +12,7 @@ namespace Agent
         public AgentOptions()
         {
             AppName = "Shop Assistant";
+            Engine = AgentEngines.Custom;
             FallbackAnswer = "Sorry, I can't help with that.";
             MaxSteps = 6;
             MaxTokensPerMessage = 20000;
@@ -27,6 +28,13 @@ namespace Agent
 
         /// <summary>The assistant's name. Used in the system prompt ({{APP_NAME}}) and in telemetry.</summary>
         public string AppName { get; set; }
+
+        /// <summary>
+        /// Which loop answers the messages (Phase 7): "Custom" (the default, our hand-written loop in
+        /// AgentRunner) or "AgentFramework" (Microsoft Agent Framework, from the Agent.Framework project).
+        /// Everything around the loop (guardrails, memory, run records, evals) is the same for both.
+        /// </summary>
+        public string Engine { get; set; }
 
         /// <summary>
         /// Path to the SYSTEM PROMPT file (the agent's job description), e.g. "Agent/system-prompt.md".

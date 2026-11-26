@@ -45,6 +45,7 @@
   "Agent": {
     "AppName": "Shop Assistant",
     "SystemPromptPath": "Agent/system-prompt.md",
+    "Engine": "Custom",
     "Llm": {
       "Provider": "Gemini"
     },
