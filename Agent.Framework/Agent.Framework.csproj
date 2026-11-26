@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PHASE 7: a second engine for the agent loop, built on MICROSOFT AGENT FRAMEWORK.
+
+    Switch it on with the setting  Agent:Engine = "AgentFramework"  (default "Custom").
+    Microsoft's ChatClientAgent then runs the think -> act -> observe loop. Everything around it
+    (guardrails, memory, run records, evals, the 7 shop tools, the model client) is the SAME code
+    as the custom engine, so the API answers look exactly the same.
+
+    Rules:
+      1. References only the Agent project (never Core, Infrastructure or API).
+      2. This is the ONLY project with the framework packages. The Agent project keeps zero NuGet packages.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Agent.Framework</RootNamespace>
+    <!-- Same classic C# 7.3 style as the Agent project (decision D10). -->
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework. Brings Microsoft.Extensions.AI (IChatClient, AIFunction, function calling). -->
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.28.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Agent\Agent.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Agent.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -59,10 +59,13 @@ namespace Agent
         private readonly AgentOptions _options;
         private readonly ILogger<AgentRunner> _logger;
 
+        // Null = our own loop below (Agent:Engine "Custom"). Otherwise another engine's loop (Phase 7).
+        private readonly IAgentLoop _externalLoop;
+
         /// <summary>All the parts the agent needs are passed in by Dependency Injection.</summary>
         public AgentRunner(ILlmClient llm, ToolRegistry tools, IConversationStore memory, AgentGuardrails guardrails,
             SystemPromptProvider systemPrompt, IAgentRunStore runStore, AgentRequestContext context,
-            IOptions<AgentOptions> options, ILogger<AgentRunner> logger)
+            IOptions<AgentOptions> options, ILogger<AgentRunner> logger, IEnumerable<IAgentLoop> loops)
         {
             _llm = llm;
             _tools = tools;
@@ -73,6 +76,26 @@ namespace Agent
             _context = context;
             _options = options.Value;
             _logger = logger;
+            _externalLoop = FindLoop(_options.Engine, loops);
+        }
+
+        /// <summary>Null for the custom engine; otherwise the registered loop with that engine name.</summary>
+        private static IAgentLoop FindLoop(string engine, IEnumerable<IAgentLoop> loops)
+        {
+            if (AgentEngines.IsCustom(engine))
+                return null;
+
+            if (loops != null)
+            {
+                foreach (IAgentLoop loop in loops)
+                {
+                    if (string.Equals(loop.EngineName, engine.Trim(), StringComparison.OrdinalIgnoreCase))
+                        return loop;
+                }
+            }
+
+            throw new InvalidOperationException("Agent:Engine is \"" + engine + "\", but no loop with that name is registered. "
+                + "Use \"" + AgentEngines.Custom + "\", or register the engine (for Agent Framework: AddAgentFrameworkEngine()).");
         }
 
         /// <summary>
@@ -83,7 +106,7 @@ namespace Agent
         {
             Stopwatch timer = Stopwatch.StartNew();
             AgentResult result = new AgentResult(Guid.NewGuid(), NormaliseSessionId(sessionId));
-            result.Model = _llm.Model;
+            result.Model = AgentEngines.ModelLabel(_llm.Model, _options.Engine);
 
             // The question we SAVE always has personal data masked, even if a guardrail blocks it later.
             result.Question = MaskForRecord(userMessage);
@@ -176,7 +199,11 @@ namespace Agent
 
             // ---- STEP 3: THE AGENT LOOP (think -> act -> observe) ----------------------
             TurnState turn = new TurnState();
-            string finalAnswer = await RunAgentLoopAsync(history, result, turn, cancellationToken);
+            string finalAnswer;
+            if (_externalLoop == null)
+                finalAnswer = await RunAgentLoopAsync(history, result, turn, cancellationToken);     // our own loop (Custom)
+            else
+                finalAnswer = await RunExternalLoopAsync(history, result, turn, cancellationToken);  // another engine (Phase 7)
 
             // ---- STEP 4: OUTPUT GUARDRAILS ----------------------------------------------
             GuardrailPipelineResult output = RunGuardrails(_guardrails.Output, finalAnswer, result);
@@ -250,6 +277,35 @@ namespace Agent
             _logger.LogWarning("Max steps ({MaxSteps}) reached for session {SessionId}", _options.MaxSteps, result.SessionId);
             result.StopReason = AgentStopReasons.MaxSteps;
             return "Sorry, I couldn't finish that. Could you rephrase or break it into smaller questions?";
+        }
+
+        /// <summary>
+        /// PHASE 7: lets another engine (e.g. Microsoft Agent Framework) run the think -> act -> observe
+        /// loop. It gets the same history, tools and limits, and records steps the same way. Afterwards
+        /// we note where its real tool results sit in the history, so they are shrunk like ours.
+        /// </summary>
+        private async Task<string> RunExternalLoopAsync(List<ChatMessage> history, AgentResult result, TurnState turn, CancellationToken cancellationToken)
+        {
+            IReadOnlyList<ToolDefinition> tools = _tools.GetDefinitions(_context);
+            AgentLoopRun run = new AgentLoopRun(this, history, result, tools, _tools, _context, _options, _llm);
+            string answer = await _externalLoop.RunAsync(run, cancellationToken);
+
+            // Find each real tool result in the history (by its call id) and note its position.
+            foreach (RanToolResult ranTool in run.ToolResults)
+            {
+                for (int i = history.Count - 1; i > 0; i--)
+                {
+                    if (history[i].Role == ChatRole.Tool && history[i].ToolCallId == ranTool.ToolCallId)
+                    {
+                        turn.ToolResultSlots.Add(new ToolResultSlot(i, ranTool.ToolCallId, ranTool.ToolName));
+                        break;
+                    }
+                }
+            }
+
+            if (answer == null)
+                return "";
+            return answer;
         }
 
         /// <summary>Makes one call to the LLM, records tokens and timing, and adds the reply to the history.</summary>
@@ -544,7 +600,7 @@ namespace Agent
         }
 
         /// <summary>Adds a new, numbered step to the result and returns it so the caller can fill it in.</summary>
-        private static AgentStep NewStep(AgentResult result, string type, string name)
+        internal static AgentStep NewStep(AgentResult result, string type, string name)
         {
             AgentStep step = new AgentStep();
             step.Index = result.Steps.Count + 1;
@@ -555,7 +611,7 @@ namespace Agent
         }
 
         /// <summary>Turns tool calls into readable text like: search_products({"type":"Hats"}).</summary>
-        private static string DescribeToolCalls(IReadOnlyList<ToolCall> toolCalls)
+        internal static string DescribeToolCalls(IReadOnlyList<ToolCall> toolCalls)
         {
             List<string> parts = new List<string>();
             foreach (ToolCall call in toolCalls)
@@ -565,7 +621,7 @@ namespace Agent
         }
 
         /// <summary>Masks personal data and shortens long text before it is saved in a run record.</summary>
-        private static string MaskForRecord(string text)
+        internal static string MaskForRecord(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return text ?? "";
@@ -603,7 +659,7 @@ namespace Agent
         /// USER message, because cutting between a tool request and its result confuses the model
         /// (and the OpenAI API rejects it).
         /// </summary>
-        private List<ChatMessage> TrimHistory(List<ChatMessage> history)
+        internal List<ChatMessage> TrimHistory(List<ChatMessage> history)
         {
             if (history.Count <= _options.MaxHistoryMessages)
                 return history;

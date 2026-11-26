@@ -28,6 +28,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent\Agent.csproj" />
+    <!-- Phase 7: tests for the Microsoft Agent Framework engine. -->
+    <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
   </ItemGroup>
 
 </Project>

@@ -38,6 +38,12 @@ namespace Agent
             IConfigurationSection section = configuration.GetSection(SectionName);
             IConfigurationSection llmSection = section.GetSection("Llm");
 
+            // Agent:Engine picks the loop (Phase 7). A typo must stop the app at startup, not on the first chat.
+            string engine = section["Engine"];
+            if (!AgentEngines.IsCustom(engine) && !AgentEngines.IsAgentFramework(engine))
+                throw new InvalidOperationException("Agent:Engine must be \"" + AgentEngines.Custom + "\" or \"" + AgentEngines.AgentFramework
+                    + "\", but it is \"" + engine + "\".");
+
             // ---- Settings ----
             services.Configure<AgentOptions>(section);
             services.PostConfigure<AgentOptions>(EnsureSafeDefaults);

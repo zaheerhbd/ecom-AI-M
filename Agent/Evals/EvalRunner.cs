@@ -344,12 +344,12 @@ namespace Agent.Evals
             return Math.Min(Math.Max(repeat, 1), MaxRepeat);
         }
 
-        /// <summary>Reads the model name from the LLM client (in a short scope).</summary>
+        /// <summary>Reads the model name from the LLM client (in a short scope), labelled with the engine.</summary>
         private string GetModelName()
         {
             using (IServiceScope scope = _scopes.CreateScope())
             {
-                return scope.ServiceProvider.GetRequiredService<ILlmClient>().Model;
+                return AgentEngines.ModelLabel(scope.ServiceProvider.GetRequiredService<ILlmClient>().Model, _options.Engine);
             }
         }
 

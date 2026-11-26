@@ -25,6 +25,8 @@
     <None Update="Agent\**\*.md" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="Agent\**\*.json" CopyToPublishDirectory="PreserveNewest" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <!-- Phase 7: second engine (Microsoft Agent Framework), chosen with Agent:Engine. -->
+    <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
   </ItemGroup>
 
 </Project>

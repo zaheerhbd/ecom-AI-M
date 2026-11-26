@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 7 Report</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text: #1f2328;
+    --muted: #5b6270;
+    --border: #e1ded5;
+    --accent: #2f5fd0;
+    --accent-soft: #e6edfb;
+    --good: #1d7a46;
+    --good-soft: #e3f3e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf0d9;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --grey-soft: #ecebe6;
+    --code-bg: #f2f1ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b;
+      --surface: #1d2026;
+      --surface-2: #252931;
+      --text: #e7e9ee;
+      --muted: #a0a7b4;
+      --border: #333844;
+      --accent: #8fb0ff;
+      --accent-soft: #23304d;
+      --good: #6fd39a;
+      --good-soft: #1d3428;
+      --warn: #f0c060;
+      --warn-soft: #3a3020;
+      --bad: #ff8f86;
+      --bad-soft: #3d2322;
+      --grey-soft: #2a2e36;
+      --code-bg: #262a32;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2026;
+    --surface-2: #252931;
+    --text: #e7e9ee;
+    --muted: #a0a7b4;
+    --border: #333844;
+    --accent: #8fb0ff;
+    --accent-soft: #23304d;
+    --good: #6fd39a;
+    --good-soft: #1d3428;
+    --warn: #f0c060;
+    --warn-soft: #3a3020;
+    --bad: #ff8f86;
+    --bad-soft: #3d2322;
+    --grey-soft: #2a2e36;
+    --code-bg: #262a32;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 0; }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+  nav.toc a::before { content: counter(toc) ". "; color: var(--muted); opacity: .7; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .theme-btn { margin-top: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  main { padding: 28px 0 80px; min-width: 0; }
+  header.hero { padding: 8px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+  section { padding-top: 36px; scroll-margin-top: 12px; }
+  h2 { font-size: 24px; margin: 0 0 12px; letter-spacing: -.005em; }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p, li { max-width: 75ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad { background: var(--bad-soft); color: var(--bad); }
+  .chip.grey { background: var(--grey-soft); color: var(--muted); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .label { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+  .callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.good { border-color: var(--good); background: var(--good-soft); }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .card .where { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .flow { list-style: none; padding: 0; margin: 16px 0; counter-reset: flow; }
+  .flow li { counter-increment: flow; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 12px 58px; margin-bottom: 26px; box-shadow: var(--shadow); max-width: none; }
+  .flow li::before { content: counter(flow); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -22px; width: 2px; height: 18px; background: var(--border); }
+  .flow li.loop { border-color: var(--accent); }
+  .flow .tag { float: right; margin-left: 10px; }
+  .flow strong { display: block; }
+  .flow span.desc { color: var(--muted); font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+  details ul { margin: 0; padding-left: 20px; }
+  details li { font-size: 15px; }
+
+  dl.glossary { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; }
+  dl.glossary dt { font-weight: 700; }
+  dl.glossary dd { margin: 0; color: var(--text); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    nav.toc { position: static; max-height: none; padding: 16px 0 0; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { padding: 4px 8px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 27px; }
+    dl.glossary { grid-template-columns: 1fr; gap: 2px; }
+    dl.glossary dd { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      <li><a href="#summary">In one minute</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#switch">How to switch engines</a></li>
+      <li><a href="#same">Same and different</a></li>
+      <li><a href="#packages">What was added (NuGet)</a></li>
+      <li><a href="#tested">What I tested</a></li>
+      <li><a href="#changes">Files changed</a></li>
+      <li><a href="#plan">Changes from the plan</a></li>
+      <li><a href="#next">What's next</a></li>
+    </ol>
+    <button class="theme-btn" type="button" id="themeBtn">Switch light / dark</button>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">eCOM-AI-M · Agentic AI · Phase 7</p>
+      <h1>Phase 7: Microsoft Agent Framework as a second engine</h1>
+      <p class="lede">The shop assistant can now run on Microsoft Agent Framework instead of our hand-written loop. One setting picks the engine. The API, the website and the database are unchanged, and both engines share the same tools, model, guardrails, memory, run records and evals.</p>
+      <div class="chips">
+        <span class="chip warn">Waiting for your code review</span>
+        <span class="chip good">Build: 0 errors</span>
+        <span class="chip good">73 of 73 tests pass</span>
+        <span class="chip good">Live Gemini check passed</span>
+        <span class="chip grey">Not committed</span>
+        <span class="chip info">Branch: feature/agentic-ai</span>
+      </div>
+    </header>
+
+    <section id="summary">
+      <h2>In one minute</h2>
+      <div class="stats">
+        <div class="stat"><div class="value">1</div><div class="label">setting to switch: <code>Agent:Engine</code></div></div>
+        <div class="stat"><div class="value">0</div><div class="label">changes to the API, website or database</div></div>
+        <div class="stat"><div class="value">16</div><div class="label">new tests (73 in total, all free)</div></div>
+        <div class="stat"><div class="value">1</div><div class="label">NuGet package added, in one project only</div></div>
+      </div>
+      <ul>
+        <li><strong>What it is:</strong> Microsoft's <code>ChatClientAgent</code> now runs the "ask the AI → run tools → repeat" loop when <code>Agent:Engine</code> is <code>AgentFramework</code>. The default, <code>Custom</code>, is our own loop, exactly as before.</li>
+        <li><strong>Only the loop is swapped.</strong> Everything around it (guardrails, the "is this your chat?" check, memory, the made-up-numbers check, run records, error messages) is the same code for both engines.</li>
+        <li><strong>Works with every model we support:</strong> Gemini, OpenAI, Azure OpenAI and the free Fake model. Tested live with Gemini.</li>
+        <li><strong>You can tell them apart</strong> on the Runs and Evals pages: framework runs show the model as <code>gemini-3.5-flash (Agent Framework)</code>.</li>
+      </ul>
+      <div class="callout good">
+        <p><strong>The main risk is cleared.</strong> Gemini needs its "thought signature" sent back after a tool call. Because the framework talks to the model through <em>our</em> model client, which already handles this, the live Gemini test worked first time.</p>
+      </div>
+    </section>
+
+    <section id="how">
+      <h2>How it works</h2>
+      <p>The agent's work for one message has an outside part and an inside part. Phase 7 makes only the <strong>inside part</strong> replaceable:</p>
+      <ol class="flow">
+        <li><strong>Input guardrails</strong> <span class="chip grey tag">shared</span><span class="desc">Length limit, prompt-injection check, personal data masked.</span></li>
+        <li><strong>Load memory and check the chat belongs to you</strong> <span class="chip grey tag">shared</span><span class="desc">Same memory store for both engines, so a chat could even change engine between messages.</span></li>
+        <li class="loop"><strong>The loop</strong> <span class="chip info tag">swappable</span><span class="desc"><em>Custom:</em> <code>AgentRunner</code>'s own loop. <em>AgentFramework:</em> Microsoft's <code>ChatClientAgent</code> + <code>FunctionInvokingChatClient</code>, calling our model through <code>LlmChatClient</code> and our tools through <code>ShopToolFunction</code>.</span></li>
+        <li><strong>Output guardrails and the made-up-numbers check</strong> <span class="chip grey tag">shared</span><span class="desc">Secret-leak check, personal data masked, prices and stock checked against tool data.</span></li>
+        <li><strong>Save memory (old tool results shrunk) and the run record</strong> <span class="chip grey tag">shared</span><span class="desc">Same JSON answer, same Runs page, same Evals page.</span></li>
+      </ol>
+      <h3>The four new pieces</h3>
+      <div class="cards">
+        <div class="card"><h3>LlmChatClient</h3><p>Shows our model client to the framework as Microsoft's <code>IChatClient</code>. It records each AI call as a step (tokens, time), enforces the token budget and the tool-call limit, and keeps the same trace spans and metrics.</p><p class="where">Agent.Framework/LlmChatClient.cs</p></div>
+        <div class="card"><h3>ShopToolFunction</h3><p>Shows each of our 7 tools to the framework as an <code>AIFunction</code>. It runs them through our <code>ToolRegistry</code>, so the sign-in rule, the 10-second timeout and repeat detection still apply.</p><p class="where">Agent.Framework/ShopToolFunction.cs</p></div>
+        <div class="card"><h3>MessageMapper</h3><p>Translates chat messages between our format and Microsoft's, keeping the exact tool arguments and Gemini's extra data on the way round.</p><p class="where">Agent.Framework/MessageMapper.cs</p></div>
+        <div class="card"><h3>FrameworkAgentLoop</h3><p>Builds the framework agent for one message, runs it, and adds the new messages to our history. It also closes any tool request the framework left unanswered.</p><p class="where">Agent.Framework/FrameworkAgentLoop.cs</p></div>
+      </div>
+    </section>
+
+    <section id="switch">
+      <h2>How to switch engines</h2>
+<pre><code>// appsettings (local)
+"Agent": { "Engine": "AgentFramework" }      // or "Custom" (the default)
+
+# Azure Container App (production) — environment variable
+Agent__Engine=AgentFramework</code></pre>
+      <ul>
+        <li>No rebuild is needed: both engines are always in the app. A restart picks up the setting.</li>
+        <li>A typo (e.g. <code>"Magic"</code>) stops the app at startup with a clear message, rather than failing on the first chat.</li>
+        <li>The model provider setting (<code>Agent:Llm:Provider</code>) is the same for both engines.</li>
+        <li><strong>Production still uses <code>Custom</code></strong> until you set the variable on the Container App.</li>
+      </ul>
+    </section>
+
+    <section id="same">
+      <h2>Same and different</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Topic</th><th>Custom engine</th><th>Agent Framework engine</th></tr>
+        <tr><td>API answer (JSON)</td><td colspan="2">Identical shape. A test runs the same script through both and compares answer, tools, steps, tokens and cost.</td></tr>
+        <tr><td>Tools offered</td><td colspan="2">The same 7, with the same descriptions. Anonymous users never see <code>get_my_orders</code> / <code>get_order</code>.</td></tr>
+        <tr><td>Repeated call / 10-call cap / token budget</td><td colspan="2">Same rules, same messages, same stop reasons.</td></tr>
+        <tr><td>Guardrails, memory, made-up-numbers check</td><td colspan="2">Same code (it runs outside the loop).</td></tr>
+        <tr><td>Step limit (<code>MaxSteps</code>, 6 AI calls)</td><td>After 6 calls it apologises: "Sorry, I couldn't finish that…"</td><td>Same cap of 6 calls, but on the last call the framework removes the tools, so the AI gives its <strong>best answer</strong> instead. Stop reason <code>max-steps</code> in both.</td></tr>
+        <tr><td>Who decides the order of work</td><td>Our code</td><td>Microsoft's <code>FunctionInvokingChatClient</code></td></tr>
+        <tr><td>Model label on runs</td><td><code>gemini-3.5-flash</code></td><td><code>gemini-3.5-flash (Agent Framework)</code> (always fits the 50-character column)</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="packages">
+      <h2>What was added (NuGet)</h2>
+      <p>One package, <code>Microsoft.Agents.AI</code> <strong>1.28.0</strong>, only in the new <code>Agent.Framework</code> project. The <code>Agent</code> project (your hand-written engine) still has <strong>zero</strong> NuGet packages. With its dependencies, the app gets 11 new DLLs (about 3.9 MB):</p>
+      <div class="table-wrap">
+      <table>
+        <tr><th>DLL</th><th>Why</th></tr>
+        <tr><td><code>Microsoft.Agents.AI</code>, <code>Microsoft.Agents.AI.Abstractions</code></td><td>The framework: <code>ChatClientAgent</code>, sessions, responses</td></tr>
+        <tr><td><code>Microsoft.Extensions.AI</code>, <code>Microsoft.Extensions.AI.Abstractions</code></td><td><code>IChatClient</code>, <code>AIFunction</code>, the function-calling loop</td></tr>
+        <tr><td><code>Microsoft.Extensions.AI.Evaluation</code>, <code>Microsoft.Extensions.Compliance.Abstractions</code>, <code>Microsoft.Extensions.VectorData.Abstractions</code>, <code>Microsoft.ML.Tokenizers</code>, <code>Google.Protobuf</code>, <code>System.Numerics.Tensors</code>, <code>System.Memory.Data</code></td><td>Come along with the framework; we don't call them</td></tr>
+      </table>
+      </div>
+      <div class="callout"><p><strong>Smaller than first planned.</strong> The plan used <code>Microsoft.Agents.AI.OpenAI</code>, which also brings the OpenAI SDK (15 DLLs, about 9.6 MB). Plugging the framework into our own model client made that unnecessary, and it is also what fixed the Gemini risk.</p></div>
+    </section>
+
+    <section id="tested">
+      <h2>What I tested</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Check</th><th>Result</th></tr>
+        <tr><td><code>dotnet build eCom.sln</code></td><td><span class="chip good">0 errors</span> (the same 5 old warnings in API code)</td></tr>
+        <tr><td><code>dotnet test Agent.Tests</code></td><td><span class="chip good">73 / 73 pass</span>: the 57 old tests unchanged, plus 16 new</td></tr>
+        <tr><td>New tests (free, scripted Fake model)</td><td>Same answer shape as Custom · sign-in tools hidden and refused · signed-in user gets own orders · input and output guardrails · repeat detection · 10-call cap · step limit · token budget · memory across messages with shrinking · Gemini extra data sent back · provider error message · bad engine name · missing registration · label length</td></tr>
+        <tr><td>Real API + local Postgres, Fake model</td><td><span class="chip good">OK</span>: <code>list_catalog_filters</code> and <code>get_delivery_options</code> ran against the real database; a follow-up in the same chat worked; both runs saved with model <code>fake-model (Agent Framework)</code>; <code>/api/agent/info</code> shows the label</td></tr>
+        <tr><td>Real API, <strong>live Gemini</strong></td><td><span class="chip good">OK</span>: "Show me navy hats under $30" → <code>search_products {maxPrice: 30, type: Hats, color: Navy}</code> → 5 hats, $14.00–$29.99. 6 prices checked, 0 made up. 2 AI calls, 25 s, $0 (free tier)</td></tr>
+        <tr><td>Website</td><td><span class="chip grey">not needed</span>: no client changes; the timeline gets the same JSON</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="changes">
+      <h2>Files changed</h2>
+      <details open><summary>New project: Agent.Framework (C# 7.3, about 640 lines incl. comments)</summary><div><ul>
+        <li><code>Agent.Framework.csproj</code>: <code>Microsoft.Agents.AI</code> 1.28.0; references Agent only</li>
+        <li><code>FrameworkAgentLoop.cs</code>, <code>LlmChatClient.cs</code>, <code>ShopToolFunction.cs</code>, <code>MessageMapper.cs</code>, <code>ServiceCollectionExtensions.cs</code> (<code>AddAgentFrameworkEngine()</code>)</li>
+      </ul></div></details>
+      <details open><summary>Engine (Agent project, small changes)</summary><div><ul>
+        <li><code>Agent/IAgentLoop.cs</code> (new): <code>AgentEngines</code> (names + model label), <code>IAgentLoop</code>, <code>AgentLoopRun</code> (what a loop gets, plus step/token helpers)</li>
+        <li><code>Agent/AgentRunner.cs</code>: picks the loop from <code>Agent:Engine</code>; calls the plug-in loop in step 3; three helpers became <code>internal</code>. <strong>The custom loop itself is unchanged.</strong></li>
+        <li><code>Agent/AgentOptions.cs</code>: <code>Engine</code> (default <code>Custom</code>)</li>
+        <li><code>Agent/ServiceCollectionExtensions.cs</code>: startup check for the engine name</li>
+        <li><code>Agent/Evals/EvalRunner.cs</code>: eval runs get the same model label</li>
+      </ul></div></details>
+      <details><summary>API, build and tests</summary><div><ul>
+        <li><code>API/API.csproj</code>: reference to Agent.Framework</li>
+        <li><code>API/Extensions/AgentServiceExtensions.cs</code>: <code>AddAgentFrameworkEngine()</code></li>
+        <li><code>API/Controllers/AgentController.cs</code>: <code>/info</code> shows the labelled model (same field)</li>
+        <li><code>API/appsettings.Production.json.example</code>: <code>"Engine": "Custom"</code></li>
+        <li><code>eCom.sln</code>: new project · <code>Dockerfile</code>: 2 COPY lines (with your OK)</li>
+        <li><code>Agent.Tests/FrameworkEngineTests.cs</code> (new, 16 tests) · <code>Agent.Tests.csproj</code>: reference</li>
+      </ul></div></details>
+      <details><summary>Docs</summary><div><ul>
+        <li><code>docs/agentic/10-agent-framework-path.md</code> (plan, updated with what was built), tracker, handoff, this report</li>
+      </ul></div></details>
+    </section>
+
+    <section id="plan">
+      <h2>Changes from the plan</h2>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Plan said</th><th>What happened</th><th>Why</th></tr>
+        <tr><td>New <code>IAgentEngine</code>; controller and eval runner switch to it</td><td>The <strong>loop</strong> is pluggable inside <code>AgentRunner</code> (<code>IAgentLoop</code>); controller and eval runner are unchanged</td><td>Less code, and the outside steps can't drift apart between engines: there is only one copy of them</td></tr>
+        <tr><td>Package <code>Microsoft.Agents.AI.OpenAI</code> + an OpenAI-SDK chat client</td><td>Only <code>Microsoft.Agents.AI</code>; the framework uses our own model client</td><td>Fixes the Gemini thought-signature risk, keeps the Fake model for free tests, 4 fewer DLLs</td></tr>
+        <tr><td>Map <code>MaxSteps</code> to the framework's limit</td><td>Framework limit = <code>MaxSteps − 1</code></td><td>Found by testing: the framework counts tool rounds and then adds one tool-less call. This keeps the same cap of AI calls</td></tr>
+        <tr><td>Use the framework's "terminate" for the tool-call cap</td><td>The model adapter answers politely itself instead</td><td>"Terminate" can skip later tool requests and leave them without a result, which breaks the next message</td></tr>
+        <tr><td>Compare both engines on the 56 eval cases (7.8)</td><td>Not run yet</td><td>Needs about 300 AI calls: more than free Gemini allows, about $0.80–1.50 on OpenAI. Waiting for your OK</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>What's next</h2>
+      <ol class="flow">
+        <li><strong>Your code review</strong><span class="desc">Then "commit phase 7" (and "push" if you want it on GitHub).</span></li>
+        <li><strong>Optional: compare the engines</strong><span class="desc">Run the evals on both engines (OpenAI, about $0.80–1.50), or a few cases a day on free Gemini, and write the numbers into 07-results.md.</span></li>
+        <li><strong>Optional: try it live</strong><span class="desc">After the merge and deploy, set <code>Agent__Engine=AgentFramework</code> on the Container App; set it back to <code>Custom</code> to undo. No database change either way.</span></li>
+      </ol>
+      <footer>Phase 7 report · written 2026-11-26 · eCOM-AI-M agentic AI project</footer>
+    </section>
+  </main>
+</div>
+
+<script>
+  // Highlight the section you are reading in the contents list.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var byId = {};
+    links.forEach(function (link) { byId[link.getAttribute('href').slice(1)] = link; });
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  })();
+
+  // Light / dark switch, remembered in this browser when possible.
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('phase-report-theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme');
+      if (!current) current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('phase-report-theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

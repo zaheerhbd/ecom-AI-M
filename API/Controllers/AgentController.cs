@@ -91,7 +91,7 @@ namespace API.Controllers
             return Ok(new
             {
                 appName = _options.AppName,
-                model = _llm.Model,
+                model = AgentEngines.ModelLabel(_llm.Model, _options.Engine), // e.g. "gemini-3.5-flash (Agent Framework)"
                 maxSteps = _options.MaxSteps,
                 maxHistoryMessages = _options.MaxHistoryMessages,
                 maxInputChars = _options.MaxInputChars,
